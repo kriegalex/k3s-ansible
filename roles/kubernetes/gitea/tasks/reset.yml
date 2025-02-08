@@ -1,0 +1,31 @@
+---
+- name: Uninstall gitea (helm)
+  kubernetes.core.helm:
+    name: "{{ gitea_release_name }}"
+    release_namespace: "{{ gitea_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - gitea
+
+- name: Delete Cluster
+  kubernetes.core.k8s:
+    state: absent
+    kind: Cluster
+    name: gitea-db
+    namespace: "{{ gitea_namespace }}"
+  when: gitea_postgresql_source == "cloudnativepg"
+  tags:
+    - reset
+    - gitea
+
+- name: Delete Gitea admin secret
+  kubernetes.core.k8s:
+    state: absent
+    kind: Secret
+    name: "{{ gitea_admin_secret_name }}"
+    namespace: "{{ gitea_namespace }}"
+  tags:
+    - reset
+    - gitea

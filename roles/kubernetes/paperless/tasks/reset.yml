@@ -1,0 +1,19 @@
+---
+- name: Uninstall actual_budget (helm)
+  kubernetes.core.helm:
+    name: "{{ paperless_release_name }}"
+    release_namespace: "{{ paperless_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup
+
+- name: Delete Cluster
+  kubernetes.core.k8s:
+    state: absent
+    kind: Cluster
+    name: paperless-db
+    namespace: "{{ paperless_namespace }}"
+  when: paperless_database_source == "cloudnativepg"
+  tags:
+    - cleanup

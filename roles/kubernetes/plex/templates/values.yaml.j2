@@ -1,0 +1,54 @@
+# roles/plex/templates/values.yaml.j2
+image:
+  registry: index.docker.io
+  repository: plexinc/pms-docker
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: {{ plex_ingress_enabled | bool | lower }}
+{% if plex_ingress_enabled %}
+  ingressClassName: {{ plex_ingress_class_name }}
+  url: "https://{{ plex_ingress_subdomain }}.{{ ingress_nginx_domain_name }}"
+  annotations:
+{{ plex_annotations | to_nice_yaml(indent=2) | indent(4, first=true) }}
+{% endif %}
+
+pms:
+  storageClassName: {{ plex_storage_class }}
+  configStorage: {{ plex_config_size }}
+  gpu:
+    nvidia:
+      enabled: {{ plex_nvidia_gpu_enabled | bool | lower }}
+  resources:
+{{ plex_resources | to_nice_yaml(indent=2) | indent(4, first=true) }}
+
+service:
+  type: {{ plex_service_type }}
+  port: 32400
+
+{% if plex_media_volumes %}
+extraVolumeMounts:
+{% for volume in plex_media_volumes %}
+  - name: {{ volume.name }}
+    mountPath: {{ volume.mount_path }}
+{% endfor %}
+
+extraVolumes:
+{% for volume in plex_media_volumes %}
+  - name: {{ volume.name }}
+    persistentVolumeClaim:
+      claimName: {{ volume.claim_name }}
+{% endfor %}
+{% endif %}
+
+extraEnv:
+{% if plex_claim_token %}
+  PLEX_CLAIM: "{{ plex_claim_token }}"
+{% endif %}
+  TZ: "{{ plex_timezone }}"
+
+{% if plex_affinity %}
+affinity:
+{{ plex_affinity | to_nice_yaml(indent=2) | indent(2, first=true) }}
+{% endif %}

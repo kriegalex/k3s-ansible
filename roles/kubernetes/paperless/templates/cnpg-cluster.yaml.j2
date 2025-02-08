@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: paperless-db
+  namespace: {{ paperless_namespace }}
+spec:
+  instances: {{ paperless_database_replicas }}
+  primaryUpdateStrategy: unsupervised
+  storage:
+    size: 10Gi
+    storageClass: {{ paperless_postgresql_storage_class }}
+  bootstrap:
+    initdb:
+      database: {{ paperless_database_name }}
+      owner: {{ paperless_database_user }}
+      secret:
+        name: paperless-db-credentials

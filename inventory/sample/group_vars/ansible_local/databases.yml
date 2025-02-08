@@ -1,0 +1,3 @@
+# group_vars/ansible_local/databases.yml
+---
+cloudnative_pg_enabled: false

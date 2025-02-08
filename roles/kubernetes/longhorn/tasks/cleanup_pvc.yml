@@ -1,0 +1,75 @@
+---
+- name: Remove PVCs for specific storage class
+  block:
+    # Add pre-check for required variable
+    - name: Verify required variables are defined
+      assert:
+        that:
+          - storage_class_name is defined
+        fail_msg: "storage_class_name variable must be defined"
+
+    # Improved namespace gathering with error handling
+    - name: Get all namespaces
+      kubernetes.core.k8s_info:
+        kind: Namespace
+        api_version: v1
+      register: namespaces
+      
+    - name: Get PVCs from all namespaces
+      kubernetes.core.k8s_info:
+        kind: PersistentVolumeClaim
+        api_version: v1
+        namespace: "{{ item.metadata.name }}"
+      register: pvcs
+      loop: "{{ namespaces.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
+
+    # # Debug task to understand the structure (optional)
+    # - name: Debug non-empty results
+    #   debug:
+    #     msg: "Namespace: {{ item.item }}, PVCs: {{ item.resources }}"
+    #   loop: "{{ pvcs.results }}"
+    #   when: item.resources | length > 0
+    #   loop_control:
+    #     label: "{{ item.item }}"
+
+    - name: Filter PVCs by storage class and create deletion list
+      set_fact:
+        pvcs_to_delete: >-
+          {{
+            (pvcs_to_delete | default([])) +
+            [{
+              'name': pvc.metadata.name,
+              'namespace': pvc.metadata.namespace
+            }]
+          }}
+      loop: "{{ pvcs.results | selectattr('resources', 'defined') | map(attribute='resources') | flatten | list }}"
+      loop_control:
+        loop_var: pvc
+        label: "{{ pvc.metadata.name }}"
+      when: 
+        - pvc.spec.storageClassName is defined
+        - pvc.spec.storageClassName == storage_class_name
+
+    # - name: Show PVCs to be deleted
+    #   debug:
+    #     msg: "Will delete PVC {{ item.name }} in namespace {{ item.namespace }}"
+    #   loop: "{{ pvcs_to_delete | default([]) }}"
+    #   when: pvcs_to_delete is defined
+
+    - name: Delete filtered PVCs
+      kubernetes.core.k8s:
+        kind: PersistentVolumeClaim
+        api_version: v1
+        name: "{{ item.name }}"
+        namespace: "{{ item.namespace }}"
+        state: absent
+      loop: "{{ pvcs_to_delete | default([]) }}"
+      when: 
+        - pvcs_to_delete is defined
+        - pvcs_to_delete | length > 0
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "An error occurred while trying to delete PVCs: {{ ansible_failed_result }}"

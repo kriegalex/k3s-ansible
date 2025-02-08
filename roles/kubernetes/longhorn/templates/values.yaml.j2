@@ -322,17 +322,17 @@ longhornUI:
 
 ingress:
   # -- Setting that allows Longhorn to generate ingress records for the Longhorn UI service.
-  enabled: {{ longhorn.dashboard.enabled | default(false) }}
+  enabled: {{ longhorn_dashboard_enabled | default(false) }}
 
   # -- IngressClass resource that contains ingress configuration, including the name of the Ingress controller.
   # ingressClassName can replace the kubernetes.io/ingress.class annotation used in earlier Kubernetes releases.
-  ingressClassName: {{ ingress_nginx.ingress_class | default('nginx') }}
+  ingressClassName: {{ ingress_nginx_class | default('nginx') }}
 
   # -- Hostname of the Layer 7 load balancer.
-  host: {{ longhorn.dashboard.domain | default('longhorn.k3s.local') }}
+  host: "{{ (longhorn_dashboard_subdomain + '.' + ingress_nginx_domain_name) | default('longhorn.k3s.local') }}"
 
   # -- Setting that allows you to enable TLS on ingress records.
-  tls: false
+  tls: {{ longhorn_dashboard_tls | default(false) }}
 
   # -- Setting that allows you to enable secure connections to the Longhorn UI service via port 443.
   secureBackends: false
@@ -352,6 +352,9 @@ ingress:
   ## If tls is set to true, annotation ingress.kubernetes.io/secure-backends: "true" will automatically be set
   # -- Ingress annotations in the form of key-value pairs.
   annotations:
+    {% if longhorn_dashboard_tls -%}
+    cert-manager.io/cluster-issuer: {{ letsencrypt_env_tag }}
+    {% endif %}
   #  kubernetes.io/ingress.class: nginx
   #  kubernetes.io/tls-acme: true
 

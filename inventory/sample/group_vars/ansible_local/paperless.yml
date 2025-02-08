@@ -1,0 +1,21 @@
+# group_vars/ansible_local/paperless.yml
+---
+paperless_enabled: true
+paperless_image_tag: "2.11.2"
+paperless_app_trusted_proxies: "10.42.0.0/16"
+paperless_admin_mail: "admin@example.com"
+
+paperless_media_storage_size: "50Gi"
+# change if you disabled nfs-client
+paperless_media_storage_class: "nfs-client"
+paperless_nfs_use_enabled: true
+paperless_nfs_server: 10.0.0.2
+paperless_nfs_base_path: /mnt/user/paperless
+
+paperless_subdomain: "paperless"
+# paperless_app_domain: "paperless.kube.home" # override if needed
+
+# internal | cloudnativepg , internal if you disabled cloudnativepg
+paperless_database_source: "cloudnativepg"
+# change if you disabled longhorn
+paperless_postgresql_storage_class: "longhorn-single-replica"

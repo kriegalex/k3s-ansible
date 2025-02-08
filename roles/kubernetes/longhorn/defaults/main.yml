@@ -1,0 +1,10 @@
+---
+longhorn_enabled: true
+longhorn_namespace: longhorn-system
+longhorn_chart_version: 1.6.0
+longhorn_dashboard_enabled: true
+longhorn_dashboard_subdomain: "longhorn"
+longhorn_dashboard_tls: false
+longhorn_minio_backup_enabled: false
+longhorn_minio_backup_key: ""
+longhorn_minio_backup_secret: ""

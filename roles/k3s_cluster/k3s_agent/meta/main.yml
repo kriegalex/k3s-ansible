@@ -12,7 +12,7 @@ argument_specs:
 
       group_name_master:
         description: Name of the master group
-        default: master
+        default: k3s_servers
 
       k3s_token:
         description: Token used to communicate between masters

@@ -1,0 +1,50 @@
+# roles/k3s-nfs/tasks/main.yml
+---
+
+- name: Create PersistentVolumes for NFS shares
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "nfs-{{ item.name }}"
+        annotations:
+          description: "{{ item.description }}"
+      spec:
+        capacity:
+          storage: "{{ item.size }}"
+        accessModes:
+          - "{{ item.access_mode | default(nfs_pvc_access_mode) }}"
+        persistentVolumeReclaimPolicy: "{{ item.reclaim_policy | default(nfs_pvc_reclaim_policy) }}"
+        nfs:
+          server: "{{ nfs_pvc_server }}"
+          path: "{{ item.path | default(nfs_pvc_root_path ~ '/' ~ item.name) }}"
+        mountOptions:
+          - nfsvers=4.2
+          - hard
+          - noatime
+  loop: "{{ nfs_pvc_shares }}"
+  tags: [storage, pv]
+
+- name: Create PersistentVolumeClaims for NFS shares
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "nfs-{{ item.name }}"
+        namespace: default
+        annotations:
+          description: "{{ item.description }}"
+      spec:
+        accessModes:
+          - "{{ item.access_mode | default(nfs_pvc_access_mode) }}"
+        resources:
+          requests:
+            storage: "{{ item.size }}"
+        volumeName: "nfs-{{ item.name }}"  # Explicitly bind to PV
+        storageClassName: ""  # Important: Disable dynamic provisioning
+  loop: "{{ nfs_pvc_shares }}"
+  tags: [storage, pvc]

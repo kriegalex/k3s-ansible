@@ -1,0 +1,5 @@
+# roles/intel_gpu_setup/defaults/main.yml
+---
+intel_gpu_plugin_enabled: false
+# Version of the Intel Device Plugins to use
+intel_gpu_plugin_app_version: "v0.30.0"

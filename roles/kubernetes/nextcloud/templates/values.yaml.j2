@@ -1,0 +1,154 @@
+image:
+  repository: nextcloud
+  flavor: fpm
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: {{ nextcloud_ingress_enabled }}
+  className: {{ nextcloud_ingress_class_name }}
+  annotations:
+    {% if nextcloud_ingress_annotations -%}
+{{ nextcloud_ingress_annotations | to_nice_yaml(indent=2) | indent(4) }}
+    {%- endif %}
+  {%- if nextcloud_ingress_tls_enabled and nextcloud_ingress_tls_secret_name is defined %}
+  tls:
+    - secretName: {{ nextcloud_ingress_tls_secret_name }}
+      hosts:
+        - {{ nextcloud_host }}
+  {% endif -%}
+  path: /
+  pathType: Prefix
+
+phpClientHttpsFix:
+  enabled: true
+  protocol: https
+
+nextcloud:
+  host: {{ nextcloud_host }}
+  username: {{ nextcloud_admin_user }}
+  password: {{ vault_nextcloud_admin_password }}
+  existingSecret:
+    enabled: false
+  extraEnv:
+    - name: TRUSTED_PROXIES
+      value: {{ nextcloud_trusted_proxies }}
+
+nginx:
+  ## You need to set an fpm version of the image for nextcloud if you want to use nginx!
+  enabled: true
+
+internalDatabase:
+  enabled: {{ nextcloud_postgresql_source == 'internal' }}
+  name: {{ nextcloud_postgresql_database }}
+
+##
+## External database configuration
+##
+externalDatabase:
+  enabled: {{ nextcloud_postgresql_source in ['external', 'cloudnativepg'] }}
+  
+  ## Supported database engines: mysql or postgresql
+  type: postgresql
+  
+  ## Database host
+  {% if nextcloud_postgresql_source == 'external' -%}
+  host: nextcloud-postgresql
+  {% elif nextcloud_postgresql_source == 'cloudnativepg' -%}
+  host: nextcloud-db-rw
+  {% endif %}
+
+  user: {{ nextcloud_postgresql_username }}
+  password: {{ vault_nextcloud_db_password }}
+  database: {{ nextcloud_postgresql_database }}
+
+postgresql:
+  enabled: {{ nextcloud_postgresql_source == 'external' }}
+  global:
+    postgresql:
+      auth:
+        username: {{ nextcloud_postgresql_username }}
+        password: {{ vault_nextcloud_db_password }}
+        database: {{ nextcloud_postgresql_database }}
+  primary:
+    persistence:
+      enabled: true
+      storageClass: {{ nextcloud_postgresql_storage_class }}
+      size: 8Gi
+
+redis:
+  enabled: {{ nextcloud_redis_enabled }}
+  auth:
+    enabled: true
+    password: {{ vault_nextcloud_redis_password }}
+  architecture: standalone # standalone if only 1 master pod
+  master:
+    persistence:
+      enabled: true
+      storageClass: {{ nextcloud_redis_storage_class }}
+    {% if nextcloud_redis_affinity_enabled -%}
+    # Add affinity rules for Redis to co-locate with Nextcloud
+    affinity:
+      podAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: nextcloud
+            topologyKey: kubernetes.io/hostname
+    {% endif %}
+
+collabora:
+  enabled: {{ nextcloud_collabora_enabled }}
+  collabora:
+    server_name: {{ nextcloud_collabora_host }}
+    extra_params: {{ nextcloud_collabora_extra_params }}
+    password: {{ vault_nextcloud_collabora_password }}
+    username: {{ nextcloud_collabora_username }}
+    aliasgroups:
+      - host: "https://{{ nextcloud_host }}"
+  ingress:
+    enabled: {{ nextcloud_collabora_ingress_enabled }}
+    className: {{ nextcloud_collabora_ingress_class_name }}
+    hosts:
+      - host: {{ nextcloud_collabora_host }}
+        paths:
+        - path: /
+          pathType: Prefix
+
+service:
+  type: ClusterIP
+  port: 8080
+
+persistence:
+  enabled: {{ nextcloud_persistence_enabled }}
+  storageClass: {{ nextcloud_persistence_storage_class }}
+  accessMode: ReadWriteOnce
+  size: {{ nextcloud_persistence_size }}
+
+  nextcloudData:
+    enabled: {{ nextcloud_persistence_data_enabled }}
+    existingClaim: {{ nextcloud_persistence_data_existing_claim }}
+
+resources:
+{{ nextcloud_resources | to_nice_yaml(indent=2) | indent(2, first=true) }}
+
+livenessProbe:
+  enabled: {{ nextcloud_liveness_probe_enabled }}
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: {{ nextcloud_readiness_probe_enabled }}
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+metrics:
+  enabled: {{ nextcloud_metrics_enabled }}
+
+cronjob:
+  enabled: {{ nextcloud_cronjob_enabled }}

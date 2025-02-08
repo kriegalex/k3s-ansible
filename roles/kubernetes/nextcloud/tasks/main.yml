@@ -1,0 +1,73 @@
+---
+
+- name: Validate PostgreSQL source configuration
+  ansible.builtin.assert:
+    that:
+      - nextcloud_postgresql_source in ['internal', 'external', 'cloudnativepg']
+    fail_msg: "Invalid postgresql source '{{ nextcloud_postgresql_source }}'. \
+               Must be one of: internal, external, or cloudnativepg"
+    success_msg: "PostgreSQL source '{{ nextcloud_postgresql_source }}' is valid"
+
+- name: Add nextcloud Helm repository
+  kubernetes.core.helm_repository:
+    name: "nextcloud"
+    url: "https://nextcloud.github.io/helm/"
+    state: present
+
+- name: Install CloudNativePG
+  ansible.builtin.include_role:
+    name: cloudnative_pg
+  when:
+    - nextcloud_postgresql_source == "cloudnativepg"
+    - not cloudnative_pg_enabled
+
+- name: Configure CloudNativePG
+  ansible.builtin.import_tasks: cloudnative_pg.yml
+  when:
+    - nextcloud_postgresql_source == "cloudnativepg"
+
+# - name: Debug template
+#   ansible.builtin.debug:
+#     msg: "{{ lookup('template', 'values.yaml.j2') }}"
+
+- name: Deploy nextcloud loaded from template (helm)
+  kubernetes.core.helm:
+    name: "{{ nextcloud_release_name }}"
+    chart_ref: nextcloud/nextcloud
+    chart_version: "{{ nextcloud_chart_version }}"
+    release_namespace: "{{ nextcloud_namespace }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
+    wait: true
+
+- name: Get nextcloud pod name
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ nextcloud_namespace }}"
+    label_selectors:
+      - app.kubernetes.io/name = nextcloud
+  register: pod_list
+
+- name: Adding additional fs_storage_path_prefix index to the oc_filecache table
+  kubernetes.core.k8s_exec:
+    namespace: "{{ nextcloud_namespace }}"
+    pod: "{{ pod_list.resources[0].metadata.name }}"
+    command: su -s /bin/sh www-data -c "php occ db:add-missing-indices"
+  register: occ_add_missing_indices_status
+
+- name: Print occ command result
+  ansible.builtin.debug:
+    msg: "{{ occ_add_missing_indices_status.stdout }}"
+
+- name: Set maintenance window for Nextcloud
+  kubernetes.core.k8s_exec:
+    namespace: "{{ nextcloud_namespace }}"
+    pod: "{{ pod_list.resources[0].metadata.name }}"
+    command: su -s /bin/sh www-data -c "php occ config:system:set maintenance_window_start --value=\"1\" --type=integer"
+  register: occ_maintenance_window_start
+
+- name: Print occ command result
+  ansible.builtin.debug:
+    msg: "{{ occ_maintenance_window_start.stdout }}"

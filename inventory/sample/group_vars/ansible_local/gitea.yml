@@ -1,0 +1,29 @@
+# group_vars/ansible_local/gitea.yml
+
+gitea_enabled: true
+
+# Admin
+gitea_admin_username: "gitea-admin"
+gitea_admin_email: "admin@example.com"
+
+# Ingress configuration
+gitea_ingress_subdomain: "gitea"  # Your actual domain
+
+# Service configuration
+gitea_service_ssh_type: "LoadBalancer"  # Changed from LoadBalancer for typical homelab setup
+
+# Storage configuration
+gitea_persistence_claim_name: ""
+gitea_persistence_create: true # false if using existing claim
+gitea_persistence_storage_class: "nfs-client" # takes precedence over existing claim
+gitea_persistence_size: "10Gi" # optional, only for storage class
+
+# Version pinning
+gitea_image_tag: "1.21"  # Specify the version you want to use
+
+# Optional: Adjust SSH port if needed for your network
+gitea_service_ssh_port: 2222  # If default 8022 conflicts with other services
+
+# Postgresql
+gitea_postgresql_source: cloudnativepg
+gitea_postgresql_storage_class: "longhorn-single-replica" # do not use duplicated longhorn pvc

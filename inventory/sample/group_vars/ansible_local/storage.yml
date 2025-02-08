@@ -1,0 +1,47 @@
+# group_vars/ansible_local/storage.yml
+---
+longhorn_enabled: true
+longhorn_dashboard_tls: true
+longhorn_dashboard_subdomain: "longhorn-k3s"
+
+nfs_client_enabled: true
+nfs_client_server: 10.0.0.2
+nfs_client_path: "/mnt/user/k8s-data"
+
+nfs_pvc_enabled: true
+
+# Define all NFS shares with their specific requirements
+nfs_pvc_shares:
+  - name: movies
+    size: 4Ti  # Adjust based on your actual needs
+    path: "/mnt/user/movies"
+    description: "Movies library storage"
+
+  - name: tv
+    size: 4Ti
+    path: "/mnt/user/tv"
+    description: "TV Shows library storage"
+
+  - name: nextcloud
+    size: 1Ti
+    path: "/mnt/user/nextcloud"
+    description: "Nextcloud data storage"
+    access_mode: "ReadWriteMany"  # Required for Nextcloud
+
+  - name: backup
+    size: 2Ti
+    path: "/mnt/user/backup"
+    description: "Backup storage location"
+    access_mode: "ReadWriteMany"
+
+  - name: immich
+    size: 1Ti
+    path: "/mnt/user/immich"
+    description: "Immich media storage"
+    access_mode: "ReadWriteMany"
+
+  - name: paperless
+    size: 1Ti
+    path: "/mnt/user/paperless"
+    description: "Paperless consume export"
+    access_mode: "ReadWriteMany"

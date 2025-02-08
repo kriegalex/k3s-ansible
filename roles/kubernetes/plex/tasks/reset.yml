@@ -1,0 +1,9 @@
+---
+- name: Uninstall plex (helm)
+  kubernetes.core.helm:
+    name: "{{ plex_release_name }}"
+    release_namespace: "{{ plex_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup

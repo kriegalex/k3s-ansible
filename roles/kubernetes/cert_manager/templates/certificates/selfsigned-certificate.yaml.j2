@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: selfsigned-certificate
+  namespace: {{ cert_manager_namespace }}
+spec:
+  secretName: selfsigned-tls
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+  dnsNames:
+  - "{{ ingress_nginx_domain_name }}"
+  - "*.{{ ingress_nginx_domain_name }}"

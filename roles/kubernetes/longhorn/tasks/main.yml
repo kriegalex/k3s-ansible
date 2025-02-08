@@ -10,8 +10,8 @@
   kubernetes.core.helm:
     name: longhorn
     chart_ref: longhorn/longhorn
-    chart_version: "{{ longhorn.chart_version }}"
-    release_namespace: "{{ longhorn.namespace }}"
+    chart_version: "{{ longhorn_chart_version }}"
+    release_namespace: "{{ longhorn_namespace }}"
     create_namespace: true
     update_repo_cache: true
     values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
@@ -23,13 +23,11 @@
     kind: StorageClass
     name: local-path
 
-# - name: Deploy IngressRoute from template file for longhorn dashboard
-#   kubernetes.core.k8s:
-#     state: present
-#     template: 'dashboard/ingressRoute.yaml.j2'
-#   when: longhorn.dashboard.enabled
+- name: Create StorageClass with 1 replica for CloudNativePG
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'longhorn-single-replica.yaml.j2') | from_yaml }}"
 
 - name: Import S3 bucket related tasks
   ansible.builtin.include_tasks: s3_bucket.yaml
-  when: longhorn.minio_backup.enabled
-
+  when: longhorn_minio_backup_enabled

@@ -1,0 +1,9 @@
+---
+- name: Uninstall cloudnative_pg (helm)
+  kubernetes.core.helm:
+    name: "{{ cloudnative_pg_release_name }}"
+    release_namespace: "{{ cloudnative_pg_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup

@@ -1,0 +1,5 @@
+---
+cloudnative_pg_enabled: false
+cloudnative_pg_chart_version: 0.23.0
+cloudnative_pg_release_name: cnpg
+cloudnative_pg_namespace: cnpg-system

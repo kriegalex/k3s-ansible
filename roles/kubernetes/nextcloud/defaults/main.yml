@@ -1,0 +1,92 @@
+# roles/kubernetes/nextcloud/defaults/main.yaml
+---
+nextcloud_enabled: false
+nextcloud_namespace: default
+nextcloud_release_name: nextcloud
+nextcloud_chart_version: "6.6.3"
+
+nextcloud_admin_user: admin
+nextcloud_subdomain: "cloud"
+nextcloud_host: "{{ nextcloud_subdomain }}.{{ ingress_nginx_domain_name }}"
+nextcloud_trusted_proxies: "10.42.0.0/16"
+
+# persistent storage for nextcloud config
+nextcloud_persistence_enabled: false
+nextcloud_persistence_storage_class: "longhorn"
+nextcloud_persistence_size: 8Gi
+# separate storage for nextcloud data (not config)
+nextcloud_persistence_data_enabled: false
+nextcloud_persistence_data_existing_claim: "nextcloud-data-pvc"
+
+nextcloud_ingress_enabled: false
+nextcloud_ingress_class_name: "{{ ingress_nginx_class }}"
+# allow to override without touching letsencrypt_env_tag
+nextcloud_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+nextcloud_ingress_tls_enabled: true
+nextcloud_ingress_tls_secret_name: nextcloud-tls
+
+# https://github.com/nextcloud/helm/blob/main/charts/nextcloud/values.yaml#L375
+# for CloudNativePG, check roles/kubernetes/cloudnative_pg/README.md
+# internal | external | cloudnativepg
+nextcloud_postgresql_source: internal
+nextcloud_postgresql_storage_class: "longhorn-single-replica"
+nextcloud_postgresql_username: nextcloud # password comes from the vault
+nextcloud_postgresql_database: nextcloud
+nextcloud_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+
+nextcloud_redis_enabled: false # password comes from the vault
+nextcloud_redis_storage_class: "longhorn-single-replica"
+nextcloud_redis_affinity_enabled: true
+
+nextcloud_collabora_enabled: false
+nextcloud_collabora_subdomain: collabora
+nextcloud_collabora_host: "{{ nextcloud_collabora_subdomain }}.{{ ingress_nginx_domain_name }}"
+nextcloud_collabora_extra_params: "--o:ssl.enable=false"
+nextcloud_collabora_username: admin # password comes from the vault
+nextcloud_collabora_ingress_enabled: true
+nextcloud_collabora_ingress_class_name: "{{ ingress_nginx_class }}"
+
+nextcloud_liveness_probe_enabled: true
+nextcloud_readiness_probe_enabled: true
+nextcloud_metrics_enabled: false
+nextcloud_cronjob_enabled: true
+
+nextcloud_resources:
+  requests:
+    cpu: 1
+    memory: 1Gi
+  limits:
+    memory: 4Gi
+
+nextcloud_ingress_annotations:
+  nginx.ingress.kubernetes.io/proxy-body-size: 4G
+  # letsencrypt-staging | letsencrypt-prod
+  cert-manager.io/cluster-issuer: "{{ nextcloud_ingress_cluster_issuer }}"
+  # preserve source ip
+  nginx.ingress.kubernetes.io/enable-cors: "true"
+  nginx.ingress.kubernetes.io/cors-allow-headers: "X-Forwarded-For"
+  ## Keep this in sync with the README.md:
+  nginx.ingress.kubernetes.io/server-snippet: |-
+    server_tokens off;
+    proxy_hide_header X-Powered-By;
+    rewrite ^/.well-known/webfinger /index.php/.well-known/webfinger last;
+    rewrite ^/.well-known/nodeinfo /index.php/.well-known/nodeinfo last;
+    rewrite ^/.well-known/host-meta /public.php?service=host-meta last;
+    rewrite ^/.well-known/host-meta.json /public.php?service=host-meta-json;
+    location = /.well-known/carddav {
+      return 301 $scheme://$host/remote.php/dav;
+    }
+    location = /.well-known/caldav {
+      return 301 $scheme://$host/remote.php/dav;
+    }
+    location = /robots.txt {
+      allow all;
+      log_not_found off;
+      access_log off;
+    }
+    location ~ ^/(?:build|tests|config|lib|3rdparty|templates|data)/ {
+      deny all;
+    }
+    location ~ ^/(?:autotest|occ|issue|indie|db_|console) {
+      deny all;
+    }

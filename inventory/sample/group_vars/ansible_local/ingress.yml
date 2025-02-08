@@ -1,0 +1,26 @@
+# group_vars/ansible_local/ingress.yml
+---
+## ingress-nginx
+# leave here if used by other roles as default value
+ingress_nginx_domain_name: "domain.com"
+# leave here if used by other roles as default value
+ingress_nginx_class: "nginx"
+
+## cert-manager
+cert_manager_certificate_type: "letsencrypt"
+cert_manager_certificate_letsencrypt_environment: "staging"
+cert_manager_dns_provider: "route53"
+cert_manager_route53_email: "admin@domain.com"
+cert_manager_route53_region: "eu-central-1"
+cert_manager_route53_access_key_id: ""
+cert_manager_route53_access_key: ""
+
+# must be left here for other roles to access it
+letsencrypt_env_tag: >-
+  {{
+    'selfsigned-issuer' if cert_manager_certificate_type == 'selfsigned'
+    else (
+      'letsencrypt-staging' if cert_manager_certificate_type == 'letsencrypt' and cert_manager_certificate_letsencrypt_environment == 'staging'
+      else 'letsencrypt-prod'
+    )
+  }}

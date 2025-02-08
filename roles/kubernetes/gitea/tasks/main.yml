@@ -1,0 +1,48 @@
+---
+- name: Add Gitea Helm repository
+  kubernetes.core.helm_repository:
+    name: "gitea-charts"
+    url: "https://dl.gitea.com/charts/"
+    state: present
+
+# - name: Generate debug values YAML file
+#   ansible.builtin.template:
+#     src: templates/values.yml.j2
+#     dest: /tmp/gitea_values_debug.yaml
+#     mode: '0644'
+#   diff: true  # This will show the difference in the output
+#
+# - name: Generate debug secret YAML file
+#   ansible.builtin.template:
+#     src: templates/gitea-admin-secret.yml.j2
+#     dest: /tmp/gitea_secret_debug.yaml
+#     mode: '0644'
+#   diff: true  # This will show the difference in the output
+
+- name: Create Gitea admin secret
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'gitea-admin-secret.yml.j2') | from_yaml }}"
+
+- name: Install CloudNativePG
+  ansible.builtin.include_role:
+    name: cloudnative_pg
+  when:
+    - gitea_postgresql_source == "cloudnativepg"
+    - not cloudnative_pg_enabled
+
+- name: Configure CloudNativePG
+  ansible.builtin.import_tasks: cloudnative_pg.yml
+  when:
+    - gitea_postgresql_source == "cloudnativepg"
+
+- name: Deploy Gitea Helm Chart
+  kubernetes.core.helm:
+    name: "{{ gitea_release_name }}"
+    chart_ref: gitea-charts/gitea
+    chart_version: "{{ gitea_chart_version }}"
+    release_namespace: "{{ gitea_namespace }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
+    wait: true

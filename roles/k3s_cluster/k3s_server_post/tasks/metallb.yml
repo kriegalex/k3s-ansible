@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ ansible_user_id }}"
     mode: "0755"
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  with_items: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
 - name: Delete outdated metallb replicas
@@ -27,7 +27,7 @@
     executable: /bin/bash
   changed_when: false
   run_once: true
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  with_items: "{{ groups[group_name_master | default('k3s_servers')] }}"
 
 - name: Copy metallb CRs manifest to first master
   ansible.builtin.template:
@@ -35,14 +35,14 @@
     dest: /tmp/k3s/metallb-crs.yaml
     owner: "{{ ansible_user_id }}"
     mode: "0755"
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  with_items: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
 - name: Test metallb-system namespace
   ansible.builtin.command: >-
     {{ k3s_kubectl_binary | default('k3s kubectl') }} -n metallb-system
   changed_when: false
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  with_items: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
 - name: Wait for MetalLB resources
@@ -101,7 +101,7 @@
   ansible.builtin.command: >-
     {{ k3s_kubectl_binary | default('k3s kubectl') }} -n metallb-system get endpoints {{ metallb_webhook_service_name }}
   changed_when: false
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  with_items: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
 - name: Apply metallb CRs

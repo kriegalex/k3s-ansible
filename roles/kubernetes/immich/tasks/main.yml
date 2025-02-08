@@ -1,0 +1,48 @@
+---
+
+- name: Verify PostgreSQL configuration for Immich
+  ansible.builtin.fail:
+    msg: >-
+      Internal PostgreSQL is deprecated for Immich Chart versions > 0.9.0.
+      Please use CloudNativePG instead.
+      See roles/kubernetes/cloudnative_pg/README.md for more information.
+  when:
+    - immich_enabled | bool
+    - immich_postgresql_source == "internal"
+    - immich_chart_version is version('0.9.0', '>')
+
+- name: Add immich Helm repository
+  kubernetes.core.helm_repository:
+    name: "immich"
+    url: "https://immich-app.github.io/immich-charts"
+    state: present
+
+- name: Create Immich PVC for Longhorn
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'immich-pvc.yml.j2') | from_yaml }}"
+  when: immich_persistence_type == 'longhorn'
+
+- name: Configure CloudNativePG
+  ansible.builtin.import_tasks: cloudnative_pg.yml
+  when:
+    - cloudnative_pg_enabled | bool
+    - immich_postgresql_source == "cloudnativepg"
+
+# - name: Generate debug YAML file
+#   ansible.builtin.template:
+#     src: templates/values.yml.j2
+#     dest: /tmp/immich_values_debug.yaml
+#     mode: '0644'
+#   diff: true  # This will show the difference in the output
+
+- name: Deploy Immich Helm Chart
+  kubernetes.core.helm:
+    name: "{{ immich_release_name }}"
+    chart_ref: immich/immich
+    chart_version: "{{ immich_chart_version }}"
+    release_namespace: "{{ immich_namespace }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
+    wait: true

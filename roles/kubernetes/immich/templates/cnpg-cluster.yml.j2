@@ -1,0 +1,42 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-db
+  namespace: {{ immich_namespace }}
+spec:
+  instances: {{ immich_postgresql_replicas }}
+  
+  # Using the tensorchord image with pgvecto.rs
+  imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:{{ immich_postgresql_pgvectors_version }}
+  
+  # https://github.com/tensorchord/cloudnative-pgvecto.rs
+  postgresql:
+    shared_preload_libraries:
+      - "vectors.so"
+
+  # Database configuration
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      secret:
+        name: immich-db-secret
+      postInitSQL:
+        - ALTER USER immich WITH SUPERUSER;
+      postInitApplicationSQL:
+        - ALTER SYSTEM SET search_path TO "$user", public, vectors;
+        - CREATE EXTENSION IF NOT EXISTS "vectors";
+
+  # Storage configuration
+  storage:
+    size: 10Gi
+    storageClass: {{ immich_postgresql_storage_class }}
+
+  # Resource requirements
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"

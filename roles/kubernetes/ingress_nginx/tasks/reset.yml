@@ -1,0 +1,9 @@
+---
+- name: Uninstall ingress-nginx (helm)
+  kubernetes.core.helm:
+    name: ingress-nginx
+    release_namespace: "{{ ingress_nginx_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup

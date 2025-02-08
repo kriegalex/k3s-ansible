@@ -1,0 +1,32 @@
+# group_vars/ansible_local/plex.yml
+---
+plex_media_volumes:
+  - name: movies
+    claim_name: plex-pvc-movies
+    mount_path: /movies
+
+# plex_annotations:
+#   # letsencrypt-staging | letsencrypt-prod
+#   cert-manager.io/cluster-issuer: letsencrypt-staging
+#   nginx.ingress.kubernetes.io/backend-protocol: "HTTP" # Change to HTTPS if required
+
+# plex_resources:
+#   requests:
+#     cpu: "2"
+#     memory: "4Gi"
+#     gpu.intel.com/i915: "1"
+#   limits:
+#     memory: "16Gi"
+#     gpu.intel.com/i915: "1"
+
+# plex_affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: "gpu.intel.com/device-id.0300-7d55.count" # Intel ARC Meteor Lake
+#           operator: In
+#           values:
+#           - "1"
+
+### CHECK roles/kubernetes/plex/defaults/main.yml FOR MORE ###

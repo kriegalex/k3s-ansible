@@ -1,0 +1,101 @@
+---
+
+- name: Check if Helm is installed
+  hosts: ansible_local
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Checking Helm version
+      ansible.builtin.command: "helm version --client"
+      register: helm_version
+      failed_when: helm_version.rc != 0 and helm_version.stderr != ""
+      changed_when: false
+
+- name: Include Helm install roles
+  hosts: ansible_local
+  connection: local
+  gather_facts: false
+  roles:
+    - role: nfs_client
+      when: nfs_client_enabled
+      tags:
+        - nfs
+    - role: nfs_pvc
+      when: nfs_pvc_enabled
+      tags:
+        - nfs
+    - role: intel_gpu_plugin
+      when: intel_gpu_plugin_enabled
+      tags:
+        - gpu
+    - role: cloudnative_pg
+      when: cloudnative_pg_enabled
+      tags:
+        - database
+        - cloudnativepg
+    - role: plex
+      when: plex_enabled
+      tags:
+        - plex
+        - media
+    # - role: rancher
+    #   when: rancher.enabled
+    #   tags:
+    #     - rancher
+    # - role: authentik
+    #   when: authentik.enabled
+    #   tags:
+    #     - authentik
+    - role: nextcloud
+      when: nextcloud_enabled
+      tags:
+        - nextcloud
+        - media
+    - role: immich
+      when: immich_enabled
+      tags:
+        - immich
+        - media
+    - role: paperless
+      when: paperless_enabled
+      tags:
+        - paperless
+        - media
+    - role: actual_budget
+      when: actual_budget_enabled
+      tags:
+        - actual_budget
+        - finance
+    - role: gitea
+      when: gitea_enabled
+      tags:
+        - git
+        - gitea
+    # - role: gitlab-runner
+    #   when: gitlab.runner.enabled
+    #   tags:
+    #     - gitlab-runner
+    # - role: argocd
+    #   when: argocd.enabled
+    #   tags:
+    #     - argocd
+    # - role: argocd-image-updater
+    #   when: argocd.image_updater.enabled
+    #   tags:
+    #     - argocd-image-updater
+    # - role: qbittorrent
+    #   when: qbittorrent.enabled
+    #   tags:
+    #     - qbittorrent
+    # - role: prometheus
+    #   when: prometheus.enabled
+    #   tags:
+    #     - prometheus
+    # - role: minio
+    #   when: minio.enabled
+    #   tags:
+    #     - minio
+    # - role: home-assistant
+    #   when: home_assistant.enabled
+    #   tags:
+    #     - home-assistant

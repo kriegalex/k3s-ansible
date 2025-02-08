@@ -1,0 +1,42 @@
+# roles/k3s-nfs/defaults/main.yml
+---
+nfs_pvc_enabled: false
+# NFS server details
+nfs_pvc_server: "10.0.0.2"
+nfs_pvc_root_path: "/mnt/user"
+
+# Default reclaim policy for PVs (Retain is safer for homelab data)
+nfs_pvc_reclaim_policy: "Retain"
+
+# Default access mode (ReadWriteMany for shared access)
+nfs_pvc_access_mode: "ReadWriteMany"
+
+nfs_pvc_shares:
+  - name: movies
+    size: 1Ti  # Adjust based on your actual needs
+    path: "/mnt/user/movies"
+    description: "Movies library storage"
+
+  - name: nextcloud
+    size: 1Ti
+    path: "/mnt/user/nextcloud"
+    description: "Nextcloud data storage"
+    access_mode: "ReadWriteMany"  # Required for Nextcloud
+
+  - name: backup
+    size: 1Ti
+    path: "/mnt/user/backup"
+    description: "Backup storage location"
+    access_mode: "ReadWriteMany"
+
+  - name: immich
+    size: 1Ti
+    path: "/mnt/user/immich"
+    description: "Immich media storage"
+    access_mode: "ReadWriteMany"
+
+  - name: paperless
+    size: 1Ti
+    path: "/mnt/user/paperless"
+    description: "Paperless consume export"
+    access_mode: "ReadWriteMany"

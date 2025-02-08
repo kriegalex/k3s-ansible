@@ -65,12 +65,12 @@ metal_lb_ip_range: ""
 `host.ini`
 
 ```ini
-[master]
+[k3s_servers]
 IP.ADDRESS.ONE
 IP.ADDRESS.TWO
 IP.ADDRESS.THREE
 
-[node]
+[k3s_workers]
 IP.ADDRESS.FOUR
 IP.ADDRESS.FIVE
 

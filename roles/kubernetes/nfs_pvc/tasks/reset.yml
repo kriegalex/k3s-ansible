@@ -1,0 +1,19 @@
+---
+- name: Delete PersistentVolumeClaims
+  kubernetes.core.k8s:
+    state: absent
+    kind: PersistentVolumeClaim
+    namespace: default
+    name: "nfs-{{ item.name }}"
+  loop: "{{ nfs_pvc_shares }}"
+  tags:
+    - cleanup
+
+- name: Delete PersistentVolumes
+  kubernetes.core.k8s:
+    state: absent
+    kind: PersistentVolume
+    name: "nfs-{{ item.name }}"
+  loop: "{{ nfs_pvc_shares }}"
+  tags:
+    - cleanup

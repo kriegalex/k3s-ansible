@@ -1,0 +1,30 @@
+---
+cert_manager_enabled: true
+cert_manager_namespace: cert-manager
+cert_manager_chart_version: v1.15.1
+
+# for now only route53 (used to allow cloudflare and duckdns)
+cert_manager_dns_provider: "route53"
+cert_manager_route53_email: "user@email.com"
+cert_manager_route53_region: "eu-central-1"
+cert_manager_route53_access_key_id: "CHANGEME"
+cert_manager_route53_access_key: "CHANGEME"
+
+cert_type: "{{ cert_manager_certificate_type }}"
+is_letsencrypt_staging: "{{ cert_manager_certificate_letsencrypt_environment == 'staging' }}"
+
+# letsencrypt | selfsigned
+cert_manager_certificate_type: "letsencrypt"
+cert_manager_certificate_letsencrypt_environment: "staging"
+cert_manager_certificate_selfsigned_cert_name: "{{ ingress_nginx_domain_name }}-selfsigned-ca"
+cert_manager_certificate_selfsigned_common_name: "{{ ingress_nginx_domain_name }}"
+cert_manager_certificate_selfsigned_country_name: "CH"
+cert_manager_certificate_selfsigned_organization_name: "K3S Homelab"
+
+cert_manager_duckdns_email: "user@email.com"
+cert_manager_duckdns_token: "CHANGEME"
+cert_manager_cloudflare_email: "user@email.com"
+cert_manager_cloudflare_api_token: "CHANGEME"
+
+cert_manager_cert_path: "{{ role_path + '/files/certs/' + cert_manager_certificate_selfsigned_cert_name }}.crt"
+cert_manager_key_path: "{{ role_path + '/files/private/' + cert_manager_certificate_selfsigned_cert_name }}.key"

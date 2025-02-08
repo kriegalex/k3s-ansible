@@ -16,8 +16,8 @@
     expected_nodes: |-
       {{
         (
-          ( groups['master'] | default([]) ) +
-          ( groups['node'] | default([]) )
+          ( groups['k3s_servers'] | default([]) ) +
+          ( groups['k3s_workers'] | default([]) )
         )
         | unique
         | sort

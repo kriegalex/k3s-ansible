@@ -1,0 +1,28 @@
+# gitea-db-cluster.yaml.j2
+{% if gitea_postgresql_source == 'cloudnativepg' %}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: gitea-db
+  namespace: {{ gitea_namespace }}
+spec:
+  instances: {{ gitea_postgresql_instances }}
+  
+  postgresql:
+    parameters:
+      shared_buffers: "256MB"
+      max_connections: "100"
+    
+  primaryUpdateStrategy: unsupervised
+  
+  storage:
+    size: {{ gitea_postgresql_storage_size }}
+    storageClass: {{ gitea_postgresql_storage_class }}
+  
+  bootstrap:
+    initdb:
+      database: {{ gitea_postgresql_database }}
+      owner: {{ gitea_postgresql_username }}
+      secret:
+        name: gitea-db-credentials
+{% endif %}

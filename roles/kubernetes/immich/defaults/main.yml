@@ -1,0 +1,40 @@
+---
+immich_enabled: false
+immich_namespace: default
+immich_release_name: immich
+immich_chart_version: "0.9.0"
+
+# internal | cloudnativepg
+immich_postgresql_source: "internal"
+immich_postgresql_pgvectors_version: "16-v0.3.0"
+immich_postgresql_storage_class: "longhorn-single-replica"
+immich_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+
+immich_redis_enabled: false
+immich_redis_affinity_enabled: true
+immich_redis_storage_class: "longhorn-single-replica"
+
+immich_ingress_enabled: false
+# allow to override without touching letsencrypt_env_tag
+immich_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+immich_ingress_class_name: "{{ ingress_nginx_class }}"
+
+immich_subdomain: "immich"
+immich_ingress_host: "{{ immich_subdomain }}.{{ ingress_nginx_domain_name }}"
+
+# longhorn | pvc
+immich_persistence_type: "longhorn"
+immich_persistence_longhorn_storage_class: longhorn
+# use longhorn if you have low storage requirements or a big longhorn storage
+immich_persistence_longhorn_size: "50Gi"
+
+immich_machine_learning_enabled: true
+immich_machine_learning_persistence_type: pvc
+immich_machine_learning_persistence_storage_class: longhorn
+
+immich_resources:
+  requests:
+    cpu: 1
+    memory: 1Gi
+  limits:
+    memory: 4Gi

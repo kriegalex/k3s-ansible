@@ -1,0 +1,9 @@
+---
+- name: Uninstall nfs_client (helm)
+  kubernetes.core.helm:
+    name: nfs-subdir-external-provisioner
+    release_namespace: "{{ nfs_client_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup

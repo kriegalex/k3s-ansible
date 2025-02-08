@@ -1,0 +1,36 @@
+# YOU MUST ENCRYPT THIS WITH
+# ansible-vault encrypt --vault-password-file .vault_pass \
+#  --encrypt-vault-id default group_vars/all/vault.yml --output group_vars/all/vault.yml
+# K3s cluster token
+k3s_token: "SUPER_LONG_PASSWORD_32BITS_ALPHANUMERICAL"
+
+# Admin password for Nextcloud
+vault_nextcloud_admin_password: "CHANGEME-NC-ADMIN"
+
+# PostgreSQL database password
+vault_nextcloud_db_password: "CHANGEME-PSQL"
+
+# Redis password
+vault_nextcloud_redis_password: "CHANGEME-REDIS"
+
+# Collabora admin password (if using Collabora)
+vault_nextcloud_collabora_password: "CHANGEME-COLLABORA"
+
+# Immich PostgreSQL database password
+vault_immich_db_password: "CHANGEME-IMMICH"
+
+# Paperless PostgreSQL database password
+vault_paperless_db_password: "CHANGEME-PAPERLESS_DB"
+# Paperless Redis cache password
+vault_paperless_redis_password: "CHANGEME_PAPERLESS_REDIS"
+# Paperless Secret Key
+vault_paperless_secret_key: "CHANGEME-PAPERLESS-SECRET_KEY"
+# Paperless Admin Password
+vault_paperless_admin_password: "CHANGEME-PAPERLESS_ADMIN"
+
+# Gitea Redis cache password
+vault_gitea_redis_password: "CHANGEME_GITEA_REDIS"
+# Gitea PostgreSQL database password
+vault_gitea_postgresql_password: "CHANGEME_GITEA_PSQL"
+# Gitea Admin Password
+vault_gitea_admin_password: "CHANGEME_GITEA_ADMIN"

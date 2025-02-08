@@ -1,0 +1,19 @@
+---
+- name: Uninstall immich (helm)
+  kubernetes.core.helm:
+    name: "{{ immich_release_name }}"
+    release_namespace: "{{ immich_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup
+
+- name: Delete Cluster
+  kubernetes.core.k8s:
+    state: absent
+    kind: Cluster
+    name: immich-db
+    namespace: "{{ immich_namespace }}"
+  when: immich_postgresql_source == "cloudnativepg"
+  tags:
+    - cleanup

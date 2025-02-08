@@ -1,0 +1,19 @@
+---
+- name: Uninstall nextcloud (helm)
+  kubernetes.core.helm:
+    name: "{{ nextcloud_release_name }}"
+    release_namespace: "{{ nextcloud_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup
+
+- name: Delete Cluster
+  kubernetes.core.k8s:
+    state: absent
+    kind: Cluster
+    name: nextcloud-db
+    namespace: "{{ nextcloud_namespace }}"
+  when: nextcloud_postgresql_source == "cloudnativepg"
+  tags:
+    - cleanup

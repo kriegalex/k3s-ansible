@@ -1,0 +1,18 @@
+# group_vars/ansible_local/nextcloud.yml
+---
+nextcloud_enabled: true
+nextcloud_subdomain: "cloud-k3s" # will use existing ingress-nginx domain
+# nextcloud_host: "cloud.k3s.local" # can be used to override nextcloud_subdomain
+
+nextcloud_ingress_enabled: true
+
+nextcloud_persistence_enabled: true
+nextcloud_persistence_data_enabled: false
+nextcloud_persistence_data_existing_claim: "nfs-nextcloud"
+
+nextcloud_postgresql_source: "external"
+nextcloud_redis_enabled: true
+
+nextcloud_collabora_enabled: false
+nextcloud_collabora_subdomain: "collabora-k3s"
+# nextcloud_collabora_host: "collabora.k3s.local" # can be used to override nextcloud_subdomain

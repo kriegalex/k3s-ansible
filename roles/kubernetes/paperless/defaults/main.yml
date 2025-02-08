@@ -1,0 +1,62 @@
+# group_vars/ansible_local/paperless.yml
+---
+paperless_enabled: false
+paperless_namespace: default
+paperless_release_name: paperless-ngx
+paperless_chart_version: "0.23.0"
+paperless_image_tag: "2.11.2"
+
+paperless_admin_user: "admin"
+paperless_admin_mail: "admin@example.com"
+
+paperless_media_storage_size: "50Gi"
+paperless_media_storage_class: "nfs-client"
+paperless_media_access_mode: "ReadWriteOnce"
+paperless_media_mount_path: "/usr/src/paperless/media"
+
+# match template pvc if paperless_nfs_use_enabled, otherwise use custom
+# storageClass is also available instead
+paperless_export_existing_claim: "paperless-export-pvc"
+paperless_consume_existing_claim: "paperless-consume-pvc"
+# optional, instead of existingClaim
+paperless_export_storage_class: ""
+paperless_export_storage_size: ""
+paperless_export_access_mode: ""
+paperless_consume_storage_class: ""
+paperless_consume_storage_size: ""
+paperless_consume_access_mode: ""
+
+paperless_nfs_use_enabled: false
+paperless_nfs_server: 10.0.0.2
+paperless_nfs_base_path: /mnt/user/paperless
+paperless_nfs_export_storage_size: 100Gi
+# final value is paperless_nfs_base_path/paperless_export_nfs_path
+paperless_nfs_export_path: export
+paperless_nfs_consume_storage_size: 10Gi
+# final value is paperless_nfs_base_path/paperless_consume_nfs_path
+paperless_nfs_consume_path: consume
+
+paperless_subdomain: "paperless"
+paperless_app_domain: "{{ paperless_subdomain }}.{{ ingress_nginx_domain_name }}"
+paperless_app_timezone: "UTC"
+paperless_app_trusted_proxies: "10.42.0.0/16"
+paperless_app_filename_format: "{created_year}/{correspondent}/{title}"
+paperless_app_consumer_polling: "60"
+paperless_app_consumer_recursive: true
+paperless_app_consumer_subdirs_as_tags: true
+paperless_app_ocr_user_args: '{"invalidate_digital_signatures": true}'
+
+
+paperless_postgresql_storage_class: "longhorn-single-replica"
+# internal | cloudnativepg
+paperless_database_source: "cloudnativepg"
+paperless_database_user: paperless
+paperless_database_name: paperless
+paperless_database_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+
+paperless_ingress_class_name: "{{ ingress_nginx_class }}"
+# allow to override without touching letsencrypt_env_tag
+paperless_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+paperless_ingress_annotations:
+  nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+  cert-manager.io/cluster-issuer: "{{ paperless_ingress_cluster_issuer }}"

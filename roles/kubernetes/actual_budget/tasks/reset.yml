@@ -1,0 +1,9 @@
+---
+- name: Uninstall actual_budget (helm)
+  kubernetes.core.helm:
+    name: "{{ actual_budget_release_name }}"
+    release_namespace: "{{ actual_budget_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup

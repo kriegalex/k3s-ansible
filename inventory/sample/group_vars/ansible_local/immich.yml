@@ -1,0 +1,15 @@
+---
+immich_enabled: true
+
+# internal | cloudnativepg
+immich_postgresql_source: "cloudnativepg"
+
+immich_redis_enabled: true
+
+immich_ingress_enabled: true
+immich_subdomain: "immich-k3s"
+# immich_ingress_host: "immich.k3s.local" # override host directly
+
+# longhorn | pvc
+immich_persistence_type: "longhorn"
+# immich_persistence_pvc_existing_claim: nfs-immich # enable with pvc

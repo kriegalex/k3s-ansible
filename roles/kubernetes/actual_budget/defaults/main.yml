@@ -1,0 +1,45 @@
+---
+actual_budget_enabled: false
+# Actual Budget Helm chart configuration
+actual_budget_namespace: "default"
+actual_budget_release_name: "actual-budget"
+actual_budget_chart_repo_name: "k8s-charts"
+actual_budget_chart_repo_url: "https://kriegalex.github.io/k8s-charts/"
+actual_budget_chart_name: "actual-budget"
+actual_budget_chart_version: "0.1.1"  # Adjust based on latest version
+
+# Application configuration
+actual_budget_replicas: 1
+actual_budget_image_repository: "actualbudget/actual-server"
+actual_budget_image_tag: "24.10.1"
+actual_budget_image_pull_policy: "IfNotPresent"
+
+# Service configuration
+actual_budget_service_type: "ClusterIP"
+actual_budget_service_port: 5006
+
+# Storage configuration
+actual_budget_storage_enabled: true
+actual_budget_storage_size: "1Gi"
+# change if you disabled longhorn
+actual_budget_storage_class: "longhorn"
+
+# Ingress configuration
+actual_budget_ingress_enabled: false
+actual_budget_subdomain: "budget"
+actual_budget_ingress_host: "{{ actual_budget_subdomain }}.{{ ingress_nginx_domain_name }}"
+actual_budget_ingress_tls_enabled: false # not used for now
+actual_budget_ingress_class_name: "{{ ingress_nginx_class }}"
+# allow to override locally without touching letsencrypt_env_tag
+actual_budget_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+actual_budget_annotations:
+  cert-manager.io/cluster-issuer: "{{ actual_budget_ingress_cluster_issuer }}"
+
+# Resources
+actual_budget_resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "1"

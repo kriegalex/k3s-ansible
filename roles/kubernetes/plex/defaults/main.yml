@@ -1,0 +1,22 @@
+---
+# Helm chart details
+plex_chart_name: "plex-media-server"
+plex_chart_repo: "https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages"
+plex_chart_version: "0.8.0"
+plex_claim_token: ""
+plex_config_size: "50Gi"
+plex_enabled: false
+plex_ingress_class_name: "{{ ingress_nginx_class }}"
+plex_ingress_enabled: false
+plex_ingress_subdomain: "plex"
+plex_intel_hw_accel: false
+plex_namespace: "default"
+plex_nvidia_gpu_enabled: false
+plex_release_name: "plex-media-server"
+plex_service_type: ClusterIP
+plex_storage_class: "longhorn"
+plex_timezone: "Europe/Paris"
+
+plex_affinity: {}
+plex_annotations: {}
+plex_resources: {}

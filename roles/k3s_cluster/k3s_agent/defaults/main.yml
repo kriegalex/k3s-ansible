@@ -1,4 +1,4 @@
 ---
 extra_agent_args: ""
-group_name_master: master
+group_name_master: k3s_servers
 systemd_dir: /etc/systemd/system

@@ -48,26 +48,40 @@ on processor architecture:
 First create a new directory based on the `sample` directory within the `inventory` directory:
 
 ```bash
-cp -R inventory/sample inventory/my-cluster
+cp -R inventory/sample/group_vars inventory/group_vars
+cp inventory/sample/hosts.yml inventory/hosts.yml
 ```
 
-Second, edit `inventory/my-cluster/hosts.ini` to match the system information gathered above
+Second, edit `inventory/hosts.yml` to match the system information gathered above
 
 For example:
 
-```ini
-[master]
-192.168.30.38
-192.168.30.39
-192.168.30.40
+```yaml
+k3s_servers:
+  hosts:
+    k3s-server1:
+      ansible_host: 192.168.30.38
+    k3s-server2:
+      ansible_host: 192.168.30.39
+    k3s-server3:
+      ansible_host: 192.168.30.40
 
-[node]
-192.168.30.41
-192.168.30.42
+k3s_workers:
+  hosts:
+    k3s-worker1:
+      ansible_host: 192.168.30.41
+    k3s-worker2:
+      ansible_host: 192.168.30.42
 
-[k3s_cluster:children]
-master
-node
+k3s_cluster:
+  children:
+    k3s_servers:
+    k3s_workers:
+
+ansible_local:
+  hosts:
+    localhost:
+      ansible_connection: local
 ```
 
 If multiple hosts are in the master group, the playbook will automatically set up k3s in [HA mode with etcd](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
@@ -76,7 +90,42 @@ Finally, copy `ansible.example.cfg` to `ansible.cfg` and adapt the inventory pat
 
 This requires at least k3s version `1.19.1` however the version is configurable by using the `k3s_version` variable.
 
-If needed, you can also edit `inventory/my-cluster/group_vars/all.yml` to match your environment.
+If needed, you can also edit `group_vars/all/vars.yml` to match your environment.
+
+### 🔒 Required Vault Secrets
+
+This Ansible project requires several secure values to be stored in an Ansible vault. Follow these steps to manage the vault:
+
+1. Modify existing vault.yml with your passwords.
+
+2. Setup a vault password (path already defined in ansible.cfg)
+```bash
+echo "my-password" > .vault_pass
+```
+
+2. Encrypt vault file:
+```bash
+ansible-vault encrypt --vault-password-file .vault_pass --encrypt-vault-id default group_vars/all/vault.yml --output group_vars/all/vault.yml
+```
+
+3. Check result:
+```bash
+ansible-vault view group_vars/all/vault.yml
+```
+
+If `ansible.cfg` and `.vault_pass` are all correctly defined and setup, this should output the variables inside the vault.
+
+#### Generating Secure Passwords
+
+You can generate secure passwords using these commands:
+
+```bash
+# Generate random 32-character password
+openssl rand -base64 24
+
+# Alternative using /dev/urandom
+< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo;
+```
 
 ### ☸️ Create Cluster
 
@@ -190,7 +239,6 @@ See the commands [here](https://technotim.live/posts/k3s-etcd-ansible/#testing-y
 | `k3s_server_post` | `metal_lb_bgp_peer_address` | string | `~` | Not required | BGP peer address |
 | `lxc` | `custom_reboot_command` | string | `~` | Not required | Command to run on reboot |
 | `prereq` | `system_timezone` | string | `null` | Not required | Timezone to be set on all nodes |
-| `proxmox_lxc`, `reset_proxmox_lxc` | `proxmox_lxc_ct_ids` | list | ❌ | Required | Proxmox container ID list |
 | `raspberrypi` | `state` | string | `present` | Not required | Indicates whether the k3s prerequisites for Raspberry Pi should be set up (possible values are `present` and `absent`) |
 
 

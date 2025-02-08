@@ -1,0 +1,86 @@
+# values.yaml.j2
+image:
+  registry: "{{ gitea_image_registry }}"
+  repository: "{{ gitea_image_repository }}"
+  tag: "{{ gitea_image_tag }}"
+  pullPolicy: "{{ gitea_image_pull_policy }}"
+  rootless: {{ gitea_image_rootless }}
+
+service:
+  ssh:
+    type: "{{ gitea_service_ssh_type }}"
+    port: {{ gitea_service_ssh_port }}
+    externalTrafficPolicy: "{{ gitea_service_ssh_traffic_policy }}"
+
+ingress:
+  enabled: {{ gitea_ingress_enabled }}
+  className: "{{ gitea_ingress_class_name }}"
+  annotations:
+    cert-manager.io/cluster-issuer: "{{ gitea_ingress_cert_issuer }}"
+  hosts:
+    - host: "{{ gitea_ingress_hostname }}"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: "{{ gitea_ingress_tls_secret_name }}"
+      hosts:
+        - "{{ gitea_ingress_hostname }}"
+
+persistence:
+  enabled: {{ gitea_persistence_enabled }}
+  create: {{ gitea_persistence_create }}
+  mount: {{ gitea_persistence_mount }}
+{% if gitea_persistence_storage_class is defined %}
+  storageClass: "{{ gitea_persistence_storage_class }}"
+  size: "{{ gitea_persistence_size }}"
+{% elif gitea_persistence_claim_name is defined %}  
+  claimName: "{{ gitea_persistence_claim_name }}"
+{% endif %}
+
+gitea:
+  admin:
+    existingSecret: "{{ gitea_admin_secret_name }}"
+{% if gitea_postgresql_source == 'cloudnativepg' %}
+  config:
+    database:
+      DB_TYPE: postgres
+      HOST: gitea-db-rw
+      NAME: "{{ gitea_postgresql_database }}"
+      USER: "{{ gitea_postgresql_username }}"
+      PASSWD: "{{ gitea_postgresql_password }}"
+{% endif %}
+
+redis-cluster:
+  enabled: {{ gitea_redis_cluster_enabled }}
+
+redis:
+  enabled: {{ gitea_redis_enabled }}
+  architecture: "{{ gitea_redis_architecture }}"
+  global:
+    redis:
+      password: "{{ gitea_redis_password }}"
+  master:
+    count: {{ gitea_redis_master_count }}
+    persistence:
+      storageClass: "{{ gitea_redis_storage_class }}"
+
+postgresql-ha:
+  enabled: {{ gitea_postgresql_ha_enabled }}
+
+postgresql:
+  enabled: {{ 'true' if gitea_postgresql_source == 'internal' else 'false' }}
+{% if gitea_postgresql_source == 'internal' %}
+  global:
+    postgresql:
+      auth:
+        password: "{{ gitea_postgresql_password }}"
+        database: "{{ gitea_postgresql_database }}"
+        username: "{{ gitea_postgresql_username }}"
+      service:
+        ports:
+          postgresql: {{ gitea_postgresql_port }}
+  primary:
+    persistence:
+      storageClass: "{{ gitea_postgresql_storage_class }}"
+{% endif %}

@@ -3,3 +3,6 @@
 ansible.cfg
 kubeconfig
 .vault_pass
+group_vars/*
+.vscode
+.ansible

@@ -1,0 +1,9 @@
+---
+- name: Uninstall cert-manager (helm)
+  kubernetes.core.helm:
+    name: cert-manager
+    release_namespace: "{{ cert_manager_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup

@@ -1,0 +1,102 @@
+ingress:
+  main:
+    enabled: true
+    ingressClassName: "{{ paperless_ingress_class_name }}"
+    annotations:
+{% if paperless_ingress_annotations %}
+      {{ paperless_ingress_annotations | to_nice_yaml(indent=2) | indent(6) }}
+{% endif %}
+    hosts:
+      - host: {{ paperless_app_domain }}
+        paths:
+          - path: /
+    tls:
+      - secretName: paperless-ingress-tls
+        hosts:
+          - {{ paperless_app_domain }}
+
+persistence:
+  data:
+    enabled: false # merged with media via ENV variable
+  media:
+    enabled: true
+    retain: true
+    mountPath: "{{ paperless_media_mount_path }}"
+{% if paperless_media_existing_claim is defined %}
+    existingClaim: "{{ paperless_media_existing_claim }}"
+{% elif paperless_media_storage_class is defined %}
+    storageClass: "{{ paperless_media_storage_class }}"
+    size: "{{ paperless_media_storage_size }}"
+    accessMode: "{{ paperless_media_access_mode }}"
+{% endif %}
+
+  export:
+    enabled: true
+    mountPath: "/usr/src/paperless/export"
+{% if paperless_export_existing_claim is defined %}
+    existingClaim: "{{ paperless_export_existing_claim }}"
+{% elif paperless_export_storage_class is defined %}
+    storageClass: "{{ paperless_export_storage_class }}"
+    size: "{{ paperless_export_storage_size }}"
+    accessMode: "{{ paperless_export_access_mode }}"
+{% endif %}
+
+  consume:
+    enabled: true
+    mountPath: "/usr/src/paperless/consume"
+{% if paperless_consume_existing_claim is defined %}
+    existingClaim: "{{ paperless_consume_existing_claim }}"
+{% elif paperless_consume_storage_class is defined %}
+    storageClass: "{{ paperless_consume_storage_class }}"
+    size: "{{ paperless_consume_storage_size }}"
+    accessMode: "{{ paperless_consume_access_mode }}"
+{% endif %}
+
+image:
+  tag: {{ paperless_image_tag }}
+
+env:
+  TZ: "{{ paperless_app_timezone }}"
+  PAPERLESS_SECRET_KEY: {{ vault_paperless_secret_key }}
+  PAPERLESS_TRUSTED_PROXIES: "{{ paperless_app_trusted_proxies }}"
+  PAPERLESS_DATA_DIR: "{{ paperless_media_mount_path }}"
+  PAPERLESS_FILENAME_FORMAT: "{{ paperless_app_filename_format }}"
+  PAPERLESS_CONSUMER_POLLING: "{{ paperless_app_consumer_polling }}"
+  PAPERLESS_CONSUMER_RECURSIVE: {{ paperless_app_consumer_recursive | lower }}
+  PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: {{ paperless_app_consumer_subdirs_as_tags | lower }}
+  PAPERLESS_OCR_USER_ARGS: '{{ paperless_app_ocr_user_args }}'
+  PAPERLESS_ADMIN_USER: "{{ paperless_admin_user }}"
+  PAPERLESS_ADMIN_MAIL: "{{ paperless_admin_mail }}"
+  PAPERLESS_ADMIN_PASSWORD: "{{ vault_paperless_admin_password }}"
+  {% if paperless_database_source == 'cloudnativepg' -%}
+  PAPERLESS_DBENGINE: postgresql
+  PAPERLESS_DBHOST: paperless-db-rw
+  PAPERLESS_DBNAME: {{ paperless_database_name }}
+  PAPERLESS_DBUSER: {{ paperless_database_user }}
+  PAPERLESS_DBPASS: {{ vault_paperless_db_password }}
+  {% endif %}
+
+postgresql:
+  enabled: {{ paperless_database_source == 'internal' }}
+  auth:
+    username: {{ paperless_database_user }}
+    database: {{ paperless_database_name }}
+    password: {{ vault_paperless_db_password }}
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "{{ paperless_postgresql_storage_class }}"
+
+redis:
+  enabled: true
+  auth:
+    password: {{ vault_paperless_redis_password }}
+  master:
+    # Add affinity rules for Redis to co-locate with Nextcloud
+    affinity:
+      podAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/instance: {{ paperless_release_name }}
+            topologyKey: kubernetes.io/hostname

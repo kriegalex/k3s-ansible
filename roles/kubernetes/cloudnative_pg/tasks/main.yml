@@ -1,0 +1,17 @@
+---
+# tasks file for DeployCloudNativePG-Sandbox
+- name: Add CloudNativePG Helm Repository
+  kubernetes.core.helm_repository:
+    name: cnpg
+    repo_url: https://cloudnative-pg.github.io/charts
+
+- name: Install CloudNativePG using Helm
+  kubernetes.core.helm:
+    name: "{{ cloudnative_pg_release_name }}"
+    chart_ref: cnpg/cloudnative-pg
+    chart_version: "{{ cloudnative_pg_chart_version }}"
+    release_namespace: "{{ cloudnative_pg_namespace }}"
+    create_namespace: true
+    update_repo_cache: true
+    state: present
+    wait: true

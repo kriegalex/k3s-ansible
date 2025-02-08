@@ -1,0 +1,59 @@
+# defaults/main.yml
+---
+gitea_enabled: false
+gitea_namespace: "default"
+gitea_release_name: "gitea"
+gitea_chart_version: "10.6.0"
+# Image configuration
+gitea_image_registry: ""
+gitea_image_repository: "gitea/gitea"
+gitea_image_tag: ""  # Defaults to chart appVersion
+gitea_image_pull_policy: "IfNotPresent"
+gitea_image_rootless: true
+
+# SSH Service configuration
+gitea_service_ssh_type: "ClusterIP"
+gitea_service_ssh_port: 8022
+gitea_service_ssh_traffic_policy: "Local"
+
+# Ingress configuration
+gitea_ingress_enabled: true
+gitea_ingress_class_name: "{{ ingress_nginx_class }}"
+gitea_ingress_cert_issuer: "{{ letsencrypt_env_tag }}"
+gitea_ingress_subdomain: "git"
+gitea_ingress_hostname: "{{ gitea_ingress_subdomain }}.{{ ingress_nginx_domain_name }}"
+gitea_ingress_tls_secret_name: "gitea-tls"
+
+# Persistence configuration
+gitea_persistence_enabled: true
+gitea_persistence_create: false # true if using storageClass
+gitea_persistence_mount: true
+gitea_persistence_claim_name: "nfs-gitea" # takes precedence over storage class
+gitea_persistence_storage_class: "" # optional
+gitea_persistence_size: "" # optional, only for storage class
+
+# Gitea admin configuration
+gitea_admin_secret_name: "gitea-admin-credentials"
+gitea_admin_username: "gitea-admin"
+gitea_admin_email: "admin@example.com"
+
+# Redis configuration
+gitea_redis_cluster_enabled: false
+gitea_redis_enabled: true
+gitea_redis_architecture: "standalone"
+gitea_redis_password: "{{ vault_gitea_redis_password }}"
+gitea_redis_master_count: 1
+gitea_redis_storage_class: "longhorn-single-replica" # fast cache
+
+# PostgreSQL configuration
+gitea_postgresql_ha_enabled: false
+# internal | cloudnativepgm
+# controls postgresql.enabled in the chart
+gitea_postgresql_source: internal
+gitea_postgresql_password: "{{ vault_gitea_postgresql_password }}"
+gitea_postgresql_database: "gitea"
+gitea_postgresql_username: "gitea"
+gitea_postgresql_port: 5432
+gitea_postgresql_storage_class: "longhorn"
+gitea_postgresql_storage_size: "10Gi" # used for cloudnativepg
+gitea_postgresql_instances: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"

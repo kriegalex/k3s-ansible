@@ -1,0 +1,14 @@
+{% if immich_persistence_type == 'longhorn' %}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-data-pvc
+  namespace: {{ immich_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ immich_persistence_longhorn_storage_class }}
+  resources:
+    requests:
+      storage: {{ immich_persistence_longhorn_size }}
+{% endif %}

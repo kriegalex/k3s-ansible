@@ -1,0 +1,31 @@
+# roles/plex/tasks/main.yml
+---
+
+- name: Install Intel GPU plugin dependency
+  ansible.builtin.include_role:
+    name: intel_gpu_plugin
+  when: plex_intel_hw_accel and not intel_gpu_plugin_enabled
+
+- name: Add Plex Helm repository
+  kubernetes.core.helm_repository:
+    name: plex
+    repo_url: "{{ plex_chart_repo }}"
+    state: present
+
+- name: Create namespace if needed
+  kubernetes.core.k8s:
+    name: "{{ plex_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Deploy Plex using Helm
+  kubernetes.core.helm:
+    name: "{{ plex_release_name }}"
+    chart_ref: "plex/{{ plex_chart_name }}"
+    chart_version: "{{ plex_chart_version }}"
+    release_namespace: "{{ plex_namespace }}"
+    create_namespace: false
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
+    wait: true

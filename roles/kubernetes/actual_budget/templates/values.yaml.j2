@@ -1,0 +1,37 @@
+image:
+  repository: {{ actual_budget_image_repository }}
+  tag: {{ actual_budget_image_tag }}
+  pullPolicy: {{ actual_budget_image_pull_policy }}
+
+replicaCount: {{ actual_budget_replicas }}
+
+service:
+  type: {{ actual_budget_service_type }}
+  port: {{ actual_budget_service_port }}
+
+persistence:
+  enabled: {{ actual_budget_storage_enabled | lower }}
+  size: {{ actual_budget_storage_size }}
+  storageClass: {{ actual_budget_storage_class }}
+
+ingress:
+  enabled: {{ actual_budget_ingress_enabled | lower }}
+  ingressClassName: {{ actual_budget_ingress_class_name }}
+  url: {{ actual_budget_ingress_host }}
+  annotations:
+    {{ actual_budget_annotations | to_nice_yaml(indent=2) | indent(4, first=true) }}
+
+{% if actual_budget_ingress_enabled %}
+  hosts:
+    - host: {{ actual_budget_ingress_host }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: actual-budget-tls
+      hosts:
+        - {{ actual_budget_ingress_host }}
+{% endif %}
+
+resources:
+{{ actual_budget_resources | to_nice_yaml(indent=2) | indent(2, first=true) }}
