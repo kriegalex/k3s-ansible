@@ -1,0 +1,7 @@
+---
+
+- name: Deploy cert-manager secret from template file
+  kubernetes.core.k8s:
+    state: present
+    template: 'secrets/route53-access-key-secret.yaml.j2'
+

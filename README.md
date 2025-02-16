@@ -12,6 +12,11 @@ If you want more context on how this works, see:
 
 📺 [Watch the Video](https://www.youtube.com/watch?v=CbkEWcUZ7zM)
 
+## ⚠️ Main changes on this fork
+
+- Reorganize roles and playbooks into folders
+- Add some kubernetes roles for longhorn and other useful utilities/apps
+
 ## 📖 k3s Ansible Playbook
 
 Build a Kubernetes cluster using Ansible with k3s. The goal is easily install a HA Kubernetes cluster on machines running:
@@ -78,7 +83,7 @@ If needed, you can also edit `inventory/my-cluster/group_vars/all.yml` to match 
 Start provisioning of the cluster using the following command:
 
 ```bash
-ansible-playbook site.yml -i inventory/my-cluster/hosts.ini
+ansible-playbook playbooks/site.yml -i inventory/my-cluster/hosts.ini
 ```
 
 After deployment control plane will be accessible via virtual ip-address which is defined in inventory/group_vars/all.yml as `apiserver_endpoint`
@@ -86,7 +91,7 @@ After deployment control plane will be accessible via virtual ip-address which i
 ### 🔥 Remove k3s cluster
 
 ```bash
-ansible-playbook reset.yml -i inventory/my-cluster/hosts.ini
+ansible-playbook playbooks/reset.yml -i inventory/my-cluster/hosts.ini
 ```
 
 >You should also reboot these nodes due to the VIP not being destroyed

@@ -1,0 +1,106 @@
+- name: Get local user home directory
+  ansible.builtin.set_fact:
+    local_home: "{{ lookup('env', 'HOME') }}"
+  delegate_to: localhost
+  connection: local
+
+- name: Ensure local .kube directory exists
+  ansible.builtin.file:
+    path: "{{ local_home }}/.kube"
+    state: directory
+    mode: '0700'
+  delegate_to: localhost
+  connection: local
+
+- name: Copying kubeconfig from server
+  ansible.builtin.fetch:
+    src: "{{ ansible_user_dir }}/.kube/config"
+    dest: "{{ local_home }}/.kube/config.{{ cluster_name }}"
+    flat: true
+    mode: '0600'
+
+- name: Modify kubeconfig files locally
+  block:
+    - name: Replace "default" cluster name with "{{ cluster_name }}"
+      ansible.builtin.replace:
+        path: "{{ local_home }}/.kube/config.{{ cluster_name }}"
+        regexp: '\bdefault\b'
+        replace: '{{ cluster_name }}'
+        backup: yes
+
+    - name: Check if kubeconfig exists
+      ansible.builtin.stat:
+        path: "{{ local_home }}/.kube/config"
+      register: kubeconfig_file
+
+    - name: Backup original kubeconfig
+      ansible.builtin.copy:
+        src: "{{ local_home }}/.kube/config"
+        dest: "{{ local_home }}/.kube/config.bak"
+        mode: '0600'
+      when: kubeconfig_file.stat.exists
+
+    - name: Remove existing cluster context if it exists
+      ansible.builtin.command: kubectl config delete-context {{ cluster_name }}
+      ignore_errors: true
+      when: kubeconfig_file.stat.exists
+
+    - name: Remove existing cluster if it exists
+      ansible.builtin.command: kubectl config delete-cluster {{ cluster_name }}
+      ignore_errors: true
+      when: kubeconfig_file.stat.exists
+
+    - name: Remove existing credentials if they exist
+      ansible.builtin.command: kubectl config unset users.{{ cluster_name }}
+      ignore_errors: true
+      when: kubeconfig_file.stat.exists
+
+    - name: Merge configs
+      ansible.builtin.shell: |
+        KUBECONFIG="{{ local_home }}/.kube/config:{{ local_home }}/.kube/config.{{ cluster_name }}" \
+        kubectl config view --merge --flatten > "{{ local_home }}/.kube/config.merged"
+      when: kubeconfig_file.stat.exists
+      register: merge_result
+      failed_when: merge_result.rc != 0
+
+    - name: Use new config if no existing config
+      ansible.builtin.copy:
+        src: "{{ local_home }}/.kube/config.{{ cluster_name }}"
+        dest: "{{ local_home }}/.kube/config"
+        mode: '0600'
+      when: not kubeconfig_file.stat.exists
+
+    - name: Validate merged config
+      ansible.builtin.command: kubectl config view
+      environment:
+        KUBECONFIG: "{{ local_home }}/.kube/config.merged"
+      register: validate_result
+      failed_when: validate_result.rc != 0
+      when: kubeconfig_file.stat.exists
+
+    - name: Replace original kubeconfig with merged config
+      ansible.builtin.copy:
+        src: "{{ local_home }}/.kube/config.merged"
+        dest: "{{ local_home }}/.kube/config"
+        mode: '0600'
+      when: kubeconfig_file.stat.exists and validate_result is success
+
+    - name: Remove temporary merged kubeconfig
+      ansible.builtin.file:
+        path: "{{ local_home }}/.kube/config.merged"
+        state: absent
+      when: kubeconfig_file.stat.exists
+
+    - name: Remove temporary cluster kubeconfig
+      ansible.builtin.file:
+        path: "{{ local_home }}/.kube/config.{{ cluster_name }}"
+        state: absent
+  delegate_to: localhost
+  connection: local
+
+- name: Verify kubectl access
+  ansible.builtin.command: kubectl cluster-info
+  register: cluster_info
+  failed_when: cluster_info.rc != 0
+  delegate_to: localhost
+  connection: local

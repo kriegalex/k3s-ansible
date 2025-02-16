@@ -1,0 +1,25 @@
+---
+
+- name: Check if Helm is installed
+  hosts: kubernetes
+  connection: local
+  tasks:
+    - name: Checking Helm version
+      ansible.builtin.command: "helm version --client"
+      register: helm_version
+      failed_when: helm_version.rc != 0 and helm_version.stderr != ""
+      changed_when: false
+
+- name: Include Helm install roles
+  hosts: kubernetes
+  connection: local
+  gather_facts: false
+  roles:
+    - role: ingress-nginx
+      when: ingress_nginx.enabled
+      tags:
+        - ingress-nginx
+    - role: cert-manager
+      when: cert_manager.enabled
+      tags:
+        - cert-manager
