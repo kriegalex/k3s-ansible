@@ -1,0 +1,23 @@
+---
+- name: Add Helm repository
+  kubernetes.core.helm_repository:
+    name: k8s-at-home
+    repo_url: "{{ overseerr_chart_repo }}"
+
+# - name: Create temporary values file for debug
+#   ansible.builtin.template:
+#     src: templates/values.yml.j2
+#     dest: "/tmp/overseerr-values.yaml"
+#     mode: "644"
+#   diff: true  # This will show the difference in the output
+
+- name: Deploy Overseerr using Helm
+  kubernetes.core.helm:
+    name: "{{ overseerr_release_name }}"
+    chart_ref: k8s-at-home/overseerr
+    chart_version: "{{ overseerr_chart_version }}"
+    release_namespace: "{{ overseerr_namespace }}"
+    values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
+    create_namespace: true
+    update_repo_cache: true
+    wait: true

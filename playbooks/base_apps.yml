@@ -38,29 +38,21 @@
       tags:
         - plex
         - media
-    # - role: rancher
-    #   when: rancher.enabled
-    #   tags:
-    #     - rancher
-    # - role: authentik
-    #   when: authentik.enabled
-    #   tags:
-    #     - authentik
     - role: nextcloud
       when: nextcloud_enabled
       tags:
         - nextcloud
-        - media
+        - cloud
     - role: immich
       when: immich_enabled
       tags:
         - immich
-        - media
+        - photo
     - role: paperless
       when: paperless_enabled
       tags:
         - paperless
-        - media
+        - document
     - role: actual_budget
       when: actual_budget_enabled
       tags:
@@ -71,30 +63,15 @@
       tags:
         - git
         - gitea
-    # - role: gitlab-runner
-    #   when: gitlab.runner.enabled
-    #   tags:
-    #     - gitlab-runner
-    # - role: argocd
-    #   when: argocd.enabled
-    #   tags:
-    #     - argocd
-    # - role: argocd-image-updater
-    #   when: argocd.image_updater.enabled
-    #   tags:
-    #     - argocd-image-updater
+    - role: overseerr
+      when: overseerr_enabled
+      tags:
+        - overseerr
+        - media
     # - role: qbittorrent
     #   when: qbittorrent.enabled
     #   tags:
     #     - qbittorrent
-    # - role: prometheus
-    #   when: prometheus.enabled
-    #   tags:
-    #     - prometheus
-    # - role: minio
-    #   when: minio.enabled
-    #   tags:
-    #     - minio
     # - role: home-assistant
     #   when: home_assistant.enabled
     #   tags:

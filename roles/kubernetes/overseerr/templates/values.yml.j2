@@ -1,0 +1,39 @@
+image:
+  repository: {{ overseerr_image_repository }}
+  tag: {{ overseerr_image_tag }}
+  pullPolicy: {{ overseerr_image_pull_policy }}
+
+env:
+  TZ: {{ overseerr_timezone }}
+  LOG_LEVEL: {{ overseerr_log_level }}
+
+service:
+  main:
+    ports:
+      http:
+        port: {{ overseerr_port }}
+
+ingress:
+  main:
+    enabled: {{ overseerr_ingress_enabled }}
+    ingressClassName: {{ overseerr_ingress_class_name }}
+    annotations:
+      cert-manager.io/cluster-issuer: {{ overseerr_cert_issuer }}
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    hosts:
+      - host: {{ overseerr_hostname }}
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+     - secretName: {{ overseerr_tls_secret_name }}
+       hosts:
+         - {{ overseerr_hostname }}
+
+persistence:
+  config:
+    storageClass: {{ overseerr_storage_class }}
+    enabled: {{ overseerr_persistence_enabled }}
+    mountPath: {{ overseerr_persistence_mount_path }}
+    accessMode: {{ overseerr_storage_access_mode }}
+    size: {{ overseerr_storage_size }}

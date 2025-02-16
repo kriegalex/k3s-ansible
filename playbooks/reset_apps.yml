@@ -5,6 +5,13 @@
   connection: local
   gather_facts: false
   tasks:
+    - name: Uninstall overseerr
+      ansible.builtin.include_role:
+        name: overseerr
+        tasks_from: reset
+      tags:
+        - overseerr
+
     - name: Uninstall gitea
       ansible.builtin.include_role:
         name: gitea

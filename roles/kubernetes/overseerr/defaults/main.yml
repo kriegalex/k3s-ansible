@@ -1,0 +1,34 @@
+---
+# Helm chart details
+overseerr_enabled: false
+overseerr_release_name: overseerr
+overseerr_chart_repo: https://k8s-at-home.com/charts/
+overseerr_chart_version: "5.4.2"  # Specify your desired version
+overseerr_namespace: default
+
+# Image configuration
+overseerr_image_repository: lscr.io/linuxserver/overseerr
+overseerr_image_tag: 1.33.2
+overseerr_image_pull_policy: IfNotPresent
+
+# Application configuration
+overseerr_timezone: UTC
+overseerr_log_level: info
+overseerr_port: 5055
+
+# Ingress configuration
+overseerr_ingress_enabled: true
+overseerr_ingress_class_name: "{{ ingress_nginx_class }}"
+overseerr_cert_issuer: "{{ letsencrypt_env_tag }}"
+overseerr_subdomain: "overseerr"
+overseerr_hostname: "{{ overseerr_subdomain }}.{{ ingress_nginx_domain_name }}"
+overseerr_tls_secret_name: overseerr-tls
+
+# Storage configuration
+# /app/config for official sctx/overseerr
+# /config for linuxserver/overseerr
+overseerr_persistence_mount_path: "/config"
+overseerr_storage_class: longhorn
+overseerr_persistence_enabled: true
+overseerr_storage_access_mode: ReadWriteOnce
+overseerr_storage_size: 5Gi

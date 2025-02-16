@@ -1,0 +1,10 @@
+---
+- name: Uninstall overseerr (helm)
+  kubernetes.core.helm:
+    name: "{{ overseerr_release_name }}"
+    release_namespace: "{{ overseerr_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - cleanup
+    - overseerr
