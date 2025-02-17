@@ -68,6 +68,26 @@
       tags:
         - overseerr
         - media
+    - role: prowlarr
+      when: prowlarr_enabled
+      tags:
+        - prowlarr
+        - media
+    - role: radarr
+      when: radarr_enabled
+      tags:
+        - radarr
+        - media
+    - role: sonarr
+      when: sonarr_enabled
+      tags:
+        - sonarr
+        - media
+    - role: flaresolverr
+      when: flaresolverr_enabled
+      tags:
+        - flaresolverr
+        - media
     # - role: qbittorrent
     #   when: qbittorrent.enabled
     #   tags:

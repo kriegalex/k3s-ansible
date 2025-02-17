@@ -1,0 +1,46 @@
+---
+prowlarr_enabled: false
+# Chart source
+prowlarr_repository_url: "https://charts.alekc.dev"
+prowlarr_repository_name: "alekc"
+prowlarr_chart_name: "prowlarr"
+# Prowlarr deployment defaults
+prowlarr_namespace: default
+prowlarr_chart_version: "1.12.0"
+prowlarr_subdomain: "prowlarr"
+prowlarr_host: "{{ prowlarr_subdomain }}.{{ ingress_nginx_domain_name }}"
+
+# Image configuration
+prowlarr_image_repository: "hotio/prowlarr"
+prowlarr_image_tag: "latest"
+prowlarr_image_pull_policy: "IfNotPresent"
+
+# Resources
+prowlarr_resources_limits_memory: "1Gi"
+prowlarr_resources_limits_cpu: "1000m"
+prowlarr_resources_requests_memory: "256Mi"
+prowlarr_resources_requests_cpu: "100m"
+
+# Storage configuration
+prowlarr_persistence_enabled: false
+# Use either storage_class + storage_size OR existing_claim
+prowlarr_storage_class: "longhorn"
+prowlarr_storage_size: "1Gi"
+# prowlarr_existing_claim: "existing-claim-name"
+prowlarr_access_mode: "ReadWriteOnce"
+
+# Pod configuration
+prowlarr_pod_user_id: "1000"
+prowlarr_pod_group_id: "1000"
+prowlarr_timezone: "UTC"
+prowlarr_umask: "002"
+
+# Network configuration
+prowlarr_service_type: "ClusterIP"
+prowlarr_service_port: 80
+
+# Ingress configuration
+prowlarr_ingress_enabled: true
+prowlarr_ingress_class_name: "{{ ingress_nginx_class }}"
+prowlarr_ingress_tls_enabled: true
+prowlarr_cluster_issuer: "{{ letsencrypt_env_tag }}"

@@ -1,0 +1,10 @@
+---
+- name: Uninstall plex (helm)
+  kubernetes.core.helm:
+    name: prowlarr
+    release_namespace: "{{ prowlarr_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - prowlarr

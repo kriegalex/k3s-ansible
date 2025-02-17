@@ -1,0 +1,61 @@
+---
+image:
+  repository: {{ flaresolverr_image_repository }}
+  tag: {{ flaresolverr_image_tag }}
+  pullPolicy: {{ flaresolverr_image_pull_policy }}
+
+env:
+  TZ: {{ flaresolverr_timezone }}
+  LOG_LEVEL: {{ flaresolverr_log_level }}
+  BROWSER_TIMEOUT: {{ flaresolverr_max_timeout }}
+{% if flaresolverr_additional_env | length > 0 %}
+{{ flaresolverr_additional_env | to_nice_yaml | indent(2) }}
+{% endif %}
+
+service:
+  main:
+    ports:
+      http:
+        port: {{ flaresolverr_service_port }}
+    type: {{ flaresolverr_service_type }}
+
+ingress:
+  main:
+    enabled: {{ flaresolverr_ingress_enabled | lower }}
+    ingressClassName: {{ flaresolverr_ingress_class_name }}
+{% if flaresolverr_ingress_enabled %}
+    annotations:
+      cert-manager.io/cluster-issuer: {{ flaresolverr_cluster_issuer }}
+    hosts:
+      - host: {{ flaresolverr_host }}
+        paths:
+          - path: /
+            pathType: Prefix
+{% if flaresolverr_ingress_tls_enabled %}
+    tls:
+      - secretName: flaresolverr-tls
+        hosts:
+          - {{ flaresolverr_host }}
+{% endif %}
+{% endif %}
+
+persistence:
+  config:
+    enabled: {{ flaresolverr_persistence_enabled | lower }}
+{% if flaresolverr_persistence_enabled %}
+{% if flaresolverr_existing_claim is defined %}
+    existingClaim: {{ flaresolverr_existing_claim }}
+{% else %}
+    storageClass: {{ flaresolverr_storage_class }}
+    size: {{ flaresolverr_storage_size }}
+{% endif %}
+    accessMode: {{ flaresolverr_access_mode }}
+{% endif %}
+
+resources:
+  limits:
+    cpu: {{ flaresolverr_resources_limits_cpu }}
+    memory: {{ flaresolverr_resources_limits_memory }}
+  requests:
+    cpu: {{ flaresolverr_resources_requests_cpu }}
+    memory: {{ flaresolverr_resources_requests_memory }}

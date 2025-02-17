@@ -5,97 +5,108 @@
   connection: local
   gather_facts: false
   tasks:
+    - name: Uninstall flaresolverr
+      ansible.builtin.include_role:
+        name: flaresolverr
+        tasks_from: reset
+      tags:
+        - flaresolverr
+    - name: Uninstall prowlarr
+      ansible.builtin.include_role:
+        name: prowlarr
+        tasks_from: reset
+      tags:
+        - prowlarr
+    - name: Uninstall sonarr
+      ansible.builtin.include_role:
+        name: sonarr
+        tasks_from: reset
+      tags:
+        - sonarr
+    - name: Uninstall radarr
+      ansible.builtin.include_role:
+        name: radarr
+        tasks_from: reset
+      tags:
+        - radarr
     - name: Uninstall overseerr
       ansible.builtin.include_role:
         name: overseerr
         tasks_from: reset
       tags:
         - overseerr
-
     - name: Uninstall gitea
       ansible.builtin.include_role:
         name: gitea
         tasks_from: reset
       tags:
         - gitea
-
     - name: Uninstall actual_budget
       ansible.builtin.include_role:
         name: actual_budget
         tasks_from: reset
       tags:
         - actual_budget
-
     - name: Uninstall paperless
       ansible.builtin.include_role:
         name: paperless
         tasks_from: reset
       tags:
         - paperless
-
     - name: Uninstall immich
       ansible.builtin.include_role:
         name: immich
         tasks_from: reset
       tags:
         - immich
-
     - name: Uninstall nextcloud
       ansible.builtin.include_role:
         name: nextcloud
         tasks_from: reset
       tags:
         - nextcloud
-
     - name: Uninstall plex
       ansible.builtin.include_role:
         name: plex
         tasks_from: reset
       tags:
         - plex
-
     - name: Uninstall nfs_client
       ansible.builtin.include_role:
         name: nfs_client
         tasks_from: reset
       tags:
         - nfs_client
-
     - name: Uninstall nfs_pvc
       ansible.builtin.include_role:
         name: nfs_pvc
         tasks_from: reset
       tags:
         - nfs_pvc
-
     - name: Uninstall intel_gpu_plugin
       ansible.builtin.include_role:
         name: intel_gpu_plugin
         tasks_from: reset
       tags:
         - intel_gpu_plugin
-
     - name: Uninstall cloudnative_pg
       ansible.builtin.include_role:
         name: cloudnative_pg
         tasks_from: reset
       tags:
         - cloudnative_pg
-
     - name: Uninstall longhorn
       ansible.builtin.include_role:
         name: longhorn
         tasks_from: reset
       tags:
         - longhorn
-
     - name: Uninstall cert_manager
       ansible.builtin.include_role:
         name: cert_manager
         tasks_from: reset
       tags:
         - cert_manager
-
     - name: Uninstall ingress_nginx
       ansible.builtin.include_role:
         name: ingress_nginx

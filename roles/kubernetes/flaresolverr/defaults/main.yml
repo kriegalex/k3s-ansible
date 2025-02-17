@@ -1,0 +1,46 @@
+---
+flaresolverr_enabled: false
+# Chart source
+flaresolverr_repository_url: "https://k8s-home-lab.github.io/helm-charts/"
+flaresolverr_repository_name: "k8s-home-lab"
+flaresolverr_chart_name: "flaresolverr"
+# flaresolverr deployment defaults
+flaresolverr_namespace: default
+flaresolverr_chart_version: "6.0.3"
+flaresolverr_subdomain: "flaresolverr"
+flaresolverr_host: "{{ flaresolverr_subdomain }}.{{ ingress_nginx_domain_name }}"
+
+# Image configuration
+flaresolverr_image_repository: "ghcr.io/flaresolverr/flaresolverr"
+flaresolverr_image_tag: ""
+flaresolverr_image_pull_policy: "IfNotPresent"
+
+# Resources
+flaresolverr_resources_limits_memory: "2Gi"
+flaresolverr_resources_limits_cpu: "1000m"
+flaresolverr_resources_requests_memory: "256Mi"
+flaresolverr_resources_requests_cpu: "100m"
+
+# Storage configuration
+flaresolverr_persistence_enabled: false
+# Use either storage_class + storage_size OR existing_claim
+flaresolverr_storage_class: "longhorn"
+flaresolverr_storage_size: "1Gi"
+# flaresolverr_existing_claim: "existing-claim-name"
+flaresolverr_access_mode: "ReadWriteOnce"
+
+# Pod configuration
+# https://github.com/FlareSolverr/FlareSolverr#environment-variables
+flaresolverr_log_level: info
+flaresolverr_timezone: "UTC"
+flaresolverr_max_timeout: 40000
+
+# Network configuration
+flaresolverr_service_type: "ClusterIP"
+flaresolverr_service_port: 8191
+
+# Ingress configuration
+flaresolverr_ingress_enabled: false
+flaresolverr_ingress_class_name: "{{ ingress_nginx_class }}"
+flaresolverr_ingress_tls_enabled: false
+flaresolverr_cluster_issuer: "{{ letsencrypt_env_tag }}"

@@ -1,0 +1,13 @@
+---
+# Base
+sonarr_enabled: true
+
+# Storage
+sonarr_persistence_enabled: true
+# sonarr_storage_class: "longhorn" # override defaults
+# sonarr_storage_size: "1Gi" # override defaults
+
+# Ingress
+# If you don't want to use the defaults created by cert-manager and ingress-nginx
+# sonarr_ingress_class_name: "myclass"
+# sonarr_cluster_issuer: "myissuer"

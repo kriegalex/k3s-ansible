@@ -1,0 +1,13 @@
+---
+# Base
+radarr_enabled: true
+
+# Storage
+radarr_persistence_enabled: true
+# radarr_storage_class: "longhorn" # override defaults
+# radarr_storage_size: "1Gi" # override defaults
+
+# Ingress
+# If you don't want to use the defaults created by cert-manager and ingress-nginx
+# radarr_ingress_class_name: "myclass"
+# radarr_cluster_issuer: "myissuer"

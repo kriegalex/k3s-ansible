@@ -1,0 +1,10 @@
+---
+- name: Uninstall plex (helm)
+  kubernetes.core.helm:
+    name: radarr
+    release_namespace: "{{ radarr_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - radarr

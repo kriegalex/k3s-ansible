@@ -1,0 +1,27 @@
+---
+- name: Include validation tasks
+  ansible.builtin.import_tasks: validation.yml
+
+- name: Add radarr helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ radarr_repository_name }}"
+    repo_url: "{{ radarr_repository_url }}"
+
+# - name: Create temporary values file for debug
+#   ansible.builtin.template:
+#     src: templates/values.yml.j2
+#     dest: "/tmp/radarr-values.yaml"
+#     mode: "644"
+#   diff: true  # This will show the difference in the output
+
+- name: Deploy radarr helm chart
+  kubernetes.core.helm:
+    name: radarr
+    chart_ref: "{{ radarr_repository_name }}/{{ radarr_chart_name }}"
+    release_namespace: "{{ radarr_namespace }}"
+    chart_version: "{{ radarr_chart_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
+    wait: true
+    state: present

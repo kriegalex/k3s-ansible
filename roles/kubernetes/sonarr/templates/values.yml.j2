@@ -1,0 +1,43 @@
+image:
+  repository: {{ sonarr_image_repository }}
+  tag: {{ sonarr_image_tag }}
+  pullPolicy: {{ sonarr_image_pull_policy }}
+
+resources:
+  limits:
+    memory: {{ sonarr_resources_limits_memory }}
+    cpu: {{ sonarr_resources_limits_cpu }}
+  requests:
+    memory: {{ sonarr_resources_requests_memory }}
+    cpu: {{ sonarr_resources_requests_cpu }}
+
+persistence:
+  enabled: {{ sonarr_persistence_enabled | lower }}
+{% if sonarr_persistence_enabled %}
+{% if sonarr_existing_claim is defined %}
+  existingClaim: {{ sonarr_existing_claim }}
+{% else %}
+  storageClass: {{ sonarr_storage_class }}
+  size: {{ sonarr_storage_size }}
+{% endif %}
+  accessMode: {{ sonarr_access_mode }}
+{% endif %}
+
+service:
+  type: {{ sonarr_service_type }}
+  port: {{ sonarr_service_port }}
+
+ingress:
+  enabled: {{ sonarr_ingress_enabled | lower }}
+  annotations:
+    kubernetes.io/ingress.class: {{ ingress_nginx_class }}
+    cert-manager.io/cluster-issuer: {{ letsencrypt_env_tag }}
+  hosts:
+    - host: {{ sonarr_subdomain }}.{{ ingress_nginx_domain_name }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: sonarr-tls
+      hosts:
+        - {{ sonarr_subdomain }}.{{ ingress_nginx_domain_name }}

@@ -1,0 +1,27 @@
+---
+- name: Include validation tasks
+  ansible.builtin.import_tasks: validation.yml
+
+- name: Add sonarr helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ sonarr_repository_name }}"
+    repo_url: "{{ sonarr_repository_url }}"
+
+# - name: Create temporary values file for debug
+#   ansible.builtin.template:
+#     src: templates/values.yml.j2
+#     dest: "/tmp/sonarr-values.yaml"
+#     mode: "644"
+#   diff: true  # This will show the difference in the output
+
+- name: Deploy sonarr helm chart
+  kubernetes.core.helm:
+    name: sonarr
+    chart_ref: "{{ sonarr_repository_name }}/{{ sonarr_chart_name }}"
+    release_namespace: "{{ sonarr_namespace }}"
+    chart_version: "{{ sonarr_chart_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
+    wait: true
+    state: present

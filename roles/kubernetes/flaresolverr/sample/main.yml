@@ -1,0 +1,16 @@
+---
+# Base
+flaresolverr_enabled: true
+
+# Storage
+flaresolverr_persistence_enabled: false
+# flaresolverr_storage_class: "longhorn" # override defaults
+# flaresolverr_storage_size: "1Gi" # override defaults
+
+# Ingress
+# If you don't want to use the defaults created by cert-manager and ingress-nginx
+# flaresolverr_ingress_class_name: "myclass"
+# flaresolverr_cluster_issuer: "myissuer"
+
+# Additional configuration options
+flaresolverr_additional_env: []

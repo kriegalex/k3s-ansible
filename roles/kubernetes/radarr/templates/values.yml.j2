@@ -1,0 +1,43 @@
+image:
+  repository: {{ radarr_image_repository }}
+  tag: {{ radarr_image_tag }}
+  pullPolicy: {{ radarr_image_pull_policy }}
+
+resources:
+  limits:
+    memory: {{ radarr_resources_limits_memory }}
+    cpu: {{ radarr_resources_limits_cpu }}
+  requests:
+    memory: {{ radarr_resources_requests_memory }}
+    cpu: {{ radarr_resources_requests_cpu }}
+
+persistence:
+  enabled: {{ radarr_persistence_enabled | lower }}
+{% if radarr_persistence_enabled %}
+{% if radarr_existing_claim is defined %}
+  existingClaim: {{ radarr_existing_claim }}
+{% else %}
+  storageClass: {{ radarr_storage_class }}
+  size: {{ radarr_storage_size }}
+{% endif %}
+  accessMode: {{ radarr_access_mode }}
+{% endif %}
+
+service:
+  type: {{ radarr_service_type }}
+  port: {{ radarr_service_port }}
+
+ingress:
+  enabled: {{ radarr_ingress_enabled | lower }}
+  annotations:
+    kubernetes.io/ingress.class: {{ ingress_nginx_class }}
+    cert-manager.io/cluster-issuer: {{ letsencrypt_env_tag }}
+  hosts:
+    - host: {{ radarr_subdomain }}.{{ ingress_nginx_domain_name }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: radarr-tls
+      hosts:
+        - {{ radarr_subdomain }}.{{ ingress_nginx_domain_name }}

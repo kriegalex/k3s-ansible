@@ -1,0 +1,43 @@
+image:
+  repository: {{ prowlarr_image_repository }}
+  tag: {{ prowlarr_image_tag }}
+  pullPolicy: {{ prowlarr_image_pull_policy }}
+
+resources:
+  limits:
+    memory: {{ prowlarr_resources_limits_memory }}
+    cpu: {{ prowlarr_resources_limits_cpu }}
+  requests:
+    memory: {{ prowlarr_resources_requests_memory }}
+    cpu: {{ prowlarr_resources_requests_cpu }}
+
+persistence:
+  enabled: {{ prowlarr_persistence_enabled | lower }}
+{% if prowlarr_persistence_enabled %}
+{% if prowlarr_existing_claim is defined %}
+  existingClaim: {{ prowlarr_existing_claim }}
+{% else %}
+  storageClass: {{ prowlarr_storage_class }}
+  size: {{ prowlarr_storage_size }}
+{% endif %}
+  accessMode: {{ prowlarr_access_mode }}
+{% endif %}
+
+service:
+  type: {{ prowlarr_service_type }}
+  port: {{ prowlarr_service_port }}
+
+ingress:
+  enabled: {{ prowlarr_ingress_enabled | lower }}
+  annotations:
+    kubernetes.io/ingress.class: {{ ingress_nginx_class }}
+    cert-manager.io/cluster-issuer: {{ letsencrypt_env_tag }}
+  hosts:
+    - host: {{ prowlarr_subdomain }}.{{ ingress_nginx_domain_name }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: prowlarr-tls
+      hosts:
+        - {{ prowlarr_subdomain }}.{{ ingress_nginx_domain_name }}

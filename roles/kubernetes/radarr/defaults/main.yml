@@ -1,0 +1,46 @@
+---
+radarr_enabled: false
+# Chart source
+radarr_repository_url: "https://charts.alekc.dev"
+radarr_repository_name: "alekc"
+radarr_chart_name: "radarr"
+# radarr deployment defaults
+radarr_namespace: default
+radarr_chart_version: "1.12.0"
+radarr_subdomain: "radarr"
+radarr_host: "{{ radarr_subdomain }}.{{ ingress_nginx_domain_name }}"
+
+# Image configuration
+radarr_image_repository: "hotio/radarr"
+radarr_image_tag: "latest"
+radarr_image_pull_policy: "IfNotPresent"
+
+# Resources
+radarr_resources_limits_memory: "1Gi"
+radarr_resources_limits_cpu: "1000m"
+radarr_resources_requests_memory: "256Mi"
+radarr_resources_requests_cpu: "100m"
+
+# Storage configuration
+radarr_persistence_enabled: false
+# Use either storage_class + storage_size OR existing_claim
+radarr_storage_class: "longhorn"
+radarr_storage_size: "1Gi"
+# radarr_existing_claim: "existing-claim-name"
+radarr_access_mode: "ReadWriteOnce"
+
+# Pod configuration
+radarr_pod_user_id: "1000"
+radarr_pod_group_id: "1000"
+radarr_timezone: "UTC"
+radarr_umask: "002"
+
+# Network configuration
+radarr_service_type: "ClusterIP"
+radarr_service_port: 80
+
+# Ingress configuration
+radarr_ingress_enabled: true
+radarr_ingress_class_name: "{{ ingress_nginx_class }}"
+radarr_ingress_tls_enabled: true
+radarr_cluster_issuer: "{{ letsencrypt_env_tag }}"

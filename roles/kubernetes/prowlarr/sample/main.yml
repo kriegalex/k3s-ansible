@@ -1,0 +1,13 @@
+---
+# Base
+prowlarr_enabled: true
+
+# Storage
+prowlarr_persistence_enabled: true
+# prowlarr_storage_class: "longhorn" # override defaults
+# prowlarr_storage_size: "1Gi" # override defaults
+
+# Ingress
+# If you don't want to use the defaults created by cert-manager and ingress-nginx
+# prowlarr_ingress_class_name: "myclass"
+# prowlarr_cluster_issuer: "myissuer"

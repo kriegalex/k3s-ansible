@@ -1,0 +1,10 @@
+---
+- name: Uninstall plex (helm)
+  kubernetes.core.helm:
+    name: flaresolverr
+    release_namespace: "{{ flaresolverr_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - flaresolverr

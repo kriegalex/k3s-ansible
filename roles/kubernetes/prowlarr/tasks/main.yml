@@ -1,0 +1,27 @@
+---
+- name: Include validation tasks
+  ansible.builtin.import_tasks: validation.yml
+
+- name: Add Prowlarr helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ prowlarr_repository_name }}"
+    repo_url: "{{ prowlarr_repository_url }}"
+
+# - name: Create temporary values file for debug
+#   ansible.builtin.template:
+#     src: templates/values.yml.j2
+#     dest: "/tmp/prowlarr-values.yaml"
+#     mode: "644"
+#   diff: true  # This will show the difference in the output
+
+- name: Deploy Prowlarr helm chart
+  kubernetes.core.helm:
+    name: prowlarr
+    chart_ref: "{{ prowlarr_repository_name }}/{{ prowlarr_chart_name }}"
+    release_namespace: "{{ prowlarr_namespace }}"
+    chart_version: "{{ prowlarr_chart_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
+    wait: true
+    state: present

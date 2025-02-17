@@ -6,5 +6,5 @@
     state: absent
     wait: true
   tags:
-    - cleanup
+    - reset
     - overseerr

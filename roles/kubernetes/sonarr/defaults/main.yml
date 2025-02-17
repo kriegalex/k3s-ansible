@@ -1,0 +1,46 @@
+---
+sonarr_enabled: false
+# Chart source
+sonarr_repository_url: "https://charts.alekc.dev"
+sonarr_repository_name: "alekc"
+sonarr_chart_name: "sonarr"
+# sonarr deployment defaults
+sonarr_namespace: default
+sonarr_chart_version: "1.7.0"
+sonarr_subdomain: "sonarr"
+sonarr_host: "{{ sonarr_subdomain }}.{{ ingress_nginx_domain_name }}"
+
+# Image configuration
+sonarr_image_repository: "hotio/sonarr"
+sonarr_image_tag: "latest"
+sonarr_image_pull_policy: "IfNotPresent"
+
+# Resources
+sonarr_resources_limits_memory: "1Gi"
+sonarr_resources_limits_cpu: "1000m"
+sonarr_resources_requests_memory: "256Mi"
+sonarr_resources_requests_cpu: "100m"
+
+# Storage configuration
+sonarr_persistence_enabled: false
+# Use either storage_class + storage_size OR existing_claim
+sonarr_storage_class: "longhorn"
+sonarr_storage_size: "1Gi"
+# sonarr_existing_claim: "existing-claim-name"
+sonarr_access_mode: "ReadWriteOnce"
+
+# Pod configuration
+sonarr_pod_user_id: "1000"
+sonarr_pod_group_id: "1000"
+sonarr_timezone: "UTC"
+sonarr_umask: "002"
+
+# Network configuration
+sonarr_service_type: "ClusterIP"
+sonarr_service_port: 80
+
+# Ingress configuration
+sonarr_ingress_enabled: true
+sonarr_ingress_class_name: "{{ ingress_nginx_class }}"
+sonarr_ingress_tls_enabled: true
+sonarr_cluster_issuer: "{{ letsencrypt_env_tag }}"

@@ -1,0 +1,25 @@
+---
+- name: Verify persistence configuration when enabled
+  ansible.builtin.assert:
+    that:
+      - >-
+        not prowlarr_persistence_enabled or
+        (prowlarr_existing_claim is defined) or
+        (prowlarr_storage_class is defined and prowlarr_storage_size is defined)
+      - >-
+        not prowlarr_persistence_enabled or
+        not (prowlarr_existing_claim is defined and prowlarr_storage_class is defined)
+    fail_msg: >-
+      When persistence is enabled, either:
+      - Define an existing claim using prowlarr_existing_claim
+      - OR define both prowlarr_storage_class and prowlarr_storage_size
+      But not both options simultaneously.
+
+- name: Verify storage size format when defined
+  ansible.builtin.assert:
+    that:
+      - >-
+        not prowlarr_persistence_enabled or
+        prowlarr_existing_claim is defined or
+        prowlarr_storage_size | regex_search('^[0-9]+[MGT]i$')
+    fail_msg: "Invalid storage size format. Must be in format: 1Gi, 100Mi, 2Ti, etc."
