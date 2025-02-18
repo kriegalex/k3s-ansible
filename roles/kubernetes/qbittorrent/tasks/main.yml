@@ -1,0 +1,39 @@
+---
+- name: Include validation tasks
+  ansible.builtin.import_tasks: validation.yml
+
+- name: Add Qbittorrent helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ qbittorrent_repository_name }}"
+    repo_url: "{{ qbittorrent_repository_url }}"
+
+# - name: Create temporary values file for debug
+#   ansible.builtin.template:
+#     src: templates/wg0.conf.j2
+#     dest: "/tmp/wg0-values.yaml"
+#     mode: "644"
+#   diff: true  # This will show the difference in the output
+
+# - name: Create temporary values file for debug
+#   ansible.builtin.template:
+#     src: templates/values.yml.j2
+#     dest: "/tmp/qbittorrent-values.yaml"
+#     mode: "644"
+#   diff: true  # This will show the difference in the output
+
+- name: Deploy Qbittorrent helm chart
+  kubernetes.core.helm:
+    name: "{{ qbittorrent_release_name }}"
+    chart_ref: "{{ qbittorrent_repository_name }}/{{ qbittorrent_chart_name }}"
+    release_namespace: "{{ qbittorrent_namespace }}"
+    chart_version: "{{ qbittorrent_chart_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
+    wait: true
+    state: present
+
+- name: Display reminder for Proton wireguard config
+  ansible.builtin.debug:
+    msg: "IMPORTANT: Don't forget to add your wg0.conf in /config/wireguard (inside the pod or via config persistence)."
+  when: qbittorrent_vpn_provider == "proton" and not qbittorrent_wg_copy_config

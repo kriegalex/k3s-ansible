@@ -1,0 +1,75 @@
+---
+# defaults/main.yml
+# qbittorrent_enabled: please check global variables, because of allowedUnsafeSysctls
+# General deployment settings
+qbittorrent_namespace: "default"
+qbittorrent_create_namespace: true
+qbittorrent_chart_version: "1.2.0"
+qbittorrent_chart_name: "qbittorrent"
+qbittorrent_repository_name: "k8s-charts"
+qbittorrent_repository_url: "https://kriegalex.github.io/k8s-charts/"
+qbittorrent_release_name: "qbittorrent"
+qbittorrent_subdomain: "qbittorrent"
+
+# Image settings
+qbittorrent_image_repository: "hotio/qbittorrent"
+# Be careful with v5.0 images
+# https://github.com/qbittorrent/qBittorrent/issues/21502
+qbittorrent_image_tag: "legacy"
+qbittorrent_image_pull_policy: "IfNotPresent"
+
+# Service settings
+qbittorrent_service_type: "ClusterIP"
+qbittorrent_service_port: 8080
+
+# Basic environment configuration
+qbittorrent_webui_ports: "8080/tcp,8080/udp"
+qbittorrent_puid: 1000
+qbittorrent_pgid: 1000
+qbittorrent_umask: "002"
+qbittorrent_timezone: "Etc/UTC"
+
+# VPN Configuration (disabled by default)
+qbittorrent_vpn_enabled: false
+qbittorrent_vpn_provider: ""
+qbittorrent_vpn_conf: "wg0"
+qbittorrent_vpn_lan_network: "192.168.1.0/24"
+qbittorrent_vpn_lan_leak_enabled: false
+qbittorrent_vpn_auto_port_forward: true
+qbittorrent_vpn_keep_local_dns: false
+qbittorrent_vpn_firewall_type: "auto"
+qbittorrent_vpn_healthcheck_enabled: false
+
+# wg0.conf
+qbittorrent_wg_copy_config: false
+qbittorrent_wg_private_key: ""
+qbittorrent_wg_client_ip: ""
+qbittorrent_wg_dns_servers: "1.1.1.1"
+qbittorrent_wg_server_public_key: ""
+qbittorrent_wg_allowed_ips: "0.0.0.0/0"
+qbittorrent_wg_endpoint: ""
+qbittorrent_wg_persistent_keepalive: ""
+
+# Ingress
+qbittorrent_ingress_enabled: false
+qbittorrent_ingress_class_name: "{{ ingress_nginx_class }}"
+qbittorrent_ingress_cert_issuer: "{{ letsencrypt_env_tag }}"
+qbittorrent_ingress_subdomain: "torrent"
+qbittorrent_ingress_hostname: "{{ qbittorrent_ingress_subdomain }}.{{ ingress_nginx_domain_name }}"
+qbittorrent_ingress_tls_enabled: false
+qbittorrent_ingress_tls_secret_name: "qbittorrent-tls"
+
+# Storage configuration
+qbittorrent_config_persistence_enabled: false
+qbittorrent_config_storage_class: "longhorn"
+qbittorrent_config_size: "1Gi"
+
+qbittorrent_data_persistence_enabled: false
+qbittorrent_data_storage_class: "nfs-client"
+qbittorrent_data_size: "100Gi"
+
+# Resource limits (empty by default)
+qbittorrent_resources_limits_cpu: "1"
+qbittorrent_resources_limits_memory: "8Gi"
+qbittorrent_resources_requests_cpu: "250m"
+qbittorrent_resources_requests_memory: "2Gi"

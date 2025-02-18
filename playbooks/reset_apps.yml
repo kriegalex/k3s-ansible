@@ -5,6 +5,12 @@
   connection: local
   gather_facts: false
   tasks:
+    - name: Uninstall qbittorrent
+      ansible.builtin.include_role:
+        name: qbittorrent
+        tasks_from: reset
+      tags:
+        - qbittorrent
     - name: Uninstall flaresolverr
       ansible.builtin.include_role:
         name: flaresolverr

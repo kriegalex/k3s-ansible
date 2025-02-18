@@ -1,6 +1,5 @@
 # roles/k3s-nfs/tasks/main.yml
 ---
-
 - name: Create PersistentVolumes for NFS shares
   kubernetes.core.k8s:
     state: present

@@ -34,3 +34,6 @@ vault_gitea_redis_password: "CHANGEME_GITEA_REDIS"
 vault_gitea_postgresql_password: "CHANGEME_GITEA_PSQL"
 # Gitea Admin Password
 vault_gitea_admin_password: "CHANGEME_GITEA_ADMIN"
+
+# PIA VPN password when using qbittorrent with VPN
+vault_qbittorrent_vpn_pia_password: ""

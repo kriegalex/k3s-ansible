@@ -11,6 +11,36 @@
       failed_when: helm_version.rc != 0 and helm_version.stderr != ""
       changed_when: false
 
+- name: Setup worker nodes for requested apps
+  hosts: k3s_workers
+  gather_facts: false
+  tasks:
+    - name: Setup workers for qbittorrent
+      when: qbittorrent_enabled
+      tags:
+        - torrent
+      block:
+        - name: Ensure k3s config directory exists on workers
+          ansible.builtin.file:
+            path: /etc/rancher/k3s/config.yaml.d
+            state: directory
+            mode: '0755'
+          become: true
+        - name: Configure required sysctls for qBittorrent on workers
+          ansible.builtin.template:
+            src: "{{ playbook_dir }}/../roles/kubernetes/qbittorrent/templates/qbittorrent-sysctl.yml.j2"
+            dest: /etc/rancher/k3s/config.yaml.d/qbittorrent.yaml
+            mode: '0644'
+          become: true
+          notify: Restart k3s services
+  handlers:
+    - name: Restart k3s services
+      ansible.builtin.systemd:
+        name: k3s-node
+        state: restarted
+        daemon_reload: true
+      become: true
+
 - name: Include Helm install roles
   hosts: ansible_local
   connection: local
@@ -88,10 +118,11 @@
       tags:
         - flaresolverr
         - media
-    # - role: qbittorrent
-    #   when: qbittorrent.enabled
-    #   tags:
-    #     - qbittorrent
+    - role: qbittorrent
+      when: qbittorrent_enabled
+      tags:
+        - qbittorrent
+        - torrent
     # - role: home-assistant
     #   when: home_assistant.enabled
     #   tags:

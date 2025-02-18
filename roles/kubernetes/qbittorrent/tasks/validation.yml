@@ -1,0 +1,50 @@
+---
+- name: Verify config persistence configuration when enabled
+  ansible.builtin.assert:
+    that:
+      - >-
+        not qbittorrent_config_persistence_enabled or
+        (qbittorrent_config_existing_claim is defined) or
+        (qbittorrent_config_storage_class is defined and qbittorrent_config_size is defined)
+      - >-
+        not qbittorrent_config_persistence_enabled or
+        not (qbittorrent_config_existing_claim is defined and qbittorrent_config_storage_class is defined)
+    fail_msg: >-
+      When config persistence is enabled, either:
+      - Define an existing claim using qbittorrent_existing_claim
+      - OR define both qbittorrent_config_storage_class and qbittorrent_config_size
+      But not both options simultaneously.
+
+- name: Verify data persistence configuration when enabled
+  ansible.builtin.assert:
+    that:
+      - >-
+        not qbittorrent_data_persistence_enabled or
+        (qbittorrent_data_existing_claim is defined) or
+        (qbittorrent_data_storage_class is defined and qbittorrent_data_size is defined)
+      - >-
+        not qbittorrent_data_persistence_enabled or
+        not (qbittorrent_data_existing_claim is defined and qbittorrent_data_storage_class is defined)
+    fail_msg: >-
+      When config persistence is enabled, either:
+      - Define an existing claim using qbittorrent_existing_claim
+      - OR define both qbittorrent_data_storage_class and qbittorrent_data_size
+      But not both options simultaneously.
+
+- name: Verify config storage size format when defined
+  ansible.builtin.assert:
+    that:
+      - >-
+        not qbittorrent_config_persistence_enabled or
+        qbittorrent_config_existing_claim is defined or
+        qbittorrent_config_size | regex_search('^[0-9]+[MGT]i$')
+    fail_msg: "Invalid storage size format. Must be in format: 1Gi, 100Mi, 2Ti, etc."
+
+- name: Verify data storage size format when defined
+  ansible.builtin.assert:
+    that:
+      - >-
+        not qbittorrent_data_persistence_enabled or
+        qbittorrent_data_existing_claim is defined or
+        qbittorrent_data_size | regex_search('^[0-9]+[MGT]i$')
+    fail_msg: "Invalid storage size format. Must be in format: 1Gi, 100Mi, 2Ti, etc."

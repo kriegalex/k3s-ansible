@@ -1,0 +1,12 @@
+[Interface]
+PrivateKey = {{ qbittorrent_wg_private_key }}
+Address = {{ qbittorrent_wg_client_ip }}
+DNS = {{ qbittorrent_wg_dns_servers }}
+
+[Peer]
+PublicKey = {{ qbittorrent_wg_server_public_key }}
+AllowedIPs = {{ qbittorrent_wg_allowed_ips }}
+Endpoint = {{ qbittorrent_wg_endpoint }}
+{% if qbittorrent_wg_persistent_keepalive != "" %}
+PersistentKeepalive = {{ qbittorrent_wg_persistent_keepalive }}
+{% endif %}

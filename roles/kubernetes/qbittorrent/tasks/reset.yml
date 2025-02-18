@@ -1,0 +1,10 @@
+---
+- name: Uninstall qbittorrent (helm)
+  kubernetes.core.helm:
+    name: "{{ qbittorrent_release_name }}"
+    release_namespace: "{{ qbittorrent_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - qbittorrent
