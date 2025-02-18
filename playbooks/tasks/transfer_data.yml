@@ -1,0 +1,110 @@
+# tasks/transfer_data.yml
+---
+# This is used by the backup_restore playbook
+- name: Process data transfer for {{ app.key }}
+  block:
+    # Step 1: Create temporary pod in K3s cluster
+    - name: Create temporary pod in K3s for PVC access
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: "{{ item.temp_pod_name }}"
+            namespace: "{{ app.value.target.namespace }}"
+          spec:
+            containers:
+            - name: transfer
+              image: alpine
+              command: ['sleep', 'infinity']
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+            volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: "{{ item.name }}"
+      loop: "{{ app.value.target.pvcs }}"
+
+    - name: Wait for transfer pods to be ready in K3s
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: "{{ app.value.target.namespace }}"
+        name: "{{ item.temp_pod_name }}"
+        wait: true
+        wait_condition:
+          type: Ready
+          status: "True"
+      loop: "{{ app.value.target.pvcs }}"
+
+    # Step 2: Pull data from K8s worker
+    - name: Create local temporary directories
+      ansible.builtin.file:
+        path: "/tmp/{{ app.key }}-{{ item.name }}-transfer"
+        state: directory
+        mode: '0755'
+      loop: "{{ app.value.target.pvcs }}"
+
+    - name: Debug - List contents of source directory
+      ansible.builtin.command:
+        cmd: "ls -la {{ item.source_path }}"
+      register: ls_output
+      changed_when: false
+      delegate_to: "{{ app.value.target.backup_worker }}"
+      loop: "{{ app.value.target.pvcs }}"
+
+    - name: Debug - Show directory contents
+      ansible.builtin.debug:
+        msg: "{{ item.stdout }}"
+      loop: "{{ ls_output.results }}"
+
+    # - name: Pull data from K8s worker
+    #   ansible.posix.synchronize:
+    #     src: "{{ item.source_path }}/"
+    #     dest: "/tmp/{{ app.key }}-{{ item.name }}-transfer/"
+    #     mode: pull
+    #     rsync_opts:
+    #       - "--info=progress2"
+    #   delegate_to: "{{ app.value.target.backup_worker }}"
+    #   loop: "{{ app.value.target.pvcs }}"
+
+    # # Step 3: Push data to K3s pods
+    # - name: Install rsync on K3s transfer pods
+    #   kubernetes.core.k8s_exec:
+    #     namespace: "{{ app.value.target.namespace }}"
+    #     pod: "{{ item.temp_pod_name }}"
+    #     command: apk add rsync
+    #   loop: "{{ app.value.target.pvcs }}"
+
+    # - name: Copy data to K3s transfer pods
+    #   kubernetes.core.k8s_cp:
+    #     namespace: "{{ app.value.target.namespace }}"
+    #     pod: "{{ item.temp_pod_name }}"
+    #     remote_path: /data
+    #     local_path: "/tmp/{{ app.key }}-{{ item.name }}-transfer/"
+    #   loop: "{{ app.value.target.pvcs }}"
+
+    # # Step 3b: Verify transfer
+    # - name: Verify PVC content in K3s
+    #   kubernetes.core.k8s_exec:
+    #     namespace: "{{ app.value.target.namespace }}"
+    #     pod: "{{ item.temp_pod_name }}"
+    #     command: du -sh /data
+    #   register: verification
+    #   loop: "{{ app.value.target.pvcs }}"
+
+    # Step 4: Cleanup
+    - name: Remove temporary pods from K3s
+      kubernetes.core.k8s:
+        state: absent
+        kind: Pod
+        namespace: "{{ app.value.target.namespace }}"
+        name: "{{ item.temp_pod_name }}"
+      loop: "{{ app.value.target.pvcs }}"
+
+    - name: Clean up local temporary directories
+      ansible.builtin.file:
+        path: "/tmp/{{ app.key }}-{{ item.name }}-transfer"
+        state: absent
+      loop: "{{ app.value.target.pvcs }}"

@@ -1,0 +1,99 @@
+# backup_restore.yml
+---
+- name: Backup and Restore from K8s to K3s
+  hosts: localhost
+  gather_facts: false
+  vars:
+    apps:
+      nextcloud:
+        source:
+          namespace: default
+          deployment: nextcloud
+          postgres_pod: nextcloud-postgresql-0  # Add source postgres pod name
+          postgres_db: nextcloud        # Database name
+          postgres_user: nextcloud      # Database user
+          postgres_key: db-password     # Key in Secret for database password
+        target:
+          namespace: default
+          deployment: nextcloud
+          postgres_pod: nextcloud-db-1  # Add target postgres pod name
+          # is_cloudnative_pg: true
+          # cloudnative_cluster: nextcloud-db
+          # cloudnative_instances: 2
+          backup_worker: backup-worker2  # Specify which worker has the data to backup
+          pvcs:
+            - name: nextcloud-nextcloud
+              source_path: /mnt/nextcloud/config
+              temp_pod_name: nextcloud-transfer
+
+  tasks:
+    - name: Verify backup cluster access
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ source_kubelet_config }}"
+        kind: Node
+      register: backup_nodes
+      failed_when: backup_nodes.resources | length == 0
+
+    - name: Verify new cluster access
+      kubernetes.core.k8s_info:
+        kind: Node
+      register: target_nodes
+      failed_when: target_nodes.resources | length == 0
+
+    - name: Scale down applications in source cluster
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ item.value.source.deployment }}"
+        namespace: "{{ item.value.source.namespace }}"
+        replicas: 0
+        wait: true
+        kubeconfig: "{{ source_kubelet_config }}"
+      loop: "{{ apps | dict2items }}"
+
+    - name: Scale down applications in K3s
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ item.value.target.deployment }}"
+        namespace: "{{ item.value.target.namespace }}"
+        replicas: 0
+        wait: true
+      loop: "{{ apps | dict2items }}"
+
+    # In backup_restore.yml, add before the transfer_data.yml include:
+    - name: Process PostgreSQL data transfer
+      ansible.builtin.include_tasks: tasks/transfer_postgres.yml
+      loop: "{{ apps | dict2items }}"
+      loop_control:
+        loop_var: app
+      when: app.value.source.postgres_pod is defined
+
+    # - name: Process each app's data transfer
+    #   ansible.builtin.include_tasks: tasks/transfer_data.yml
+    #   loop: "{{ apps | dict2items }}"
+    #   loop_control:
+    #     loop_var: app
+
+    - name: Scale up applications in K3s
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ item.value.target.deployment }}"
+        namespace: "{{ item.value.target.namespace }}"
+        replicas: 1
+        wait: true
+        wait_timeout: 60
+      loop: "{{ apps | dict2items }}"
+
+    - name: Scale up applications in source cluster
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ item.value.source.deployment }}"
+        namespace: "{{ item.value.source.namespace }}"
+        replicas: 1
+        wait: true
+        wait_timeout: 60
+        kubeconfig: "{{ source_kubelet_config }}"
+      loop: "{{ apps | dict2items }}"

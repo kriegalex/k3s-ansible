@@ -1,0 +1,80 @@
+---
+# tasks/postgres_transfer.yml
+- name: Handle PostgreSQL data transfer for {{ app.key }}
+  block:
+    - name: Create temporary directory for PostgreSQL dump
+      ansible.builtin.file:
+        path: "/tmp/{{ app.key }}-pg-dump"
+        state: directory
+        mode: '0755'
+
+    # - name: Dump PostgreSQL database from source cluster
+    #   ansible.builtin.command:
+    #     cmd: >-
+    #       kubectl exec {{ app.value.source.postgres_pod }}
+    #       --namespace {{ app.value.source.namespace }}
+    #       --kubeconfig={{ source_kubelet_config }}
+    #       -- /bin/bash -c "rm -rf /tmp/dump.sql"
+
+    - name: Dump PostgreSQL database from source cluster
+      ansible.builtin.command:
+        cmd: >-
+          kubectl exec {{ app.value.source.postgres_pod }}
+          --namespace {{ app.value.source.namespace }}
+          --kubeconfig={{ source_kubelet_config }}
+          -- /bin/bash -c "rm -rf /tmp/dump.sql; PGPASSWORD=$POSTGRES_PASSWORD pg_dump -U {{ app.value.source.postgres_user }} -d {{ app.value.source.postgres_db }} -f /tmp/dump.sql"
+
+    - name: Copy dump from source pod
+      kubernetes.core.k8s_cp:
+        kubeconfig: "{{ source_kubelet_config }}"
+        namespace: "{{ app.value.source.namespace }}"
+        pod: "{{ app.value.source.postgres_pod }}"
+        remote_path: /tmp/dump.sql
+        local_path: "/tmp/{{ app.key }}-pg-dump/dump.sql"
+        state: from_pod
+
+    # - name: Copy dump to target pod
+    #   kubernetes.core.k8s_cp:
+    #     namespace: "{{ app.value.target.namespace }}"
+    #     pod: "{{ app.value.target.postgres_pod }}"
+    #     remote_path: /tmp/dump.sql
+    #     local_path: "/tmp/{{ app.key }}-pg-dump/dump.sql"
+
+    # - name: Restore PostgreSQL database in target cluster
+    #   kubernetes.core.k8s_exec:
+    #     namespace: "{{ app.value.target.namespace }}"
+    #     pod: "{{ app.value.target.postgres_pod }}"
+    #     command: >-
+    #       psql 
+    #       -U {{ app.value.source.postgres_user }}
+    #       -d {{ app.value.source.postgres_db }}
+    #       -f /tmp/dump.sql
+    #   environment:
+    #     PGPASSWORD: "{{ lookup('kubernetes.core.k8s',
+    #                     namespace=app.value.target.namespace,
+    #                     kind='Secret',
+    #                     resource_name=app.value.target.deployment + '-secret',
+    #                     key='postgres-password') }}"
+
+    # - name: Clean up temporary files on pods
+    #   kubernetes.core.k8s_exec:
+    #     namespace: "{{ item.namespace }}"
+    #     pod: "{{ item.pod }}"
+    #     command: rm -f /tmp/dump.sql
+    #   loop:
+    #     - namespace: "{{ app.value.source.namespace }}"
+    #       pod: "{{ app.value.source.postgres_pod }}"
+    #       kubeconfig: "{{ source_kubelet_config }}"
+    #     - namespace: "{{ app.value.target.namespace }}"
+    #       pod: "{{ app.value.target.postgres_pod }}"
+
+    # - name: Remove local temporary directory
+    #   ansible.builtin.file:
+    #     path: "/tmp/{{ app.key }}-pg-dump"
+    #     state: absent
+
+  rescue:
+    - name: Cleanup on failure
+      ansible.builtin.file:
+        path: "/tmp/{{ app.key }}-pg-dump"
+        state: absent
