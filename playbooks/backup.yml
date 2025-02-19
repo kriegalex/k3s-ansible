@@ -1,0 +1,11 @@
+---
+
+- name: Setup k8up
+  hosts: ansible_local
+  environment:
+    KUBECONFIG: "{{ source_kubelet_config }}"
+  roles:
+    - role: k8up
+      tags: [source, k8up]
+    - role: backup
+      tags: [source, backup]

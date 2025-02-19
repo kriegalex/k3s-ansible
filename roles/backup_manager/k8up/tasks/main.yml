@@ -1,0 +1,44 @@
+---
+- name: Add K8up Helm repository
+  kubernetes.core.helm_repository:
+    name: k8up-io
+    repo_url: https://k8up-io.github.io/k8up
+
+- name: Deploy K8up operator
+  kubernetes.core.helm:
+    # kubeconfig: "{{ source_kubelet_config }}"
+    name: k8up
+    chart_ref: k8up-io/k8up
+    release_namespace: "{{ k8up_namespace }}"
+    chart_version: "{{ k8up_chart_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values:
+      operator:
+        enableLeaderElection: true
+
+- name: Download k8up CRDs
+  ansible.builtin.get_url:
+    url: "https://github.com/k8up-io/k8up/releases/download/k8up-{{ k8up_chart_version }}/k8up-crd.yaml"
+    dest: ~/k8up-crd.yaml
+    mode: '0644'
+
+- name: Apply k8up CRDs
+  kubernetes.core.k8s:
+    src: ~/k8up-crd.yaml
+    state: present
+
+# - name: Create MinIO secret
+#   kubernetes.core.k8s:
+#     state: present
+#     definition:
+#       apiVersion: v1
+#       kind: Secret
+#       metadata:
+#         name: minio-credentials
+#         namespace: "{{ k8up_default_namespace }}"
+#       type: Opaque
+#       stringData:
+#         username: "{{ minio_access_key }}"
+#         password: "{{ minio_secret_key }}"

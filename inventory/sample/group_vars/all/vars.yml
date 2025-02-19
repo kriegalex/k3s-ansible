@@ -176,3 +176,44 @@ custom_registries_yaml: |
 # Qbittorrent
 # This needs to be here, because both ansible control node and k3s worker nodes need to see its value
 qbittorrent_enabled: false
+
+#
+# BACKUP / RESTORE
+#
+source_kubelet_config: /home/mlourenco/.kube/k8s-config  # source cluster
+
+# MinIO Configuration
+minio_endpoint: "http://10.0.0.7:8010"
+minio_access_key: "changeme"
+minio_secret_key: "changeme"
+minio_repository_password: "changeme"
+minio_bucket: "nextcloud-backup"
+
+# Namespace and Release Names
+k8up_default_namespace: "default"
+k8up_nextcloud_release: "nextcloud"
+k8up_nextcloud_target_version: "27.1.3"
+
+# K8up Configuration
+k8up_chart_version: "4.8.3"
+k8up_namespace: "k8up-system"
+
+# Backup Configuration
+backup_name: "nextcloud-migration-{{ ansible_date_time.date }}"
+backup_annotation: "k8up.io/backup"
+
+# PVC Configuration
+backup_nextcloud_config_pvc: "nextcloud-config"
+backup_postgresql_data_pvc: "nextcloud-psql"
+
+restore_postgresql_cluster_name: "nextcloud-db"
+restore_nextcloud_config_pvc: "nextcloud-config"
+restore_nextcloud_config_size: "10Gi"
+restore_postgresql_data_size: "20Gi"
+
+# Target Storage Configuration (optional)
+original_storage_class: "local-path"  # Comment out to keep original storage class
+target_storage_class: "local-path"  # Comment out to keep original storage class
+
+migration_timeout: 3600  # Maximum time in seconds to wait for data migration
+data_migration_image: "instrumentisto/rsync-ssh:alpine3.18"
