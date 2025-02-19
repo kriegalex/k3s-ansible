@@ -8,14 +8,6 @@
         state: directory
         mode: '0755'
 
-    # - name: Dump PostgreSQL database from source cluster
-    #   ansible.builtin.command:
-    #     cmd: >-
-    #       kubectl exec {{ app.value.source.postgres_pod }}
-    #       --namespace {{ app.value.source.namespace }}
-    #       --kubeconfig={{ source_kubelet_config }}
-    #       -- /bin/bash -c "rm -rf /tmp/dump.sql"
-
     - name: Dump PostgreSQL database from source cluster
       ansible.builtin.command:
         cmd: >-
@@ -33,45 +25,47 @@
         local_path: "/tmp/{{ app.key }}-pg-dump/dump.sql"
         state: from_pod
 
-    # - name: Copy dump to target pod
-    #   kubernetes.core.k8s_cp:
-    #     namespace: "{{ app.value.target.namespace }}"
-    #     pod: "{{ app.value.target.postgres_pod }}"
-    #     remote_path: /tmp/dump.sql
-    #     local_path: "/tmp/{{ app.key }}-pg-dump/dump.sql"
+    - name: Copy dump to target pod
+      kubernetes.core.k8s_cp:
+        namespace: "{{ app.value.target.namespace }}"
+        pod: "{{ app.value.target.postgres_pod }}"
+        remote_path: /var/lib/postgresql/data/dump.sql
+        local_path: "/tmp/{{ app.key }}-pg-dump/dump.sql"
 
-    # - name: Restore PostgreSQL database in target cluster
-    #   kubernetes.core.k8s_exec:
-    #     namespace: "{{ app.value.target.namespace }}"
-    #     pod: "{{ app.value.target.postgres_pod }}"
-    #     command: >-
-    #       psql 
-    #       -U {{ app.value.source.postgres_user }}
-    #       -d {{ app.value.source.postgres_db }}
-    #       -f /tmp/dump.sql
-    #   environment:
-    #     PGPASSWORD: "{{ lookup('kubernetes.core.k8s',
-    #                     namespace=app.value.target.namespace,
-    #                     kind='Secret',
-    #                     resource_name=app.value.target.deployment + '-secret',
-    #                     key='postgres-password') }}"
+    - name: Lookup PostgreSQL password from secret in target namespace
+      ansible.builtin.set_fact:
+        target_postgres_password: "{{ lookup('kubernetes.core.k8s',
+                                      namespace=app.value.target.namespace,
+                                      kind='Secret',
+                                      resource_name=app.value.target.deployment ~ '-db-credentials')
+                                      .data[app.value.target.postgres_key] | b64decode }}"
 
-    # - name: Clean up temporary files on pods
-    #   kubernetes.core.k8s_exec:
-    #     namespace: "{{ item.namespace }}"
-    #     pod: "{{ item.pod }}"
-    #     command: rm -f /tmp/dump.sql
-    #   loop:
-    #     - namespace: "{{ app.value.source.namespace }}"
-    #       pod: "{{ app.value.source.postgres_pod }}"
-    #       kubeconfig: "{{ source_kubelet_config }}"
-    #     - namespace: "{{ app.value.target.namespace }}"
-    #       pod: "{{ app.value.target.postgres_pod }}"
+    - name: Restore PostgreSQL database in target cluster
+      ansible.builtin.command:
+        cmd: >-
+          kubectl exec {{ app.value.target.postgres_pod }}
+          --namespace {{ app.value.target.namespace }}
+          -- /bin/bash -c "PGPASSWORD={{ target_postgres_password }}
+          psql -U {{ app.value.target.postgres_user }} -d {{ app.value.target.postgres_db }}
+          -h {{ app.value.target.postgres_host }} -f /var/lib/postgresql/data/dump.sql"
 
-    # - name: Remove local temporary directory
-    #   ansible.builtin.file:
-    #     path: "/tmp/{{ app.key }}-pg-dump"
-    #     state: absent
+    - name: Clean up temporary files on source postgres_pod
+      kubernetes.core.k8s_exec:
+        kubeconfig: "{{ source_kubelet_config }}"
+        namespace: "{{ app.value.source.namespace }}"
+        pod: "{{ app.value.source.postgres_pod }}"
+        command: rm -f /tmp/dump.sql
+
+    - name: Clean up temporary files on target postgres_pod
+      kubernetes.core.k8s_exec:
+        namespace: "{{ app.value.target.namespace }}"
+        pod: "{{ app.value.target.postgres_pod }}"
+        command: rm -f /var/lib/postgresql/data/dump.sql
+
+    - name: Remove local temporary directory
+      ansible.builtin.file:
+        path: "/tmp/{{ app.key }}-pg-dump"
+        state: absent
 
   rescue:
     - name: Cleanup on failure

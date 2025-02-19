@@ -1,7 +1,29 @@
 # backup_restore.yml
 ---
+
+# - name: Test debug rsync
+#   hosts: backup-worker2
+#   tasks:
+#     - name: Ensure read permissions on source directory
+#       ansible.builtin.file:
+#         path: "/mnt/nextcloud/config/config/config.php"
+#         mode: "0644"
+#       become: true
+
+#     - name: Push data from K8s worker to local
+#       ansible.posix.synchronize:
+#         src: "/mnt/nextcloud/config/"
+#         dest: "/home/mlourenco/tmp/"
+#         mode: pull
+
+#     - name: Ensure read permissions on source directory
+#       ansible.builtin.file:
+#         path: "/mnt/nextcloud/config/config/config.php"
+#         mode: "0640"
+#       become: true
+
 - name: Backup and Restore from K8s to K3s
-  hosts: localhost
+  hosts: ansible_local
   gather_facts: false
   vars:
     apps:
@@ -17,6 +39,10 @@
           namespace: default
           deployment: nextcloud
           postgres_pod: nextcloud-db-1  # Add target postgres pod name
+          postgres_db: nextcloud        # Database name
+          postgres_user: nextcloud      # Database user
+          postgres_key: password        # Key in Secret for database password
+          postgres_host: localhost      # -h parameter
           # is_cloudnative_pg: true
           # cloudnative_cluster: nextcloud-db
           # cloudnative_instances: 2
@@ -62,18 +88,18 @@
       loop: "{{ apps | dict2items }}"
 
     # In backup_restore.yml, add before the transfer_data.yml include:
-    - name: Process PostgreSQL data transfer
-      ansible.builtin.include_tasks: tasks/transfer_postgres.yml
-      loop: "{{ apps | dict2items }}"
-      loop_control:
-        loop_var: app
-      when: app.value.source.postgres_pod is defined
-
-    # - name: Process each app's data transfer
-    #   ansible.builtin.include_tasks: tasks/transfer_data.yml
+    # - name: Process PostgreSQL data transfer
+    #   ansible.builtin.include_tasks: tasks/transfer_postgres.yml
     #   loop: "{{ apps | dict2items }}"
     #   loop_control:
     #     loop_var: app
+    #   when: app.value.source.postgres_pod is defined
+
+    - name: Process each app's data transfer
+      ansible.builtin.include_tasks: tasks/transfer_data.yml
+      loop: "{{ apps | dict2items }}"
+      loop_control:
+        loop_var: app
 
     - name: Scale up applications in K3s
       kubernetes.core.k8s_scale:
