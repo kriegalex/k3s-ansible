@@ -93,6 +93,9 @@
         name: "restore-{{ restore_nextcloud_config_pvc }}"
         namespace: "{{ k8up_default_namespace }}"
       spec:
+        podSecurityContext:
+          fsGroup: 33 # www-data hardcoded for nextcloud
+          fsGroupChangePolicy: OnRootMismatch
         backend:
           repoPasswordSecretRef:
             name: backup-repo
