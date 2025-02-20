@@ -117,7 +117,7 @@
   kubernetes.core.k8s_info:
     api_version: k8up.io/v1
     kind: Restore
-    name: "nextcloud-temp-{{ temp_suffix }}"
+    name: "restore-{{ restore_nextcloud_config_pvc }}"
     namespace: "{{ k8up_default_namespace }}"
   register: restore_status
   until:
