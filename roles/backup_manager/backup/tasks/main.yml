@@ -21,8 +21,9 @@
     namespace: "{{ k8up_default_namespace }}"
   register: existing_pvcs
   failed_when: >
-    backup_nextcloud_config_pvc not in (existing_pvcs.resources | map(attribute='metadata.name') | list) or
-    backup_postgresql_data_pvc not in (existing_pvcs.resources | map(attribute='metadata.name') | list)
+    backup_nextcloud_config_pvc not in (existing_pvcs.resources | map(attribute='metadata.name') | list)
+  # or
+  # backup_postgresql_data_pvc not in (existing_pvcs.resources | map(attribute='metadata.name') | list)
 
 # - name: Debug PVCs
 #   ansible.builtin.debug:
@@ -74,7 +75,7 @@
           "k8up.io/backup": "true"
   loop:
     - "{{ backup_nextcloud_config_pvc }}"
-    - "{{ backup_postgresql_data_pvc }}"
+    # - "{{ backup_postgresql_data_pvc }}"
 
 - name: Create S3 credentials secret
   kubernetes.core.k8s:
@@ -162,7 +163,7 @@
           "k8up.io/backup": "false"
   loop:
     - "{{ backup_nextcloud_config_pvc }}"
-    - "{{ backup_postgresql_data_pvc }}"
+    # - "{{ backup_postgresql_data_pvc }}"
 
 - name: Scale up Nextcloud deployment
   kubernetes.core.k8s_scale:

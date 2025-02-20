@@ -24,37 +24,37 @@
   loop:
     - { kind: Deployment, name: "{{ k8up_nextcloud_release }}" }
 
-- name: Enable maintenance mode on PostgreSQL cluster
-  kubernetes.core.k8s:
-    state: patched
-    kind: "{{ item.kind }}"
-    name: "{{ item.name }}"
-    namespace: "{{ k8up_default_namespace }}"
-    definition:
-      spec:
-        enablePDB: false
-        nodeMaintenanceWindow:
-          inProgress: true
-          reusePVC: true  # This allows us to reuse the PVC
-  loop:
-    - { kind: Cluster, name: "{{ restore_postgresql_cluster_name }}" }
+# - name: Enable maintenance mode on PostgreSQL cluster
+#   kubernetes.core.k8s:
+#     state: patched
+#     kind: "{{ item.kind }}"
+#     name: "{{ item.name }}"
+#     namespace: "{{ k8up_default_namespace }}"
+#     definition:
+#       spec:
+#         enablePDB: false
+#         nodeMaintenanceWindow:
+#           inProgress: true
+#           reusePVC: true  # This allows us to reuse the PVC
+#   loop:
+#     - { kind: Cluster, name: "{{ restore_postgresql_cluster_name }}" }
 
-- name: Create temporary PVCs for restore
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: "nextcloud-temp-{{ temp_suffix }}"
-        namespace: "{{ k8up_default_namespace }}"
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: "{{ target_storage_class | default(item.original_sc) }}"
-        resources:
-          requests:
-            storage: "{{ restore_nextcloud_size }}"
+# - name: Create temporary PVCs for restore
+#   kubernetes.core.k8s:
+#     state: present
+#     definition:
+#       apiVersion: v1
+#       kind: PersistentVolumeClaim
+#       metadata:
+#         name: "nextcloud-temp-{{ temp_suffix }}"
+#         namespace: "{{ k8up_default_namespace }}"
+#       spec:
+#         accessModes:
+#           - ReadWriteOnce
+#         storageClassName: "{{ target_storage_class | default(item.original_sc) }}"
+#         resources:
+#           requests:
+#             storage: "{{ restore_nextcloud_size }}"
 
 - name: Create S3 credentials secret
   kubernetes.core.k8s:
@@ -83,51 +83,51 @@
       stringData:
         password: "{{ minio_repository_password }}"
 
-# - name: Create Restore
-#   kubernetes.core.k8s:
-#     state: present
-#     definition:
-#       apiVersion: k8up.io/v1
-#       kind: Restore
-#       metadata:
-#         name: "nextcloud-temp-{{ temp_suffix }}"
-#         namespace: "{{ k8up_default_namespace }}"
-#       spec:
-#         backend:
-#           repoPasswordSecretRef:
-#             name: backup-repo
-#             key: password
-#           s3:
-#             endpoint: "{{ minio_endpoint }}"
-#             bucket: "{{ minio_bucket }}"
-#             accessKeyIDSecretRef:
-#               name: minio-credentials
-#               key: username
-#             secretAccessKeySecretRef:
-#               name: minio-credentials
-#               key: password
-#         restoreMethod:
-#           folder:
-#             claimName: "nextcloud-temp-{{ temp_suffix }}"
+- name: Create Restore
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: k8up.io/v1
+      kind: Restore
+      metadata:
+        name: "restore-{{ restore_nextcloud_config_pvc }}"
+        namespace: "{{ k8up_default_namespace }}"
+      spec:
+        backend:
+          repoPasswordSecretRef:
+            name: backup-repo
+            key: password
+          s3:
+            endpoint: "{{ minio_endpoint }}"
+            bucket: "{{ minio_bucket }}"
+            accessKeyIDSecretRef:
+              name: minio-credentials
+              key: username
+            secretAccessKeySecretRef:
+              name: minio-credentials
+              key: password
+        restoreMethod:
+          folder:
+            claimName: "{{ restore_nextcloud_config_pvc }}"
 
-# - name: Wait for restore completion
-#   kubernetes.core.k8s_info:
-#     api_version: k8up.io/v1
-#     kind: Restore
-#     name: "nextcloud-temp-{{ temp_suffix }}"
-#     namespace: "{{ k8up_default_namespace }}"
-#   register: restore_status
-#   until:
-#     - restore_status.resources[0].status is defined
-#     - restore_status.resources[0].status.started is defined
-#     - restore_status.resources[0].status.finished is defined
-#   retries: 60
-#   delay: 15
+- name: Wait for restore completion
+  kubernetes.core.k8s_info:
+    api_version: k8up.io/v1
+    kind: Restore
+    name: "nextcloud-temp-{{ temp_suffix }}"
+    namespace: "{{ k8up_default_namespace }}"
+  register: restore_status
+  until:
+    - restore_status.resources[0].status is defined
+    - restore_status.resources[0].status.started is defined
+    - restore_status.resources[0].status.finished is defined
+  retries: 30
+  delay: 60
 
-# - name: Verify restore success
-#   ansible.builtin.fail:
-#     msg: "Restore failed: {{ restore_status.resources[0].status.failed }}"
-#   when: restore_status.resources[0].status.failed is defined
+- name: Verify restore success
+  ansible.builtin.fail:
+    msg: "Restore failed: {{ restore_status.resources[0].status.failed }}"
+  when: restore_status.resources[0].status.failed is defined
 
 # - name: Wait for PostgreSQL pods to terminate
 #   kubernetes.core.k8s_info:
@@ -141,7 +141,7 @@
 #   retries: 30
 #   delay: 10
 
-# Data migration section
+# # Data migration section
 # - name: Create data migration helper pod
 #   kubernetes.core.k8s:
 #     state: present
@@ -165,8 +165,8 @@
 #                 mountPath: /source/nextcloud
 #               - name: target-nextcloud-config
 #                 mountPath: /target/nextcloud-config
-#               - name: target-postgresql-data
-#                 mountPath: /target/postgresql-data
+#               # - name: target-postgresql-data
+#               #   mountPath: /target/postgresql-data
 #         volumes:
 #           - name: source-nextcloud
 #             persistentVolumeClaim:
@@ -211,27 +211,24 @@
 #     name: "data-migration-{{ temp_suffix }}"
 #     namespace: "{{ k8up_default_namespace }}"
 
-# - name: Delete migration Restore
+- name: Delete migration Restore
+  kubernetes.core.k8s:
+    state: absent
+    api_version: k8up.io/v1
+    kind: Restore
+    name: "nextcloud-temp-{{ temp_suffix }}"
+    namespace: "{{ k8up_default_namespace }}"
+
+# - name: Remove temporary PVCs
 #   kubernetes.core.k8s:
 #     state: absent
-#     api_version: k8up.io/v1
-#     kind: Restore
+#     api_version: v1
+#     kind: PersistentVolumeClaim
 #     name: "{{ item }}-temp-{{ temp_suffix }}"
 #     namespace: "{{ k8up_default_namespace }}"
 #   loop:
 #     - "{{ restore_nextcloud_config_pvc }}"
 #     - "{{ restore_postgresql_cluster_name }}-2"
-
-- name: Remove temporary PVCs
-  kubernetes.core.k8s:
-    state: absent
-    api_version: v1
-    kind: PersistentVolumeClaim
-    name: "{{ item }}-temp-{{ temp_suffix }}"
-    namespace: "{{ k8up_default_namespace }}"
-  loop:
-    - "{{ restore_nextcloud_config_pvc }}"
-    - "{{ restore_postgresql_cluster_name }}-2"
 
 - name: Scale up applications
   kubernetes.core.k8s_scale:
@@ -245,25 +242,25 @@
   loop:
     - { kind: Deployment, name: "{{ k8up_nextcloud_release }}" }
 
-- name: Disable maintenance mode on PostgreSQL cluster
-  kubernetes.core.k8s:
-    state: patched
-    kind: "{{ item.kind }}"
-    name: "{{ item.name }}"
-    namespace: "{{ k8up_default_namespace }}"
-    definition:
-      spec:
-        enablePDB: true
-        nodeMaintenanceWindow:
-          inProgress: false
-          reusePVC: false
-  loop:
-    - { kind: Cluster, name: "{{ restore_postgresql_cluster_name }}" }
+# - name: Disable maintenance mode on PostgreSQL cluster
+#   kubernetes.core.k8s:
+#     state: patched
+#     kind: "{{ item.kind }}"
+#     name: "{{ item.name }}"
+#     namespace: "{{ k8up_default_namespace }}"
+#     definition:
+#       spec:
+#         enablePDB: true
+#         nodeMaintenanceWindow:
+#           inProgress: false
+#           reusePVC: false
+#   loop:
+#     - { kind: Cluster, name: "{{ restore_postgresql_cluster_name }}" }
 
-- name: Wait for PostgreSQL cluster to be ready
-  kubernetes.core.k8s_info:
-    api_version: postgresql.cnpg.io/v1
-    kind: Cluster
-    namespace: "{{ k8up_default_namespace }}"
-    name: "{{ restore_postgresql_cluster_name }}"
-    wait: true
+# - name: Wait for PostgreSQL cluster to be ready
+#   kubernetes.core.k8s_info:
+#     api_version: postgresql.cnpg.io/v1
+#     kind: Cluster
+#     namespace: "{{ k8up_default_namespace }}"
+#     name: "{{ restore_postgresql_cluster_name }}"
+#     wait: true
