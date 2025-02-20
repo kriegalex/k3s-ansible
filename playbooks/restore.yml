@@ -1,6 +1,6 @@
 ---
 - name: Restore Nextcloud to target cluster
-  hosts: k3s-worker2
+  hosts: ansible_local
   roles:
     - role: k8up
       tags: [target, k8up]
