@@ -1,0 +1,51 @@
+# roles/k8up/defaults/main.yml
+---
+# General settings
+k8up_default_namespace: "default"
+k8up_wait_timeout: 300
+k8up_workload_defaults:
+  type: Deployment  # can be Deployment or StatefulSet
+  replicas: 1
+
+# S3 Backend configuration
+minio_endpoint: "http://changeme.com:port"
+minio_bucket: "changeme"
+minio_access_key: "changeme"
+minio_secret_key: "changeme"
+minio_repository_password: "changeme"
+
+# Backup configuration
+backup_tags: []
+backup_failed_jobs_history_limit: 2
+backup_successful_jobs_history_limit: 2
+
+# Restore configuration
+restore_pod_security_context:
+  fsGroup: 33  # www-data for example for Nextcloud
+  fsGroupChangePolicy: OnRootMismatch
+
+# Default storage configuration
+storage_class: "longhorn"
+
+# Operation arrays (to be filled by playbook)
+k8up_backup_pvcs: []
+# Example structure:
+# k8up_backup_pvcs:
+#   - name: "nextcloud-config"
+#     namespace: "nextcloud"
+#     workload:
+#       type: Deployment
+#       name: "nextcloud"
+#       replicas: 1
+
+k8up_restore_pvcs: []
+# Example structure:
+# k8up_restore_pvcs:
+#   - name: "postgresql-data"
+#     namespace: "database"
+#     workload:
+#       type: StatefulSet
+#       name: "postgresql"
+#       replicas: 3
+#     tags: ["database"]
+#     fs_group: 999
