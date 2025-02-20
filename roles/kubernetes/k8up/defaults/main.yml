@@ -3,13 +3,15 @@
 # General settings
 k8up_default_namespace: "default"
 k8up_wait_timeout: 300
-k8up_workload_defaults:
-  type: Deployment  # can be Deployment or StatefulSet
-  replicas: 1
+k8up_workload_default_type: Deployment
+k8up_workload_default_replicas: 1
+
+# K8up Helm Configuration
+k8up_chart_version: "4.8.3"
+k8up_chart_namespace: "k8up-system"
 
 # S3 Backend configuration
 minio_endpoint: "http://changeme.com:port"
-minio_bucket: "changeme"
 minio_access_key: "changeme"
 minio_secret_key: "changeme"
 minio_repository_password: "changeme"
@@ -24,28 +26,25 @@ restore_pod_security_context:
   fsGroup: 33  # www-data for example for Nextcloud
   fsGroupChangePolicy: OnRootMismatch
 
-# Default storage configuration
-storage_class: "longhorn"
-
 # Operation arrays (to be filled by playbook)
 k8up_backup_pvcs: []
 # Example structure:
 # k8up_backup_pvcs:
 #   - name: "nextcloud-config"
 #     namespace: "nextcloud"
-#     workload:
-#       type: Deployment
-#       name: "nextcloud"
-#       replicas: 1
+#     workload_type: Deployment
+#     workload_name: "nextcloud"
+#     workload_replicas: 1
+#     minio_bucket: "nextcloud-config-backup"
 
 k8up_restore_pvcs: []
 # Example structure:
 # k8up_restore_pvcs:
 #   - name: "postgresql-data"
 #     namespace: "database"
-#     workload:
-#       type: StatefulSet
-#       name: "postgresql"
-#       replicas: 3
+#     workload_type: StatefulSet
+#     workload_name: "postgresql"
+#     workload_replicas: 3
+#     minio_bucket: "nextcloud-config-backup"
 #     tags: ["database"]
 #     fs_group: 999

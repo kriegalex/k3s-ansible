@@ -1,8 +1,22 @@
+# restore-playbook.yml
 ---
-- name: Restore Nextcloud to target cluster
+# - name: Restore Nextcloud to target cluster
+#   hosts: ansible_local
+#   roles:
+#     - role: k8up
+#       tags: [target, k8up]
+#     - role: restore
+#       tags: [target, restore]
+
+- name: Restore multiple PVCs
   hosts: ansible_local
+  vars:
+    k8up_restore_pvcs:
+      - name: "nextcloud-nextcloud"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "nextcloud"
+        minio_bucket: "nextcloud-config-backup"
+        fs_group: 33  # www-data
   roles:
     - role: k8up
-      tags: [target, k8up]
-    - role: restore
-      tags: [target, restore]
+      tags: [target, k8up, restore]

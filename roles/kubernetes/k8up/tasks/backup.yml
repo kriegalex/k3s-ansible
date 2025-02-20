@@ -1,0 +1,40 @@
+# roles/k8up/tasks/backup.yml
+---
+- name: Create S3 credentials secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: minio-credentials
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+      type: Opaque
+      stringData:
+        username: "{{ minio_access_key }}"
+        password: "{{ minio_secret_key }}"
+  loop: "{{ k8up_backup_pvcs }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create repository encryption secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: backup-repo
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+      type: Opaque
+      stringData:
+        password: "{{ minio_repository_password }}"
+  loop: "{{ k8up_backup_pvcs }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Process each PVC backup
+  include_tasks: backup_single_pvc.yml
+  loop: "{{ k8up_backup_pvcs }}"
+  loop_control:
+    label: "{{ item.name }}"

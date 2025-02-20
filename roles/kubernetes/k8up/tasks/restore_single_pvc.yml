@@ -1,0 +1,109 @@
+---
+- name: Process each PVC restore
+  block:
+    - name: Scale down related deployments
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: "{{ item.workload_type | default(k8up_workload_default_type) }}"
+        name: "{{ item.workload_name }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+        replicas: 0
+        wait: true
+        wait_timeout: "{{ k8up_wait_timeout }}"
+      when: item.workload_name is defined
+
+    - name: Create S3 credentials secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: minio-credentials
+            namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+          type: Opaque
+          stringData:
+            username: "{{ minio_access_key }}"
+            password: "{{ minio_secret_key }}"
+
+    - name: Create repository encryption secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: backup-repo
+            namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+          type: Opaque
+          stringData:
+            password: "{{ minio_repository_password }}"
+
+    - name: Create Restore
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: k8up.io/v1
+          kind: Restore
+          metadata:
+            name: "restore-{{ item.name }}"
+            namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+          spec:
+            # podSecurityContext:
+            #   fsGroup: "{{ item.fs_group | default(33) }}"  # default www-data
+            #   fsGroupChangePolicy: "{{ item.fs_group_change_policy | default('OnRootMismatch') }}"
+            backend:
+              repoPasswordSecretRef:
+                name: backup-repo
+                key: password
+              s3:
+                endpoint: "{{ minio_endpoint }}"
+                bucket: "{{ item.minio_bucket | default('backup') }}"
+                accessKeyIDSecretRef:
+                  name: minio-credentials
+                  key: username
+                secretAccessKeySecretRef:
+                  name: minio-credentials
+                  key: password
+            restoreMethod:
+              folder:
+                claimName: "{{ item.name }}"
+
+    - name: Wait for restore completion
+      kubernetes.core.k8s_info:
+        api_version: k8up.io/v1
+        kind: Restore
+        name: "restore-{{ item.name }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+      register: restore_status
+      until:
+        - restore_status.resources[0].status is defined
+        - restore_status.resources[0].status.started is defined
+        - restore_status.resources[0].status.finished is defined
+      retries: 30
+      delay: 60
+
+    - name: Verify restore success
+      ansible.builtin.fail:
+        msg: "Restore failed: {{ restore_status.resources[0].status.failed }}"
+      when: restore_status.resources[0].status.failed is defined
+
+    - name: Delete Restore object
+      kubernetes.core.k8s:
+        state: absent
+        api_version: k8up.io/v1
+        kind: Restore
+        name: "restore-{{ item.name }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+
+  always:
+    - name: Scale up related deployments
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: "{{ item.workload_type | default(k8up_workload_default_type) }}"
+        name: "{{ item.workload_name }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+        replicas: "{{ item.workload_replicas | default(k8up_workload_default_replicas) }}"
+        wait: true
+        wait_timeout: "{{ k8up_wait_timeout }}"
+      when: item.workload_name is defined

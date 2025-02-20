@@ -1,0 +1,7 @@
+# roles/k8up/tasks/restore.yml
+---
+- name: Process each PVC restore
+  ansible.builtin.include_tasks: restore_single_pvc.yml
+  loop: "{{ k8up_restore_pvcs }}"
+  loop_control:
+    label: "{{ item.name }}"

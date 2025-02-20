@@ -1,0 +1,15 @@
+# roles/k8up/tasks/main.yml
+---
+- name: Verify prerequisites
+  ansible.builtin.include_tasks:
+    file: verify.yml
+
+- name: Execute backup tasks
+  ansible.builtin.include_tasks:
+    file: backup.yml
+  when: k8up_backup_pvcs | length > 0
+
+- name: Execute restore tasks
+  ansible.builtin.include_tasks:
+    file: restore.yml
+  when: k8up_restore_pvcs | length > 0

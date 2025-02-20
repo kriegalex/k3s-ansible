@@ -1,11 +1,66 @@
+# backup-playbook.yml
 ---
-
-- name: Setup k8up
+- name: Backup multiple PVCs
   hosts: ansible_local
   environment:
     KUBECONFIG: "{{ source_kubelet_config }}"
+  vars:
+    k8up_backup_pvcs:
+      - name: "actual-budget"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "actual-budget"
+        minio_bucket: "actual_budget-config-backup"
+      - name: "nextcloud-config"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "nextcloud"
+        minio_bucket: "nextcloud-config-backup"
+      - name: "overseerr-config"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "overseerr"
+        minio_bucket: "overseerr-config-backup"
+      - name: "paperless-media"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "paperless-ngx"
+        minio_bucket: "paperless-config-backup"
+      - name: "pihole-config"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "pihole"
+        minio_bucket: "pihole-config-backup"
+      - name: "prowlarr"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "prowlarr"
+        minio_bucket: "prowlarr-config-backup"
+      - name: "qbit-qbittorrent-config"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "qbit-qbittorrent"
+        minio_bucket: "qbittorrent-config-backup"
+      - name: "radarr"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "radarr"
+        minio_bucket: "radarr-config-backup"
+      - name: "sonarr-anime"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "sonarr-anime"
+        minio_bucket: "sonarr_anime-config-backup"
+      - name: "sonarr-tv"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "sonarr-tv"
+        minio_bucket: "sonarr_tv-config-backup"
+      - name: "home-assistant-home-assistant-0"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "home-assistant"
+        minio_bucket: "home_assistant-config-backup"
+        workload_type: StatefulSet
+      - name: "jellyfin-config"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "jellyfin"
+        minio_bucket: "jellyfin-config-backup"
+        workload_type: StatefulSet
+      # - name: "pms-config-plex-media-server-0"
+      #   namespace: "{{ k8up_default_namespace }}"
+      #   workload_name: "plex-media-server"
+      #   minio_bucket: "plex-config-backup"
+      #   workload_type: StatefulSet
   roles:
     - role: k8up
-      tags: [source, k8up]
-    - role: backup
-      tags: [source, backup]
+      tags: [source, k8up, backup]
