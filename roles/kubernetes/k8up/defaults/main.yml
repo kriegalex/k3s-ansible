@@ -48,3 +48,13 @@ k8up_restore_pvcs: []
 #     minio_bucket: "nextcloud-config-backup"
 #     tags: ["database"]
 #     fs_group: 999
+
+# Temp migration variables
+migration_namespace: default
+temp_postgres_password: "temporaryPassword123"
+source_database_name: "mydb"
+sql_dump_path: "/path/to/dump.sql"
+cnpg_cluster_name: "production-db"
+cnpg_instances: 3
+cnpg_storage_size: "10Gi"
+temp_storage_size: "10Gi"
