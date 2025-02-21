@@ -1,22 +1,67 @@
 # restore-playbook.yml
 ---
-# - name: Restore Nextcloud to target cluster
-#   hosts: ansible_local
-#   roles:
-#     - role: k8up
-#       tags: [target, k8up]
-#     - role: restore
-#       tags: [target, restore]
-
 - name: Restore multiple PVCs
   hosts: ansible_local
   vars:
     k8up_restore_pvcs:
-      - name: "nextcloud-nextcloud"
+      - name: "actual-budget-pvc"
         namespace: "{{ k8up_default_namespace }}"
-        workload_name: "nextcloud"
-        minio_bucket: "nextcloud-config-backup"
-        fs_group: 33  # www-data
+        workload_name: "actual-budget"
+        minio_bucket: "actual_budget-config-backup"
+      # - name: "nextcloud-nextcloud"
+      #   namespace: "{{ k8up_default_namespace }}"
+      #   workload_name: "nextcloud"
+      #   minio_bucket: "nextcloud-config-backup"
+      #   fs_group: 33  # www-data
+      - name: "overseerr-config"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "overseerr"
+        minio_bucket: "overseerr-config-backup"
+        fs_group: 1000  # abc
+      - name: "paperless-ngx-media"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "paperless-ngx"
+        minio_bucket: "paperless-config-backup"
+        fs_group: 100  # users
+      # - name: "pihole-config"
+      #   namespace: "{{ k8up_default_namespace }}"
+      #   workload_name: "pihole"
+      #   minio_bucket: "pihole-config-backup"
+      - name: "prowlarr"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "prowlarr"
+        minio_bucket: "prowlarr-config-backup"
+        fs_group: 1000  # hotio
+      - name: "qbittorrent-config"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "qbittorrent"
+        minio_bucket: "qbittorrent-config-backup"
+        fs_group: 1000  # hotio
+      - name: "radarr"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "radarr"
+        minio_bucket: "radarr-config-backup"
+        fs_group: 1000  # hotio
+      - name: "sonarr"
+        namespace: "{{ k8up_default_namespace }}"
+        workload_name: "sonarr"
+        minio_bucket: "sonarr_tv-config-backup"
+        fs_group: 1000  # hotio
+      # - name: "home-assistant-home-assistant-0"
+      #   namespace: "{{ k8up_default_namespace }}"
+      #   workload_name: "home-assistant"
+      #   minio_bucket: "home_assistant-config-backup"
+      #   workload_type: StatefulSet
+      # - name: "jellyfin-config"
+      #   namespace: "{{ k8up_default_namespace }}"
+      #   workload_name: "jellyfin"
+      #   minio_bucket: "jellyfin-config-backup"
+      #   workload_type: StatefulSet
+      # - name: "pms-config-plex-media-server-0"
+      #   namespace: "{{ k8up_default_namespace }}"
+      #   workload_name: "plex-media-server"
+      #   minio_bucket: "plex-config-backup"
+      #   workload_type: StatefulSet
   roles:
     - role: k8up
       tags: [target, k8up, restore]
