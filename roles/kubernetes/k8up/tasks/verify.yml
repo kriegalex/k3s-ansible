@@ -13,6 +13,11 @@
     create_namespace: true
     update_repo_cache: true
     wait: true
+    values:
+      k8up:
+        envVars:
+          - name: BACKUP_SKIP_WITHOUT_ANNOTATION
+            value: "true"
 
 - name: Download k8up CRDs
   ansible.builtin.get_url:

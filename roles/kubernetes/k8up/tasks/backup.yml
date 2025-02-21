@@ -34,7 +34,13 @@
     label: "{{ item.name }}"
 
 - name: Process each PVC backup
-  include_tasks: backup_single_pvc.yml
+  ansible.builtin.include_tasks: backup_single_pvc.yml
   loop: "{{ k8up_backup_pvcs }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Process each PVC backup
+  ansible.builtin.include_tasks: backup_postgres.yml
+  loop: "{{ k8up_backup_psqls }}"
   loop_control:
     label: "{{ item.name }}"

@@ -61,6 +61,11 @@
       #   workload_name: "plex-media-server"
       #   minio_bucket: "plex-config-backup"
       #   workload_type: StatefulSet
+    k8up_backup_psqls: []
+      # - name: "nextcloud"
+      #   statefulset_name: "nextcloud-postgresql"
+      #   namespace: "{{ k8up_default_namespace }}"
+      #   minio_bucket: "nextcloud-psql-backup"
   roles:
     - role: k8up
       tags: [source, k8up, backup]

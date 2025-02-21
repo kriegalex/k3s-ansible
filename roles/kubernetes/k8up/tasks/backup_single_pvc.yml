@@ -21,20 +21,24 @@
         wait_timeout: "{{ k8up_wait_timeout }}"
       when: item.workload_name is defined
 
-    - name: Add backup annotations false to all PVCs in namespace
-      kubernetes.core.k8s:
-        state: patched
-        kind: PersistentVolumeClaim
-        name: "{{ pvc_item.metadata.name }}"
-        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
-        definition:
-          metadata:
-            annotations:
-              "k8up.io/backup": "false"
-      loop: "{{ existing_pvcs.resources }}"
-      loop_control:
-        loop_var: pvc_item
-        label: "{{ pvc_item.metadata.name }}"
+    # #
+    # # REQUIRES BACKUP_SKIP_WITHOUT_ANNOTATION=true in k8up operator env vars
+    # #
+    # - name: Add backup annotations false to all PVCs in namespace
+    #   kubernetes.core.k8s:
+    #     state: patched
+    #     kind: PersistentVolumeClaim
+    #     name: "{{ pvc_item.metadata.name }}"
+    #     namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
+    #     definition:
+    #       metadata:
+    #         annotations:
+    #           "k8up.io/backup": "false"
+    #   when: item.namespace != k8up_default_namespace
+    #   loop: "{{ existing_pvcs.resources }}"
+    #   loop_control:
+    #     loop_var: pvc_item
+    #     label: "{{ pvc_item.metadata.name }}"
 
     - name: Add backup annotations to target PVC
       kubernetes.core.k8s:

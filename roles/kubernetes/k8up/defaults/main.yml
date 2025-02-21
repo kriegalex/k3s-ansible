@@ -37,6 +37,16 @@ k8up_backup_pvcs: []
 #     workload_replicas: 1
 #     minio_bucket: "nextcloud-config-backup"
 
+k8up_backup_psqls: []
+# Example structure:
+# k8up_backup_psqls:
+#   - cluster_name: "nextcloud-config"
+#     namespace: "nextcloud"
+#     workload_type: Deployment
+#     workload_name: "nextcloud"
+#     workload_replicas: 1
+#     minio_bucket: "nextcloud-config-backup"
+
 k8up_restore_pvcs: []
 # Example structure:
 # k8up_restore_pvcs:

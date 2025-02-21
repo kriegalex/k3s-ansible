@@ -7,18 +7,19 @@
 - name: Execute backup tasks
   ansible.builtin.include_tasks:
     file: backup.yml
-  when: k8up_backup_pvcs | length > 0
+  when: k8up_backup_pvcs | length > 0 or k8up_backup_psqls | length > 0
 
 # - name: Execute restore tasks
 #   ansible.builtin.include_tasks:
 #     file: restore.yml
 #   when: k8up_restore_pvcs | length > 0
 
-- name: Migrate PostgreSQL to CNPG
-  ansible.builtin.include_tasks:
-    migrate_to_cnpg.yml
-  vars:
-    migration_namespace: "default"
-    source_database_name: "nextcloud"
-    sql_dump_path: "dump.sql"
-    cnpg_cluster_name: "nextcloud-tmp-db"
+# - name: Migrate PostgreSQL to CNPG
+#   ansible.builtin.include_tasks:
+#     migrate_to_cnpg.yml
+#   when: k8up_restore_psqls | length > 0
+  # vars:
+  #   migration_namespace: "default"
+  #   source_database_name: "nextcloud"
+  #   sql_dump_path: "dump.sql"
+  #   cnpg_cluster_name: "nextcloud-tmp-db"
