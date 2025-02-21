@@ -49,9 +49,7 @@
             name: "restore-{{ item.name }}"
             namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
           spec:
-            # podSecurityContext:
-            #   fsGroup: "{{ item.fs_group | default(33) }}"  # default www-data
-            #   fsGroupChangePolicy: "{{ item.fs_group_change_policy | default('OnRootMismatch') }}"
+            podSecurityContext: "{{ pod_security_context if item.fs_group is defined else omit }}"
             backend:
               repoPasswordSecretRef:
                 name: backup-repo
@@ -68,6 +66,10 @@
             restoreMethod:
               folder:
                 claimName: "{{ item.name }}"
+      vars:
+        pod_security_context:
+          fsGroup: "{{ item.fs_group | int }}"
+          fsGroupChangePolicy: "{{ item.fs_group_change_policy | default('OnRootMismatch') }}"
 
     - name: Wait for restore completion
       kubernetes.core.k8s_info:
@@ -80,8 +82,8 @@
         - restore_status.resources[0].status is defined
         - restore_status.resources[0].status.started is defined
         - restore_status.resources[0].status.finished is defined
-      retries: 30
-      delay: 60
+      retries: 60
+      delay: 30
 
     - name: Verify restore success
       ansible.builtin.fail:
