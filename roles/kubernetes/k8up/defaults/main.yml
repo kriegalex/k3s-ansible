@@ -2,8 +2,7 @@
 ---
 # General settings
 k8up_default_namespace: "default"
-k8up_wait_timeout: 300
-k8up_workload_default_type: Deployment
+k8up_wait_timeout: 180
 k8up_workload_default_replicas: 1
 
 # K8up Helm Configuration
@@ -27,25 +26,18 @@ restore_pod_security_context:
   fsGroupChangePolicy: OnRootMismatch
 
 # Operation arrays (to be filled by playbook)
-k8up_backup_pvcs: []
+k8up_backup_list: []
 # Example structure:
-# k8up_backup_pvcs:
-#   - name: "nextcloud-config"
-#     namespace: "nextcloud"
-#     workload_type: Deployment
-#     workload_name: "nextcloud"
-#     workload_replicas: 1
-#     minio_bucket: "nextcloud-config-backup"
-
-k8up_backup_psqls: []
-# Example structure:
-# k8up_backup_psqls:
-#   - cluster_name: "nextcloud-config"
-#     namespace: "nextcloud"
-#     workload_type: Deployment
-#     workload_name: "nextcloud"
-#     workload_replicas: 1
-#     minio_bucket: "nextcloud-config-backup"
+# k8up_backup_list:
+#   - name: "immich"
+#     pvc_name: "nfs-immich"
+#     psql_pod: "immich-postgresql-0"
+#     deployment_name: "immich-server"
+#     run_as_user: 0  # root
+#   - name: "plex"
+#     pvc_name: "pms-config-plex-media-server-0"
+#     statefulset_name: "plex-media-server"
+#     run_as_user: 1000
 
 k8up_restore_pvcs: []
 # Example structure:

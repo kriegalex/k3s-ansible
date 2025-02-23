@@ -29,3 +29,30 @@
   kubernetes.core.k8s:
     src: ~/k8up-crd.yaml
     state: present
+
+- name: Create S3 credentials secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: minio-credentials
+        namespace: "{{ k8up_default_namespace }}"
+      type: Opaque
+      stringData:
+        username: "{{ minio_access_key }}"
+        password: "{{ minio_secret_key }}"
+
+- name: Create repository encryption secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: backup-repo
+        namespace: "{{ k8up_default_namespace }}"
+      type: Opaque
+      stringData:
+        password: "{{ minio_repository_password }}"

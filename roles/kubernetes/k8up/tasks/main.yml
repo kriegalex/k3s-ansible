@@ -2,12 +2,15 @@
 ---
 - name: Verify prerequisites
   ansible.builtin.include_tasks:
-    file: verify.yml
+    file: prerequisites.yml
 
-- name: Execute backup tasks
+- name: Process individual backups
   ansible.builtin.include_tasks:
     file: backup.yml
-  when: k8up_backup_pvcs | length > 0 or k8up_backup_psqls | length > 0
+  loop: "{{ k8up_backup_list }}"
+  loop_control:
+    loop_var: backup_item
+    label: "{{ backup_item.name }}"
 
 # - name: Execute restore tasks
 #   ansible.builtin.include_tasks:
