@@ -58,10 +58,6 @@ nextcloud_resources:
   limits:
     memory: 4Gi
 
-nextcloud_pod_annotations:
-  k8up.io/backupcommand: sh -c 'PGDATABASE="$POSTGRES_DATABASE" PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" pg_dump --clean'
-  k8up.io/file-extension: .sql
-
 nextcloud_ingress_annotations:
   nginx.ingress.kubernetes.io/proxy-body-size: 4G
   # letsencrypt-staging | letsencrypt-prod
