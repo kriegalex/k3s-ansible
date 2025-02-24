@@ -39,17 +39,18 @@ k8up_backup_list: []
 #     statefulset_name: "plex-media-server"
 #     run_as_user: 1000
 
-k8up_restore_pvcs: []
+k8up_restore_list: []
 # Example structure:
-# k8up_restore_pvcs:
-#   - name: "postgresql-data"
-#     namespace: "database"
-#     workload_type: StatefulSet
-#     workload_name: "postgresql"
-#     workload_replicas: 3
-#     minio_bucket: "nextcloud-config-backup"
-#     tags: ["database"]
-#     fs_group: 999
+# k8up_restore_list:
+#   - name: "immich"
+#     pvc_name: "nfs-immich"
+#     psql_pod: "immich-postgresql-0"
+#     deployment_name: "immich-server"
+#     run_as_user: 0  # root
+#   - name: "plex"
+#     pvc_name: "pms-config-plex-media-server-0"
+#     statefulset_name: "plex-media-server"
+#     run_as_user: 1000
 
 # Temp migration variables
 migration_namespace: default

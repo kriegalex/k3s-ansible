@@ -12,10 +12,13 @@
     loop_var: backup_item
     label: "{{ backup_item.name }}"
 
-# - name: Execute restore tasks
-#   ansible.builtin.include_tasks:
-#     file: restore.yml
-#   when: k8up_restore_pvcs | length > 0
+- name: Process individual restores
+  ansible.builtin.include_tasks:
+    file: restore.yml
+  loop: "{{ k8up_restore_list }}"
+  loop_control:
+    loop_var: restore_item
+    label: "{{ restore_item.name }}"
 
 # - name: Migrate PostgreSQL to CNPG
 #   ansible.builtin.include_tasks:

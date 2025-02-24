@@ -10,26 +10,6 @@
       - cnpg_cluster_name is defined
     fail_msg: "Missing required variables for database migration"
 
-- name: Create temporary storage for Bitnami PostgreSQL
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: "temp-postgres-storage"
-        namespace: "{{ migration_namespace }}"
-        labels:
-          app: temp-postgres
-          created-by: ansible
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: "{{ storage_class | default('longhorn') }}"
-        resources:
-          requests:
-            storage: "{{ temp_storage_size | default('10Gi') }}"
-
 - name: Create temporary PostgreSQL credentials secret
   kubernetes.core.k8s:
     state: present
@@ -38,13 +18,13 @@
       kind: Secret
       metadata:
         name: temp-postgres-credentials
-        namespace: "{{ migration_namespace }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
         labels:
           app: temp-postgres
           created-by: ansible
       type: Opaque
       stringData:
-        password: "{{ temp_postgres_password }}"
+        password: "{{ item.database_password }}"
 
 - name: Deploy temporary Bitnami PostgreSQL
   kubernetes.core.k8s:
@@ -54,7 +34,7 @@
       kind: StatefulSet
       metadata:
         name: temp-postgres
-        namespace: "{{ migration_namespace }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
         labels:
           app: temp-postgres
           created-by: ansible
@@ -83,16 +63,9 @@
                         name: temp-postgres-credentials
                         key: password
                   - name: POSTGRES_DB
-                    value: "{{ source_database_name }}"
+                    value: "{{ item.database_name }}"
                   - name: POSTGRES_USER
-                    value: postgres
-                resources:
-                  requests:
-                    cpu: "{{ temp_postgres_cpu_request | default('100m') }}"
-                    memory: "{{ temp_postgres_memory_request | default('256Mi') }}"
-                  limits:
-                    cpu: "{{ temp_postgres_cpu_limit | default('500m') }}"
-                    memory: "{{ temp_postgres_memory_limit | default('1Gi') }}"
+                    value: "{{ item.database_user }}"
                 volumeMounts:
                   - name: data
                     mountPath: /bitnami/postgresql
@@ -110,7 +83,7 @@
             volumes:
               - name: data
                 persistentVolumeClaim:
-                  claimName: temp-postgres-storage
+                  claimName: "{{ item.statefulset_name }}-backup-pvc"
               - name: dump
                 emptyDir: {}
 
@@ -122,7 +95,7 @@
       kind: Service
       metadata:
         name: temp-postgres
-        namespace: "{{ migration_namespace }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
         labels:
           app: temp-postgres
           created-by: ansible
@@ -139,7 +112,7 @@
     api_version: apps/v1
     kind: StatefulSet
     name: temp-postgres
-    namespace: "{{ migration_namespace }}"
+    namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
   register: temp_postgres_status
   until:
     - temp_postgres_status.resources[0].status.readyReplicas is defined
@@ -151,7 +124,7 @@
 
 - name: Copy SQL dump to temporary pod
   kubernetes.core.k8s_exec:
-    namespace: "{{ migration_namespace }}"
+    namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
     pod: temp-postgres-0
     container: postgresql
     command: "cp {{ sql_dump_path }} /dump/backup.sql"
@@ -160,7 +133,7 @@
 
 - name: Restore SQL dump to temporary PostgreSQL
   kubernetes.core.k8s_exec:
-    namespace: "{{ migration_namespace }}"
+    namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
     pod: temp-postgres-0
     container: postgresql
     command: |
@@ -176,7 +149,7 @@
       kind: Cluster
       metadata:
         name: "{{ cnpg_cluster_name }}"
-        namespace: "{{ migration_namespace }}"
+        namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
         labels:
           created-by: ansible
       spec:
@@ -208,7 +181,7 @@
     api_version: postgresql.cnpg.io/v1
     kind: Cluster
     name: "{{ cnpg_cluster_name }}"
-    namespace: "{{ migration_namespace }}"
+    namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
   register: cnpg_status
   until:
     - cnpg_status.resources[0].status is defined
@@ -220,12 +193,14 @@
 - name: Clean up temporary resources
   kubernetes.core.k8s:
     state: absent
-    kind: "{{ item.kind }}"
-    api_version: "{{ item.api_version }}"
-    name: "{{ item.name }}"
-    namespace: "{{ migration_namespace }}"
+    kind: "{{ resource.kind }}"
+    api_version: "{{ resource.api_version }}"
+    name: "{{ resource.name }}"
+    namespace: "{{ item.namespace | default(k8up_default_namespace) }}"
   loop:
     - { kind: 'StatefulSet', api_version: 'apps/v1', name: 'temp-postgres' }
     - { kind: 'Service', api_version: 'v1', name: 'temp-postgres' }
     - { kind: 'Secret', api_version: 'v1', name: 'temp-postgres-credentials' }
     - { kind: 'PersistentVolumeClaim', api_version: 'v1', name: 'temp-postgres-storage' }
+  loop_control:
+    loop_var: resource

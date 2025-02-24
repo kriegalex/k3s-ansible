@@ -1,7 +1,122 @@
 # roles/k8up/tasks/restore.yml
 ---
-- name: Process each PVC restore
-  ansible.builtin.include_tasks: restore_single_pvc.yml
-  loop: "{{ k8up_restore_pvcs }}"
-  loop_control:
-    label: "{{ item.name }}"
+- name: Perform restore
+  block:
+    - name: Scale down Deployment
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ restore_item.deployment_name }}"
+        namespace: "{{ restore_item.namespace | default(k8up_default_namespace) }}"
+        replicas: 0
+        wait: true
+        wait_timeout: "{{ k8up_wait_timeout }}"
+      when: restore_item.deployment_name is defined
+
+    - name: Scale down StatefulSet
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: StatefulSet
+        name: "{{ backup_item.statefulset_name }}"
+        namespace: "{{ backup_item.namespace | default(k8up_default_namespace) }}"
+        replicas: 0
+        wait: true
+        wait_timeout: "{{ k8up_wait_timeout }}"
+      when: backup_item.statefulset_name is defined
+
+    - name: Create Restore
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: k8up.io/v1
+          kind: Restore
+          metadata:
+            name: "{{ restore_item.name }}"
+            namespace: "{{ k8up_default_namespace }}"
+          spec:
+            snapshot: "{{ restore_item.snapshot_id | default(omit) | string }}"
+            podSecurityContext:
+              runAsUser: "{{ restore_item.run_as_user | default(omit) | int }}"
+              runAsGroup: "{{ restore_item.run_as_user | default(omit) | int }}"
+              fsGroup: "{{ restore_item.run_as_user | default(omit) | int }}"
+              fsGroupChangePolicy: OnRootMismatch
+            backend:
+              repoPasswordSecretRef:
+                name: backup-repo
+                key: password
+              s3:
+                endpoint: "{{ minio_endpoint }}"
+                bucket: "{{ minio_bucket | default('backup') }}"
+                accessKeyIDSecretRef:
+                  name: minio-credentials
+                  key: username
+                secretAccessKeySecretRef:
+                  name: minio-credentials
+                  key: password
+            restoreMethod:
+              folder:
+                claimName: "{{ restore_item.pvc_name }}"
+
+    - name: "Wait for restore to complete: {{ restore_item.name }}"
+      kubernetes.core.k8s:
+        api_version: k8up.io/v1
+        kind: Restore
+        name: "{{ restore_item.name }}"
+        namespace: "{{ k8up_default_namespace }}"
+        wait: true
+        wait_condition:
+          type: Completed
+          status: "True"
+        wait_timeout: 10800  # 3h
+      register: restore_status
+
+    - name: Verify restore completion
+      ansible.builtin.assert:
+        that:
+          - restore_status.result.status.finished | bool
+          - restore_status.result.status.conditions | selectattr('type', 'equalto', 'Completed') | selectattr('status', 'equalto', 'True') | list | length > 0
+        fail_msg: "Restore did not complete successfully"
+
+    # - name: Get completion status
+    #   ansible.builtin.set_fact:
+    #     completion_info: "{{ restore_status.result.status.conditions | selectattr('type', 'equalto', 'Completed') | first }}"
+
+    # - name: Display completion message
+    #   ansible.builtin.debug:
+    #     msg:
+    #       - "Restore completion status: {{ completion_info.message }}"
+    #       - "Restore completion time: {{ completion_info.lastTransitionTime }}"
+
+  always:
+    - name: Display summary
+      ansible.builtin.include_tasks: logs.yml
+
+    # - name: Remove Backup object
+    #   kubernetes.core.k8s:
+    #     state: absent
+    #     api_version: k8up.io/v1
+    #     kind: Backup
+    #     name: "{{ restore_item.name }}"
+    #     namespace: "{{ k8up_default_namespace }}"
+
+    - name: Scale up Deployment
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: Deployment
+        name: "{{ restore_item.deployment_name }}"
+        namespace: "{{ restore_item.namespace | default(k8up_default_namespace) }}"
+        replicas: 1
+        wait: true
+        wait_timeout: "{{ k8up_wait_timeout }}"
+      when: restore_item.deployment_name is defined # and restore_item.psql_pod is defined
+
+    - name: Scale up StatefulSet
+      kubernetes.core.k8s_scale:
+        api_version: apps/v1
+        kind: StatefulSet
+        name: "{{ restore_item.statefulset_name }}"
+        namespace: "{{ restore_item.namespace | default(k8up_default_namespace) }}"
+        replicas: 1
+        wait: true
+        wait_timeout: "{{ k8up_wait_timeout }}"
+      when: restore_item.statefulset_name is defined # and restore_item.psql_pod is defined
