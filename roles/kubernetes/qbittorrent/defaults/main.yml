@@ -28,6 +28,8 @@ qbittorrent_puid: 1000
 qbittorrent_pgid: 1000
 qbittorrent_umask: "002"
 qbittorrent_timezone: "Etc/UTC"
+qbittorrent_privoxy_enabled: false
+qbittorrent_unbound_enabled: false
 
 # VPN Configuration (disabled by default)
 qbittorrent_vpn_enabled: false
@@ -73,3 +75,6 @@ qbittorrent_resources_limits_cpu: "1"
 qbittorrent_resources_limits_memory: "8Gi"
 qbittorrent_resources_requests_cpu: "250m"
 qbittorrent_resources_requests_memory: "2Gi"
+
+# Extra
+qbittorrent_extra_env: []
