@@ -10,6 +10,7 @@ k8up_chart_version: "4.8.3"
 k8up_chart_namespace: "k8up-system"
 
 # S3 Backend configuration
+minio_bucket: "backup"
 minio_endpoint: "http://changeme.com:port"
 minio_access_key: "changeme"
 minio_secret_key: "changeme"

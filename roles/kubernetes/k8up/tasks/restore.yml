@@ -46,7 +46,7 @@
                 key: password
               s3:
                 endpoint: "{{ minio_endpoint }}"
-                bucket: "{{ minio_bucket | default('backup') }}"
+                bucket: "{{ minio_bucket }}"
                 accessKeyIDSecretRef:
                   name: minio-credentials
                   key: username

@@ -29,6 +29,9 @@
   kubernetes.core.k8s:
     src: ~/k8up-crd.yaml
     state: present
+    apply: true
+    server_side_apply:
+      field_manager: "ansible-k8up-installer"
 
 - name: Create S3 credentials secret
   kubernetes.core.k8s:
