@@ -4,6 +4,7 @@ sonarr_enabled: false
 sonarr_repository_url: "https://charts.alekc.dev"
 sonarr_repository_name: "alekc"
 sonarr_chart_name: "sonarr"
+sonarr_release_name: "sonarr"
 # sonarr deployment defaults
 sonarr_namespace: default
 sonarr_chart_version: "1.7.0"

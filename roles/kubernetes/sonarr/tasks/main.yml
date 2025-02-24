@@ -16,7 +16,7 @@
 
 - name: Deploy sonarr helm chart
   kubernetes.core.helm:
-    name: sonarr
+    name: "{{ sonarr_release_name }}"
     chart_ref: "{{ sonarr_repository_name }}/{{ sonarr_chart_name }}"
     release_namespace: "{{ sonarr_namespace }}"
     chart_version: "{{ sonarr_chart_version }}"
