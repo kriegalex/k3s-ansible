@@ -7,6 +7,7 @@
 - name: Process individual backups
   ansible.builtin.include_tasks:
     file: backup.yml
+  when: k8up_backup_list is defined and k8up_backup_list | length > 0
   loop: "{{ k8up_backup_list }}"
   loop_control:
     loop_var: backup_item
@@ -15,17 +16,17 @@
 - name: Process individual restores
   ansible.builtin.include_tasks:
     file: restore.yml
+  when: k8up_restore_list is defined and k8up_restore_list | length > 0
   loop: "{{ k8up_restore_list }}"
   loop_control:
     loop_var: restore_item
     label: "{{ restore_item.name }}"
 
-# - name: Migrate PostgreSQL to CNPG
-#   ansible.builtin.include_tasks:
-#     migrate_to_cnpg.yml
-#   when: k8up_restore_psqls | length > 0
-  # vars:
-  #   migration_namespace: "default"
-  #   source_database_name: "nextcloud"
-  #   sql_dump_path: "dump.sql"
-  #   cnpg_cluster_name: "nextcloud-tmp-db"
+- name: Process individual restores
+  ansible.builtin.include_tasks:
+    file: migrate_to_cnpg.yml
+  when: k8up_restore_psql_list is defined and k8up_restore_psql_list | length > 0
+  loop: "{{ k8up_restore_psql_list }}"
+  loop_control:
+    loop_var: restore_item
+    label: "{{ restore_item.name }}"

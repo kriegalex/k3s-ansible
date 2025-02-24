@@ -10,8 +10,8 @@
       #   run_as_user: 1000  # hotio
       #   snapshot_id: "1087254c"
       # - name: "sonarr"
-      #   pvc_name: "sonarr"
-      #   deployment_name: "sonarr"
+      #   pvc_name: "sonarr-tv"
+      #   deployment_name: "sonarr-tv"
       #   run_as_user: 1000  # hotio
       #   snapshot_id: "5684c622"
       # - name: "radarr"
@@ -38,6 +38,21 @@
       #   pvc_name: "pms-config-plex-media-server-0"
       #   statefulset_name: "plex-media-server"
       #   run_as_user: 1000
+    k8up_restore_psql_list:
+      - name: "nextcloud"
+        namespace: "default"
+        snapshot_id: "85374d91"
+        run_as_user: 33  # www-data
+        database_name: "nextcloud"
+        database_user: "nextcloud"
+        # database_password: "Nextcloud1988_Restore"
+        cnpg_cluster_name: "nextcloud-temp-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        storage_class: "longhorn-single-replica"
+        temp_storage_size: "10Gi"
+        temp_postgres_cpu_request: "200m"
+        temp_postgres_memory_request: "512Mi"
   roles:
     - role: k8up
       tags: [target, k8up, restore]
