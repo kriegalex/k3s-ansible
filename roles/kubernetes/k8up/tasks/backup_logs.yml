@@ -1,0 +1,18 @@
+---
+- name: Analyze backup results
+  ansible.builtin.set_fact:
+    backup_summary:
+      total_new_files: "{{ all_pod_logs | json_query('[*].logs') | join(' ') | regex_findall('new files.: (\\d+)') | map('int') | sum }}"
+      total_changed_files: "{{ all_pod_logs | json_query('[*].logs') | join(' ') | regex_findall('changed files.: (\\d+)') | map('int') | sum }}"
+      total_errors: "{{ all_pod_logs | json_query('[*].logs') | join(' ') | regex_findall('errors.: (\\d+)') | map('int') | sum }}"
+  when: all_pod_logs is defined
+
+- name: Display backup summary
+  ansible.builtin.debug:
+    msg:
+      title: "Backup Summary"
+      statistics:
+        new_files: "{{ backup_summary.total_new_files }}"
+        changed_files: "{{ backup_summary.total_changed_files }}"
+        errors: "{{ backup_summary.total_errors }}"
+  when: backup_summary is defined

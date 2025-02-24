@@ -88,8 +88,14 @@
     #       - "Restore completion time: {{ completion_info.lastTransitionTime }}"
 
   always:
-    - name: Display summary
-      ansible.builtin.include_tasks: logs.yml
+    - name: Display log summary
+      block:
+        - name: Collect logs
+          ansible.builtin.include_tasks: collect_logs.yml
+          vars:
+            collect_log_type: "restore"
+        - name: Display restore logs
+          ansible.builtin.include_tasks: restore_logs.yml
 
     # - name: Remove Backup object
     #   kubernetes.core.k8s:
