@@ -5,17 +5,22 @@ paperless_image_tag: "2.11.2"
 paperless_app_trusted_proxies: "10.42.0.0/16"
 paperless_admin_mail: "admin@example.com"
 
-paperless_media_storage_size: "50Gi"
+# paperless_media_storage_size: "50Gi"
 # change if you disabled nfs-client
-paperless_media_storage_class: "nfs-client"
-paperless_nfs_use_enabled: true
+# paperless_media_storage_class: "nfs-client"
+# paperless_media_access_mode: "ReadWriteOnce"
+paperless_create_nfs_pvc: true
 paperless_nfs_server: 10.0.0.2
 paperless_nfs_base_path: /mnt/user/paperless
+paperless_media_existing_claim: "paperless-media-pvc"
+paperless_export_existing_claim: "paperless-export-pvc"
+paperless_consume_existing_claim: "paperless-consume-pvc"
 
 paperless_subdomain: "paperless"
 # paperless_app_domain: "paperless.kube.home" # override if needed
 
 # internal | cloudnativepg , internal if you disabled cloudnativepg
 paperless_database_source: "cloudnativepg"
+paperless_postgresql_create_cluster: false
 # change if you disabled longhorn
 paperless_postgresql_storage_class: "longhorn-single-replica"

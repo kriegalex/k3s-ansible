@@ -4,9 +4,25 @@ ingress_nginx_chart_version: 4.11.1
 cert_manager_chart_version: v1.15.1
 
 # Storage
-longhorn_chart_version: 1.6.0
+longhorn_chart_version: 1.8.0
 nfs_client_chart_version: 4.0.18
+
+# Database
+cloudnative_pg_chart_version: 0.23.0
+
+# Backup
+k8up_chart_version: 4.8.3
 
 # Apps
 nextcloud_chart_version: 6.6.3
 plex_chart_version: 0.8.0
+actual_budget_chart_version: 0.1.1
+flaresolverr_chart_version: 6.0.3
+gitea_chart_version: 10.6.0
+immich_chart_version: 0.9.0
+overseerr_chart_version: 5.4.2
+paperless_chart_version: 0.23.0
+prowlarr_chart_version: 1.12.0
+qbittorrent_chart_version: 1.2.0
+radarr_chart_version: 1.12.0
+sonarr_chart_version: 1.7.0

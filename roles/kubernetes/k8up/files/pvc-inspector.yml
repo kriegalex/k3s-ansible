@@ -1,0 +1,18 @@
+# debug-pod.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-inspector
+spec:
+  volumes:
+    - name: config-volume
+      persistentVolumeClaim:
+        claimName: "nextcloud-nextcloud"
+  containers:
+    - name: inspector
+      image: ubuntu:24.04
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - mountPath: /data
+          name: config-volume

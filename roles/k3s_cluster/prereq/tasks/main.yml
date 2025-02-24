@@ -67,3 +67,47 @@
     path: /etc/sudoers
     validate: visudo -cf %s
   when: ansible_os_family in [ "RedHat", "Suse" ]
+
+- name: Disable and remove multipathd
+  block:
+    - name: Get initial multipathd service status
+      ansible.builtin.command: systemctl status multipathd
+      register: multipathd_status
+      failed_when: false
+      changed_when: false
+
+    - name: Stop multipathd socket
+      ansible.builtin.systemd:
+        name: multipathd.socket
+        state: stopped
+        enabled: false
+      when: multipathd_status.rc == 0
+
+    - name: Stop and disable multipathd service
+      ansible.builtin.systemd:
+        name: multipathd
+        state: stopped
+        enabled: false
+        daemon_reload: true
+      when: multipathd_status.rc == 0
+
+    - name: Remove multipath-tools package
+      ansible.builtin.apt:
+        name: multipath-tools
+        state: absent
+        purge: true
+        autoremove: true
+      register: package_removed
+
+    - name: Verify service is completely removed
+      ansible.builtin.command: systemctl status multipathd
+      register: final_check
+      failed_when: false
+      changed_when: false
+
+    - name: Report status
+      ansible.builtin.debug:
+        msg: |
+          Initial status: {{ (multipathd_status.rc == 0) | ternary('Service was running', 'Service was not running') }}
+          Package removal: {{ package_removed.changed | ternary('Package was removed', 'Package was already removed') }}
+          Final status: {{ (final_check.rc != 0) | ternary('Service is now completely removed', 'Service might still be present - manual check required') }}

@@ -1,0 +1,104 @@
+# restore-playbook.yml
+---
+- name: Restore multiple PVCs
+  hosts: ansible_local
+  vars:
+    k8up_restore_list: []
+      # - name: "prowlarr"
+      #   pvc_name: "prowlarr"
+      #   deployment_name: "prowlarr"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "6dab3e55"
+      # - name: "sonarr"
+      #   pvc_name: "sonarr-tv"
+      #   deployment_name: "sonarr-tv"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "e9d8a8f2"
+      # - name: "radarr"
+      #   pvc_name: "radarr"
+      #   deployment_name: "radarr"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "dbfc4213"
+      # - name: "actual-budget"
+      #   pvc_name: "actual-budget-pvc"
+      #   deployment_name: "actual-budget"
+      #   run_as_user: 0  # root
+      #   snapshot_id: "5367b3d4"
+      # - name: "overseerr"
+      #   pvc_name: "overseerr-config"
+      #   deployment_name: "overseerr"
+      #   run_as_user: 1000  # node
+      #   snapshot_id: "f6b85d52"
+      # - name: "qbittorrent"
+      #   pvc_name: "qbittorrent-config"
+      #   deployment_name: "qbittorrent"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "2c2612fe"
+      # - name: "plex"
+      #   pvc_name: "pms-config-plex-media-server-0"
+      #   statefulset_name: "plex-media-server"
+      #   run_as_user: 1000
+      #   snapshot_id: "db68d056"
+      # - name: "nextcloud"
+      #   pvc_name: "nextcloud-nextcloud"
+      #   deployment_name: "nextcloud"
+      #   run_as_user: 33  # www-data
+      #   snapshot_id: "957cd27c"
+      # - name: "paperless"
+      #   pvc_name: "paperless-media-pvc"
+      #   deployment_name: "paperless-ngx"
+      #   run_as_user: 1000  # paperless
+      #   snapshot_id: "b970a100"
+    k8up_restore_psql_list:
+      - name: "nextcloud"
+        namespace: "default"
+        snapshot_id: "6a2ca370"
+        run_as_user: 33  # www-data
+        database_name: "nextcloud"
+        database_user: "nextcloud"
+        database_password: "{{ vault_nextcloud_db_password }}"
+        cnpg_cluster_name: "nextcloud-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        cnpg_storage_class: "longhorn-single-replica"
+        cnpg_image_name: "ghcr.io/cloudnative-pg/postgresql:16.4"
+      - name: "paperless"
+        namespace: "default"
+        snapshot_id: "273e5882"
+        run_as_user: 1000  # paperless
+        database_name: "paperless"
+        database_user: "paperless"
+        database_password: "{{ vault_paperless_db_password }}"
+        cnpg_cluster_name: "paperless-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        cnpg_storage_class: "longhorn-single-replica"
+        cnpg_image_name: "ghcr.io/cloudnative-pg/postgresql:16.4"
+      - name: "gitea"
+        namespace: "default"
+        snapshot_id: "cb1e1f74"
+        run_as_user: 1000  # git
+        database_name: "gitea"
+        database_user: "gitea"
+        database_password: "{{ vault_gitea_db_password }}"
+        cnpg_cluster_name: "gitea-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        cnpg_storage_class: "longhorn-single-replica"
+        cnpg_image_name: "ghcr.io/cloudnative-pg/postgresql:16.4"
+    k8up_restore_immich:
+      - name: "immich"
+        namespace: "default"
+        snapshot_id: "236cb341"
+        run_as_user: 0  # root
+        database_name: "immich"
+        database_user: "immich"
+        database_password: "{{ vault_immich_db_password }}"
+        cnpg_cluster_name: "immich-db"
+        cnpg_instances: 1  # bug in pgvector <0.4
+        cnpg_storage_size: "10Gi"
+        cnpg_storage_class: "longhorn-single-replica"
+        cnpg_image_name: "ghcr.io/tensorchord/cloudnative-pgvecto.rs:14-v0.2.0"
+  roles:
+    - role: k8up
+      tags: [target, k8up, restore]

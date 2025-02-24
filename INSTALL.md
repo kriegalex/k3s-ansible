@@ -34,7 +34,7 @@ pipx ensurepath
 pipx install --include-deps ansible
 
 # Install kubernetes python client
-pipx inject --include-deps ansible ansible-lint kubernetes netaddr
+pipx inject --include-deps ansible ansible-lint kubernetes netaddr jmespath
 ```
 
 ### 3. Install Helm

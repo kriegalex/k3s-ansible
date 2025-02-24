@@ -60,3 +60,34 @@ spec:
       storage: {{ paperless_nfs_export_storage_size }}
   volumeName: paperless-export-nfs-pv
   storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: paperless-media-nfs-pv
+  labels:
+    type: nfs
+    app: paperless
+spec:
+  capacity:
+    storage: {{ paperless_nfs_media_storage_size }}
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: {{ paperless_nfs_server }}
+    path: {{ paperless_nfs_base_path }}/{{ paperless_nfs_media_path }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-media-pvc
+  namespace: {{ paperless_namespace }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ paperless_nfs_media_storage_size }}
+  volumeName: paperless-media-nfs-pv
+  storageClassName: ""

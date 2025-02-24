@@ -23,11 +23,18 @@
     definition: "{{ lookup('template', 'immich-pvc.yml.j2') | from_yaml }}"
   when: immich_persistence_type == 'longhorn'
 
+- name: Install CloudNativePG
+  ansible.builtin.include_role:
+    name: cloudnative_pg
+  when:
+    - immich_postgresql_source == "cloudnativepg"
+    - not cloudnative_pg_enabled
+
 - name: Configure CloudNativePG
   ansible.builtin.import_tasks: cloudnative_pg.yml
   when:
-    - cloudnative_pg_enabled | bool
     - immich_postgresql_source == "cloudnativepg"
+    - immich_postgresql_create_cluster
 
 # - name: Generate debug YAML file
 #   ansible.builtin.template:

@@ -31,7 +31,7 @@ vault_paperless_admin_password: "CHANGEME-PAPERLESS_ADMIN"
 # Gitea Redis cache password
 vault_gitea_redis_password: "CHANGEME_GITEA_REDIS"
 # Gitea PostgreSQL database password
-vault_gitea_postgresql_password: "CHANGEME_GITEA_PSQL"
+vault_gitea_db_password: "CHANGEME_GITEA_PSQL"
 # Gitea Admin Password
 vault_gitea_admin_password: "CHANGEME_GITEA_ADMIN"
 

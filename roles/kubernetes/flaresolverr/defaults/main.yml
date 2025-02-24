@@ -44,3 +44,6 @@ flaresolverr_ingress_enabled: false
 flaresolverr_ingress_class_name: "{{ ingress_nginx_class }}"
 flaresolverr_ingress_tls_enabled: false
 flaresolverr_cluster_issuer: "{{ letsencrypt_env_tag }}"
+
+# Additional environment variables
+flaresolverr_additional_env: []

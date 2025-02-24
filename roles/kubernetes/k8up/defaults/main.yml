@@ -1,0 +1,61 @@
+# roles/k8up/defaults/main.yml
+---
+# General settings
+k8up_default_namespace: "default"
+k8up_wait_timeout: 180
+k8up_workload_default_replicas: 1
+
+# K8up Helm Configuration
+k8up_chart_version: "4.8.3"
+k8up_chart_namespace: "k8up-system"
+
+# S3 Backend configuration
+minio_bucket: "backup"
+minio_endpoint: "http://changeme.com:port"
+minio_access_key: "changeme"
+minio_secret_key: "changeme"
+minio_repository_password: "changeme"
+
+# Restic environment variables
+# restic_env_vars:
+#   AWS_ACCESS_KEY_ID: "{{ minio_access_key }}"
+#   AWS_SECRET_ACCESS_KEY: "{{ minio_secret_key }}"
+#   RESTIC_REPOSITORY: "{{ minio_endpoint }}/{{ minio_bucket }}"
+#   RESTIC_PASSWORD: "{{ minio_repository_password }}"
+
+# Backup configuration
+backup_tags: []
+backup_failed_jobs_history_limit: 2
+backup_successful_jobs_history_limit: 2
+
+# Restore configuration
+restore_pod_security_context:
+  fsGroup: 33  # www-data for example for Nextcloud
+  fsGroupChangePolicy: OnRootMismatch
+
+# Operation arrays (to be filled by playbook)
+k8up_backup_list: []
+# Example structure:
+# k8up_backup_list:
+#   - name: "immich"
+#     pvc_name: "nfs-immich"
+#     psql_pod: "immich-postgresql-0"
+#     deployment_name: "immich-server"
+#     run_as_user: 0  # root
+#   - name: "plex"
+#     pvc_name: "pms-config-plex-media-server-0"
+#     statefulset_name: "plex-media-server"
+#     run_as_user: 1000
+
+k8up_restore_list: []
+# Example structure:
+# k8up_restore_list:
+#   - name: "immich"
+#     pvc_name: "nfs-immich"
+#     psql_pod: "immich-postgresql-0"
+#     deployment_name: "immich-server"
+#     run_as_user: 0  # root
+#   - name: "plex"
+#     pvc_name: "pms-config-plex-media-server-0"
+#     statefulset_name: "plex-media-server"
+#     run_as_user: 1000

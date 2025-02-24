@@ -6,9 +6,11 @@ immich_chart_version: "0.9.0"
 
 # internal | cloudnativepg
 immich_postgresql_source: "internal"
+immich_postgresql_create_cluster: false
 immich_postgresql_pgvectors_version: "16-v0.3.0"
 immich_postgresql_storage_class: "longhorn-single-replica"
 immich_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+immich_db_skip_migrations: false
 
 immich_redis_enabled: false
 immich_redis_affinity_enabled: true
@@ -27,6 +29,8 @@ immich_persistence_type: "longhorn"
 immich_persistence_longhorn_storage_class: longhorn
 # use longhorn if you have low storage requirements or a big longhorn storage
 immich_persistence_longhorn_size: "50Gi"
+immich_persistence_external_enabled: false
+# immich_persistence_external_existing_claim: "nfs-nextcloud"
 
 immich_machine_learning_enabled: true
 immich_machine_learning_persistence_type: pvc

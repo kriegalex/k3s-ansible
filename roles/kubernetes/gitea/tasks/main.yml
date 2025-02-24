@@ -35,6 +35,7 @@
   ansible.builtin.import_tasks: cloudnative_pg.yml
   when:
     - gitea_postgresql_source == "cloudnativepg"
+    - gitea_postgresql_create_cluster
 
 - name: Deploy Gitea Helm Chart
   kubernetes.core.helm:

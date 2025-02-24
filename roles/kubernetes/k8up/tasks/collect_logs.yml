@@ -1,0 +1,66 @@
+# tasks/logs.yml
+---
+- name: Get all backup/restore pods
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ k8up_default_namespace }}"
+    label_selectors:
+      - "k8upjob=true"
+      - "job-name={{ job_name }}"
+  register: k8up_running_pods
+
+# - name: Debug backup/restore
+#   ansible.builtin.debug:
+#     msg: "{{ k8up_running_pods.resources }}"
+
+- name: Initialize pod logs array
+  ansible.builtin.set_fact:
+    all_pod_logs: []
+
+- name: Get logs from  pods
+  kubernetes.core.k8s_log:
+    name: "{{ item.metadata.name }}"
+    namespace: "{{ k8up_default_namespace }}"
+  register: pod_log
+  loop: "{{ k8up_running_pods.resources }}"
+  no_log: true
+  when:
+    - k8up_running_pods.resources | length > 0
+    - item.status.phase == 'Succeeded'
+  ignore_errors: true
+
+- name: Collect all pod logs
+  ansible.builtin.set_fact:
+    all_pod_logs: "{{ all_pod_logs + [{'pod': item.item.metadata.name, 'logs': item.log}] }}"
+  loop: "{{ pod_log.results }}"
+  no_log: true
+  when:
+    - item is not skipped
+    - item.log is defined
+
+# - name: Generate consolidated log report
+#   ansible.builtin.template:
+#     src: backup_logs_report.j2
+#     dest: "/tmp/backup-backup-task-{{ ansible_date_time.iso8601 }}.log"
+#     mode: "755"
+#   delegate_to: localhost
+#   when: all_pod_logs is defined
+
+# - name: Analyze backup results
+#   ansible.builtin.set_fact:
+#     backup_summary:
+#       total_new_files: "{{ all_pod_logs | json_query('[*].logs') | join(' ') | regex_findall('new files.: (\\d+)') | map('int') | sum }}"
+#       total_changed_files: "{{ all_pod_logs | json_query('[*].logs') | join(' ') | regex_findall('changed files.: (\\d+)') | map('int') | sum }}"
+#       total_errors: "{{ all_pod_logs | json_query('[*].logs') | join(' ') | regex_findall('errors.: (\\d+)') | map('int') | sum }}"
+#   when: all_pod_logs is defined
+
+# - name: Display backup summary
+#   ansible.builtin.debug:
+#     msg:
+#       title: "Backup Summary"
+#       statistics:
+#         new_files: "{{ backup_summary.total_new_files }}"
+#         changed_files: "{{ backup_summary.total_changed_files }}"
+#         errors: "{{ backup_summary.total_errors }}"
+#   when: backup_summary is defined

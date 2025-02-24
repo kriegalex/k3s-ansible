@@ -176,3 +176,8 @@ custom_registries_yaml: |
 # Qbittorrent
 # This needs to be here, because both ansible control node and k3s worker nodes need to see its value
 qbittorrent_enabled: false
+
+#
+# BACKUP / RESTORE
+#
+source_kubelet_config: /home/mlourenco/.kube/k8s-config  # source cluster

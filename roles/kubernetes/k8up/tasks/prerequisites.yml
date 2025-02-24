@@ -1,0 +1,104 @@
+---
+# Only for default namespace
+- name: Merge CNPG cluster names from different lists
+  ansible.builtin.set_fact:
+    all_cnpg_clusters: "{{ k8up_restore_psql_list + k8up_restore_immich }}"
+
+- name: Extract unique CNPG cluster names
+  ansible.builtin.set_fact:
+    cnpg_cluster_names: "{{ all_cnpg_clusters | map(attribute='cnpg_cluster_name') | list | unique }}"
+
+- name: Show all CNPG cluster names to check
+  ansible.builtin.debug:
+    var: cnpg_cluster_names
+
+- name: Check if Cluster already exists
+  ansible.builtin.command:
+    cmd: kubectl get cluster "{{ item }}" -n "{{ k8up_default_namespace }}"
+  register: cluster_check_results
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  loop: "{{ cnpg_cluster_names }}"
+
+- name: Identify existing clusters
+  ansible.builtin.set_fact:
+    existing_clusters: "{{ existing_clusters | default([]) + [item.item] }}"
+  loop: "{{ cluster_check_results.results }}"
+  no_log: true
+  when: item.rc == 0
+
+- name: Display warning about existing clusters
+  ansible.builtin.fail:
+    msg: |
+      The following CloudNativePG clusters already exist:
+      {{ existing_clusters | default([]) | join(', ') }}
+      
+      To proceed with new cluster creation, you need to manually delete them first by running:
+      {% for cluster in existing_clusters | default([]) %}
+      kubectl delete cluster {{ cluster }} -n {{ k8up_default_namespace }}
+      {% endfor %}
+      
+      After deletion is complete, you can re-run this playbook.
+  when: existing_clusters is defined and existing_clusters | length > 0
+
+- name: Add K8up Helm repository
+  kubernetes.core.helm_repository:
+    name: k8up-io
+    repo_url: https://k8up-io.github.io/k8up
+
+- name: Deploy K8up operator
+  kubernetes.core.helm:
+    name: k8up
+    chart_ref: k8up-io/k8up
+    release_namespace: "{{ k8up_chart_namespace }}"
+    chart_version: "{{ k8up_chart_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values:
+      k8up:
+        envVars:
+          - name: BACKUP_SKIP_WITHOUT_ANNOTATION
+            value: "true"
+
+- name: Download k8up CRDs
+  ansible.builtin.get_url:
+    url: "https://github.com/k8up-io/k8up/releases/download/k8up-{{ k8up_chart_version }}/k8up-crd.yaml"
+    dest: ~/k8up-crd.yaml
+    mode: '0644'
+
+- name: Apply k8up CRDs
+  kubernetes.core.k8s:
+    src: ~/k8up-crd.yaml
+    state: present
+    apply: true
+    server_side_apply:
+      field_manager: "ansible-k8up-installer"
+
+- name: Create S3 credentials secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: minio-credentials
+        namespace: "{{ k8up_default_namespace }}"
+      type: Opaque
+      stringData:
+        username: "{{ minio_access_key }}"
+        password: "{{ minio_secret_key }}"
+
+- name: Create repository encryption secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: backup-repo
+        namespace: "{{ k8up_default_namespace }}"
+      type: Opaque
+      stringData:
+        password: "{{ minio_repository_password }}"

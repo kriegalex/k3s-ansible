@@ -25,6 +25,7 @@
   ansible.builtin.import_tasks: cloudnative_pg.yml
   when:
     - nextcloud_postgresql_source == "cloudnativepg"
+    - nextcloud_postgresql_create_cluster
 
 # - name: Debug template
 #   ansible.builtin.debug:
@@ -56,6 +57,7 @@
     pod: "{{ pod_list.resources[0].metadata.name }}"
     command: su -s /bin/sh www-data -c "php occ db:add-missing-indices"
   register: occ_add_missing_indices_status
+  when: nextcloud_postgresql_create_cluster or (nextcloud_postgresql_source != "cloudnativepg")
 
 - name: Print occ command result
   ansible.builtin.debug:
