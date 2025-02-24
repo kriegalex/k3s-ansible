@@ -3,6 +3,9 @@ image:
   flavor: fpm
   pullPolicy: IfNotPresent
 
+podAnnotations:
+  {{ nextcloud_pod_annotations }}
+
 ingress:
   enabled: {{ nextcloud_ingress_enabled }}
   className: {{ nextcloud_ingress_class_name }}

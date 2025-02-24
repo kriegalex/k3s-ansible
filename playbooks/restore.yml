@@ -1,0 +1,43 @@
+# restore-playbook.yml
+---
+- name: Restore multiple PVCs
+  hosts: ansible_local
+  vars:
+    k8up_restore_list:
+      # - name: "prowlarr"
+      #   pvc_name: "prowlarr"
+      #   deployment_name: "prowlarr"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "1087254c"
+      # - name: "sonarr"
+      #   pvc_name: "sonarr"
+      #   deployment_name: "sonarr"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "5684c622"
+      # - name: "radarr"
+      #   pvc_name: "radarr"
+      #   deployment_name: "radarr"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "5d38d59d"
+      # - name: "actual-budget"
+      #   pvc_name: "actual-budget-pvc"
+      #   deployment_name: "actual-budget"
+      #   run_as_user: 0  # root
+      #   snapshot_id: "02669566"
+      # - name: "overseerr"
+      #   pvc_name: "overseerr-config"
+      #   deployment_name: "overseerr"
+      #   run_as_user: 1000  # node
+      #   snapshot_id: "d4b1ac9d"
+      - name: "qbittorrent"
+        pvc_name: "qbittorrent-config"
+        deployment_name: "qbittorrent"
+        run_as_user: 1000  # hotio
+        snapshot_id: "47612e19"
+      # - name: "plex"
+      #   pvc_name: "pms-config-plex-media-server-0"
+      #   statefulset_name: "plex-media-server"
+      #   run_as_user: 1000
+  roles:
+    - role: k8up
+      tags: [target, k8up, restore]
