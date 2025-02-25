@@ -21,7 +21,7 @@ persistence:
   media:
     enabled: true
     retain: true
-    mountPath: "{{ paperless_media_mount_path }}"
+    mountPath: "/usr/src/paperless/media"
 {% if paperless_media_existing_claim is defined %}
     existingClaim: "{{ paperless_media_existing_claim }}"
 {% elif paperless_media_storage_class is defined %}
@@ -59,7 +59,7 @@ env:
   TZ: "{{ paperless_app_timezone }}"
   PAPERLESS_SECRET_KEY: {{ vault_paperless_secret_key }}
   PAPERLESS_TRUSTED_PROXIES: "{{ paperless_app_trusted_proxies }}"
-  PAPERLESS_DATA_DIR: "{{ paperless_media_mount_path }}"
+  PAPERLESS_DATA_DIR: "/usr/src/paperless/media"
   PAPERLESS_FILENAME_FORMAT: "{{ paperless_app_filename_format }}"
   PAPERLESS_CONSUMER_POLLING: "{{ paperless_app_consumer_polling }}"
   PAPERLESS_CONSUMER_RECURSIVE: {{ paperless_app_consumer_recursive | lower }}

@@ -30,7 +30,7 @@
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', 'nfs-resources.yaml.j2') | from_yaml_all | list }}"
-  when: paperless_nfs_use_enabled
+  when: paperless_create_nfs_pvc
 
 # - name: Generate debug YAML file
 #   ansible.builtin.template:
