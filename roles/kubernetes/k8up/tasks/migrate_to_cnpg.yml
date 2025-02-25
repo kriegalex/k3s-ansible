@@ -7,6 +7,7 @@
       - restore_item.snapshot_id is defined
       - restore_item.database_name is defined
       - restore_item.database_user is defined
+      - restore_item.database_credentials_secret is defined
       - restore_item.cnpg_cluster_name is defined
     fail_msg: "Missing required variables for database migration of {{ restore_item.name }}"
 
@@ -27,7 +28,7 @@
           - ReadWriteOnce
         resources:
           requests:
-            storage: "{{ restore_item.temp_storage_size | default('10Gi') }}"
+            storage: "{{ restore_item.temp_pvc_storage_size | default('10Gi') }}"
         storageClassName: "{{ storage_class | default('longhorn') }}"
 
 - name: Create K8up restore job
@@ -85,17 +86,13 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Secret
-    name: nextcloud-db-credentials
+    name: "{{ restore_item.database_credentials_secret }}"
     namespace: "{{ restore_item.namespace }}"
   register: db_secret
 
 - name: Set database password from secret
   ansible.builtin.set_fact:
     db_password: "{{ db_secret.resources[0].data.password | b64decode }}"
-
-- name: Debug database password
-  ansible.builtin.debug:
-    msg: "{{ db_password }}"
 
 - name: Create temp PostgreSQL values
   ansible.builtin.set_fact:
@@ -116,9 +113,9 @@
         app.kubernetes.io/component: temporary-database
         app.kubernetes.io/instance: "temp-postgres-{{ restore_item.name }}"
 
-- name: Debug temp PostgreSQL values
-  ansible.builtin.debug:
-    msg: "{{ temp_postgres_values | to_yaml }}"
+# - name: Debug temp PostgreSQL values
+#   ansible.builtin.debug:
+#     msg: "{{ temp_postgres_values | to_yaml }}"
 
 - name: Deploy temporary PostgreSQL with Helm
   kubernetes.core.helm:
@@ -131,22 +128,6 @@
     wait: true
     wait_timeout: 5m
 
-# - name: Wait for PostgreSQL pod to be ready
-#   kubernetes.core.k8s_info:
-#     api_version: v1
-#     kind: Pod
-#     namespace: "{{ restore_item.namespace }}"
-#     label_selectors:
-#       - app.kubernetes.io/instance=temp-postgres-{{ restore_item.name }}
-#       - app.kubernetes.io/component=primary
-#   register: postgres_pod
-#   until:
-#     - postgres_pod.resources | length > 0
-#     - postgres_pod.resources[0].status.phase == "Running"
-#     - postgres_pod.resources[0].status.containerStatuses[0].ready | bool
-#   retries: 30
-#   delay: 10
-
 - name: Restore SQL dump to temporary PostgreSQL
   kubernetes.core.k8s_exec:
     namespace: "{{ restore_item.namespace }}"
@@ -155,6 +136,15 @@
     command: sh -c 'PGPASSWORD="{{ db_password }}" psql -U "{{ restore_item.database_user }}" -d "{{ restore_item.database_name }}" -f "/bitnami/postgresql/default-postgresql-{{ restore_item.name }}.sql"'
   register: restore_result
   failed_when: restore_result.rc != 0
+
+- name: Remove existing cluster
+  kubernetes.core.k8s:
+    state: absent
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    name: "{{ restore_item.cnpg_cluster_name }}"
+    namespace: "{{ restore_item.namespace }}"
+    wait: true
 
 - name: Create CNPG import definition
   kubernetes.core.k8s:
@@ -189,32 +179,43 @@
               name: "nextcloud-db-credentials"
               key: password
 
-# - name: Wait for CNPG import to complete
-#   kubernetes.core.k8s_info:
-#     api_version: postgresql.cnpg.io/v1
-#     kind: Cluster
-#     name: "{{ restore_item.cnpg_cluster_name }}"
-#     namespace: "{{ restore_item.namespace }}"
-#   register: cnpg_status
-#   until:
-#     - cnpg_status.resources[0].status is defined
-#     - cnpg_status.resources[0].status.phase is defined
-#     - cnpg_status.resources[0].status.phase == "Running"
-#   retries: 60
-#   delay: 30
+- name: Wait for PostgreSQL cluster to be ready
+  kubernetes.core.k8s_info:
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    name: "{{ restore_item.cnpg_cluster_name }}"
+    namespace: "{{ restore_item.namespace }}"
+    wait: true
+    wait_timeout: 150
+    wait_condition:
+      type: Ready
+      status: "True"
+      reason: ClusterIsReady
+  register: pg_cluster
+  failed_when: >-
+    pg_cluster.resources is not defined or
+    pg_cluster.resources | length == 0
 
-# - name: Clean up temporary resources
-#   kubernetes.core.k8s:
-#     state: absent
-#     kind: "{{ resource.kind }}"
-#     api_version: "{{ resource.api_version }}"
-#     name: "{{ resource.prefix }}-{{ restore_item.name }}{{ resource.suffix | default('') }}"
-#     namespace: "{{ restore_item.namespace }}"
-#   loop:
-#     - { kind: 'StatefulSet', api_version: 'apps/v1', prefix: 'temp-postgres', suffix: '' }
-#     - { kind: 'Service', api_version: 'v1', prefix: 'temp-postgres', suffix: '' }
-#     - { kind: 'Secret', api_version: 'v1', prefix: 'temp-postgres', suffix: '' }
-#     - { kind: 'PersistentVolumeClaim', api_version: 'v1', prefix: 'temp-restore', suffix: '' }
-#     - { kind: 'Restore', api_version: 'k8up.io/v1', prefix: 'restore', suffix: "-{{ restore_item.snapshot_id }}" }
-#   loop_control:
-#     loop_var: resource
+- name: Uninstall Bitnami Postgres (helm)
+  kubernetes.core.helm:
+    name: "temp-postgres-{{ restore_item.name }}"
+    release_namespace: "{{ restore_item.namespace }}"
+    state: absent
+    wait: true
+
+- name: Clean up temporary Restore
+  kubernetes.core.k8s:
+    state: absent
+    kind: Restore
+    api_version: k8up.io/v1
+    name: "{{ restore_item.name }}-psql"
+    namespace: "{{ restore_item.namespace }}"
+    wait: true
+
+- name: Clean up temporary PVC
+  kubernetes.core.k8s:
+    state: absent
+    kind: PersistentVolumeClaim
+    api_version: v1
+    name: "temp-restore-{{ restore_item.name }}"
+    namespace: "{{ restore_item.namespace }}"

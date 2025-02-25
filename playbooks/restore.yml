@@ -38,6 +38,12 @@
       #   pvc_name: "pms-config-plex-media-server-0"
       #   statefulset_name: "plex-media-server"
       #   run_as_user: 1000
+      #   snapshot_id: "6b7b092a"
+      - name: "nextcloud"
+        pvc_name: "nextcloud-nextcloud"
+        deployment_name: "nextcloud"
+        run_as_user: 33  # www-data
+        snapshot_id: "98dd1efd"
     k8up_restore_psql_list:
       - name: "nextcloud"
         namespace: "default"
@@ -45,14 +51,48 @@
         run_as_user: 33  # www-data
         database_name: "nextcloud"
         database_user: "nextcloud"
-        # database_password: "Nextcloud1988_Restore"
-        cnpg_cluster_name: "nextcloud-temp-db"
+        database_credentials_secret: "nextcloud-db-credentials"
+        cnpg_cluster_name: "nextcloud-db"
         cnpg_instances: 2
         cnpg_storage_size: "10Gi"
         storage_class: "longhorn-single-replica"
-        temp_storage_size: "10Gi"
-        temp_postgres_cpu_request: "200m"
-        temp_postgres_memory_request: "512Mi"
+        temp_pvc_storage_size: "10Gi"
+      - name: "immich"
+        namespace: "default"
+        snapshot_id: "0e0115cf"
+        run_as_user: 0  # root
+        database_name: "immich"
+        database_user: "immich"
+        database_credentials_secret: "immich-db-secret"
+        cnpg_cluster_name: "immich-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        storage_class: "longhorn-single-replica"
+        temp_pvc_storage_size: "10Gi"
+      - name: "paperless"
+        namespace: "default"
+        snapshot_id: "0e70cdd3"
+        run_as_user: 1000  # paperless
+        database_name: "paperless"
+        database_user: "paperless"
+        database_credentials_secret: "paperless-db-credentials"
+        cnpg_cluster_name: "paperless-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        storage_class: "longhorn-single-replica"
+        temp_pvc_storage_size: "10Gi"
+      - name: "gitea"
+        namespace: "default"
+        snapshot_id: "25ad1bf4"
+        run_as_user: 1000  # git
+        database_name: "gitea"
+        database_user: "gitea"
+        database_credentials_secret: "gitea-db-credentials"
+        cnpg_cluster_name: "gitea-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        storage_class: "longhorn-single-replica"
+        temp_pvc_storage_size: "10Gi"
   roles:
     - role: k8up
       tags: [target, k8up, restore]

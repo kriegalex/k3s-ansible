@@ -70,6 +70,9 @@
         pvc_name: "home-assistant-home-assistant-0"
         statefulset_name: "home-assistant"
         run_as_user: 0  # root
+      - name: "nextcloud"
+        pvc_name: "nfs-nextcloud"
+        run_as_user: 33  # www-data
   roles:
     - role: k8up
       tags: [source, k8up, backup]
