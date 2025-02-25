@@ -172,13 +172,13 @@
               k8up.io/backupcommand: null
               k8up.io/file-extension: null
 
-    # - name: Remove Backup object
-    #   kubernetes.core.k8s:
-    #     state: absent
-    #     api_version: k8up.io/v1
-    #     kind: Backup
-    #     name: "{{ backup_item.name }}"
-    #     namespace: "{{ k8up_default_namespace }}"
+    - name: Remove Backup object
+      kubernetes.core.k8s:
+        state: absent
+        api_version: k8up.io/v1
+        kind: Backup
+        name: "{{ backup_item.name }}"
+        namespace: "{{ k8up_default_namespace }}"
 
     # #
     # # To use this, you need to improve the PodConfig below.
