@@ -50,6 +50,7 @@ paperless_app_ocr_user_args: '{"invalidate_digital_signatures": true}'
 paperless_postgresql_storage_class: "longhorn-single-replica"
 # internal | cloudnativepg
 paperless_database_source: "cloudnativepg"
+paperless_postgresql_create_cluster: false
 paperless_database_user: paperless
 paperless_database_name: paperless
 paperless_database_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"

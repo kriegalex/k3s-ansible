@@ -8,46 +8,46 @@
       #   pvc_name: "prowlarr"
       #   deployment_name: "prowlarr"
       #   run_as_user: 1000  # hotio
-      #   snapshot_id: "1087254c"
+      #   snapshot_id: "6dab3e55"
       # - name: "sonarr"
       #   pvc_name: "sonarr-tv"
       #   deployment_name: "sonarr-tv"
       #   run_as_user: 1000  # hotio
-      #   snapshot_id: "5684c622"
+      #   snapshot_id: "e9d8a8f2"
       # - name: "radarr"
       #   pvc_name: "radarr"
       #   deployment_name: "radarr"
       #   run_as_user: 1000  # hotio
-      #   snapshot_id: "5d38d59d"
+      #   snapshot_id: "dbfc4213"
       # - name: "actual-budget"
       #   pvc_name: "actual-budget-pvc"
       #   deployment_name: "actual-budget"
       #   run_as_user: 0  # root
-      #   snapshot_id: "02669566"
+      #   snapshot_id: "5367b3d4"
       # - name: "overseerr"
       #   pvc_name: "overseerr-config"
       #   deployment_name: "overseerr"
       #   run_as_user: 1000  # node
-      #   snapshot_id: "d4b1ac9d"
-      - name: "qbittorrent"
-        pvc_name: "qbittorrent-config"
-        deployment_name: "qbittorrent"
-        run_as_user: 1000  # hotio
-        snapshot_id: "47612e19"
+      #   snapshot_id: "f6b85d52"
+      # - name: "qbittorrent"
+      #   pvc_name: "qbittorrent-config"
+      #   deployment_name: "qbittorrent"
+      #   run_as_user: 1000  # hotio
+      #   snapshot_id: "2c2612fe"
       # - name: "plex"
       #   pvc_name: "pms-config-plex-media-server-0"
       #   statefulset_name: "plex-media-server"
       #   run_as_user: 1000
-      #   snapshot_id: "6b7b092a"
+      #   snapshot_id: "db68d056"
       - name: "nextcloud"
         pvc_name: "nextcloud-nextcloud"
         deployment_name: "nextcloud"
         run_as_user: 33  # www-data
-        snapshot_id: "98dd1efd"
+        snapshot_id: "957cd27c"
     k8up_restore_psql_list:
       - name: "nextcloud"
         namespace: "default"
-        snapshot_id: "85374d91"
+        snapshot_id: "6a2ca370"
         run_as_user: 33  # www-data
         database_name: "nextcloud"
         database_user: "nextcloud"
@@ -57,42 +57,42 @@
         cnpg_storage_size: "10Gi"
         storage_class: "longhorn-single-replica"
         temp_pvc_storage_size: "10Gi"
-      - name: "immich"
-        namespace: "default"
-        snapshot_id: "0e0115cf"
-        run_as_user: 0  # root
-        database_name: "immich"
-        database_user: "immich"
-        database_credentials_secret: "immich-db-secret"
-        cnpg_cluster_name: "immich-db"
-        cnpg_instances: 2
-        cnpg_storage_size: "10Gi"
-        storage_class: "longhorn-single-replica"
-        temp_pvc_storage_size: "10Gi"
-      - name: "paperless"
-        namespace: "default"
-        snapshot_id: "0e70cdd3"
-        run_as_user: 1000  # paperless
-        database_name: "paperless"
-        database_user: "paperless"
-        database_credentials_secret: "paperless-db-credentials"
-        cnpg_cluster_name: "paperless-db"
-        cnpg_instances: 2
-        cnpg_storage_size: "10Gi"
-        storage_class: "longhorn-single-replica"
-        temp_pvc_storage_size: "10Gi"
-      - name: "gitea"
-        namespace: "default"
-        snapshot_id: "25ad1bf4"
-        run_as_user: 1000  # git
-        database_name: "gitea"
-        database_user: "gitea"
-        database_credentials_secret: "gitea-db-credentials"
-        cnpg_cluster_name: "gitea-db"
-        cnpg_instances: 2
-        cnpg_storage_size: "10Gi"
-        storage_class: "longhorn-single-replica"
-        temp_pvc_storage_size: "10Gi"
+      # - name: "immich"
+      #   namespace: "default"
+      #   snapshot_id: "81bd27ce"
+      #   run_as_user: 0  # root
+      #   database_name: "immich"
+      #   database_user: "immich"
+      #   database_credentials_secret: "immich-db-secret"
+      #   cnpg_cluster_name: "immich-db"
+      #   cnpg_instances: 2
+      #   cnpg_storage_size: "10Gi"
+      #   storage_class: "longhorn-single-replica"
+      #   temp_pvc_storage_size: "10Gi"
+      # - name: "paperless"
+      #   namespace: "default"
+      #   snapshot_id: "273e5882"
+      #   run_as_user: 1000  # paperless
+      #   database_name: "paperless"
+      #   database_user: "paperless"
+      #   database_credentials_secret: "paperless-db-credentials"
+      #   cnpg_cluster_name: "paperless-db"
+      #   cnpg_instances: 2
+      #   cnpg_storage_size: "10Gi"
+      #   storage_class: "longhorn-single-replica"
+      #   temp_pvc_storage_size: "10Gi"
+      # - name: "gitea"
+      #   namespace: "default"
+      #   snapshot_id: "cb1e1f74"
+      #   run_as_user: 1000  # git
+      #   database_name: "gitea"
+      #   database_user: "gitea"
+      #   database_credentials_secret: "gitea-db-credentials"
+      #   cnpg_cluster_name: "gitea-db"
+      #   cnpg_instances: 2
+      #   cnpg_storage_size: "10Gi"
+      #   storage_class: "longhorn-single-replica"
+      #   temp_pvc_storage_size: "10Gi"
   roles:
     - role: k8up
       tags: [target, k8up, restore]

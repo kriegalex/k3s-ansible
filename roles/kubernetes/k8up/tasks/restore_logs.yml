@@ -2,7 +2,7 @@
 - name: Extract number of restored files from logs
   ansible.builtin.set_fact:
     restored_files_count: "{{ all_pod_logs | regex_search('Restored (\\d+) files/dirs', '\\1') | first }}"
-  when: all_pod_logs is defined
+  when: all_pod_logs is defined and all_pod_logs | length > 0
 
 - name: Display restore summary
   ansible.builtin.debug:

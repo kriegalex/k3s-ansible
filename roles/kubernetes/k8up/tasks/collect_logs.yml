@@ -1,14 +1,28 @@
 # tasks/logs.yml
 ---
 - name: Get all backup pods
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Pod
-    namespace: "{{ k8up_default_namespace }}"
-    label_selectors:
-      - "k8upjob=true"
-      - "job-name={{ collect_log_type }}-{{ log_name }}-0"
-  register: backup_pods
+  block:
+    - name: Backup
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: "{{ k8up_default_namespace }}"
+        label_selectors:
+          - "k8upjob=true"
+          - "job-name={{ collect_log_type }}-{{ log_name }}-0"
+      register: backup_pods
+      when: collect_log_type == "backup"
+
+    - name: Restore
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Pod
+        namespace: "{{ k8up_default_namespace }}"
+        label_selectors:
+          - "k8upjob=true"
+          - "job-name={{ collect_log_type }}-{{ log_name }}"
+      register: backup_pods
+      when: collect_log_type == "restore"
 
 # - name: Debug backup_pods
 #   ansible.builtin.debug:

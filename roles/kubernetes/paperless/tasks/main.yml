@@ -13,11 +13,18 @@
     name: gabe565
     repo_url: https://charts.gabe565.com
 
+- name: Install CloudNativePG
+  ansible.builtin.include_role:
+    name: cloudnative_pg
+  when:
+    - paperless_database_source == "cloudnativepg"
+    - not cloudnative_pg_enabled
+
 - name: Configure CloudNativePG
   ansible.builtin.import_tasks: cloudnative_pg.yml
   when:
-    - cloudnative_pg_enabled | bool
     - paperless_database_source == "cloudnativepg"
+    - paperless_postgresql_create_cluster
 
 - name: Create NFS PV and PVC resources
   kubernetes.core.k8s:

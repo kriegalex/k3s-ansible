@@ -29,6 +29,7 @@ nextcloud_ingress_tls_secret_name: nextcloud-tls
 # for CloudNativePG, check roles/kubernetes/cloudnative_pg/README.md
 # internal | external | cloudnativepg
 nextcloud_postgresql_source: internal
+nextcloud_postgresql_create_cluster: false
 nextcloud_postgresql_storage_class: "longhorn-single-replica"
 nextcloud_postgresql_username: nextcloud # password comes from the vault
 nextcloud_postgresql_database: nextcloud

@@ -162,6 +162,10 @@
           storageClass: "{{ restore_item.storage_class }}"
         bootstrap:
           initdb:
+            database: "{{ restore_item.database_name }}"
+            owner: "{{ restore_item.database_user }}"
+            secret:
+              name: "{{ restore_item.database_credentials_secret }}"
             import:
               type: microservice
               databases:
@@ -176,7 +180,7 @@
               dbname: "{{ restore_item.database_name }}"
               sslmode: disable
             password:
-              name: "nextcloud-db-credentials"
+              name: "{{ restore_item.database_credentials_secret }}"
               key: password
 
 - name: Wait for PostgreSQL cluster to be ready

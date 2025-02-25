@@ -15,18 +15,18 @@
 
 - name: Process individual restores
   ansible.builtin.include_tasks:
-    file: restore.yml
-  when: k8up_restore_list is defined and k8up_restore_list | length > 0
-  loop: "{{ k8up_restore_list }}"
+    file: migrate_to_cnpg.yml
+  when: k8up_restore_psql_list is defined and k8up_restore_psql_list | length > 0
+  loop: "{{ k8up_restore_psql_list }}"
   loop_control:
     loop_var: restore_item
     label: "{{ restore_item.name }}"
 
 - name: Process individual restores
   ansible.builtin.include_tasks:
-    file: migrate_to_cnpg.yml
-  when: k8up_restore_psql_list is defined and k8up_restore_psql_list | length > 0
-  loop: "{{ k8up_restore_psql_list }}"
+    file: restore.yml
+  when: k8up_restore_list is defined and k8up_restore_list | length > 0
+  loop: "{{ k8up_restore_list }}"
   loop_control:
     loop_var: restore_item
     label: "{{ restore_item.name }}"

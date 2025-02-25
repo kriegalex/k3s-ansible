@@ -6,6 +6,7 @@ immich_chart_version: "0.9.0"
 
 # internal | cloudnativepg
 immich_postgresql_source: "internal"
+immich_postgresql_create_cluster: false
 immich_postgresql_pgvectors_version: "16-v0.3.0"
 immich_postgresql_storage_class: "longhorn-single-replica"
 immich_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
