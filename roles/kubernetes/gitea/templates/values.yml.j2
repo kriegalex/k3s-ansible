@@ -31,10 +31,10 @@ persistence:
   enabled: {{ gitea_persistence_enabled }}
   create: {{ gitea_persistence_create }}
   mount: {{ gitea_persistence_mount }}
-{% if gitea_persistence_storage_class is defined %}
+{% if gitea_persistence_storage_class %}
   storageClass: "{{ gitea_persistence_storage_class }}"
   size: "{{ gitea_persistence_size }}"
-{% elif gitea_persistence_claim_name is defined %}  
+{% elif gitea_persistence_claim_name %}  
   claimName: "{{ gitea_persistence_claim_name }}"
 {% endif %}
 

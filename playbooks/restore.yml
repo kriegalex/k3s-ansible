@@ -3,7 +3,7 @@
 - name: Restore multiple PVCs
   hosts: ansible_local
   vars:
-    k8up_restore_list:
+    k8up_restore_list: []
       # - name: "prowlarr"
       #   pvc_name: "prowlarr"
       #   deployment_name: "prowlarr"
@@ -44,11 +44,11 @@
       #   deployment_name: "nextcloud"
       #   run_as_user: 33  # www-data
       #   snapshot_id: "957cd27c"
-      - name: "paperless"
-        pvc_name: "paperless-media-pvc"
-        deployment_name: "paperless-ngx"
-        run_as_user: 1000  # paperless
-        snapshot_id: "b970a100"
+      # - name: "paperless"
+      #   pvc_name: "paperless-media-pvc"
+      #   deployment_name: "paperless-ngx"
+      #   run_as_user: 1000  # paperless
+      #   snapshot_id: "b970a100"
     k8up_restore_psql_list:
       # - name: "nextcloud"
       #   namespace: "default"
@@ -74,30 +74,30 @@
       #   cnpg_storage_size: "10Gi"
       #   storage_class: "longhorn-single-replica"
       #   temp_pvc_storage_size: "10Gi"
-      - name: "paperless"
-        namespace: "default"
-        snapshot_id: "273e5882"
-        run_as_user: 1000  # paperless
-        database_name: "paperless"
-        database_user: "paperless"
-        database_credentials_secret: "paperless-db-credentials"
-        cnpg_cluster_name: "paperless-db"
-        cnpg_instances: 2
-        cnpg_storage_size: "10Gi"
-        storage_class: "longhorn-single-replica"
-        temp_pvc_storage_size: "10Gi"
-      # - name: "gitea"
+      # - name: "paperless"
       #   namespace: "default"
-      #   snapshot_id: "cb1e1f74"
-      #   run_as_user: 1000  # git
-      #   database_name: "gitea"
-      #   database_user: "gitea"
-      #   database_credentials_secret: "gitea-db-credentials"
-      #   cnpg_cluster_name: "gitea-db"
+      #   snapshot_id: "273e5882"
+      #   run_as_user: 1000  # paperless
+      #   database_name: "paperless"
+      #   database_user: "paperless"
+      #   database_credentials_secret: "paperless-db-credentials"
+      #   cnpg_cluster_name: "paperless-db"
       #   cnpg_instances: 2
       #   cnpg_storage_size: "10Gi"
       #   storage_class: "longhorn-single-replica"
       #   temp_pvc_storage_size: "10Gi"
+      - name: "gitea"
+        namespace: "default"
+        snapshot_id: "cb1e1f74"
+        run_as_user: 1000  # git
+        database_name: "gitea"
+        database_user: "gitea"
+        database_credentials_secret: "gitea-db-credentials"
+        cnpg_cluster_name: "gitea-db"
+        cnpg_instances: 2
+        cnpg_storage_size: "10Gi"
+        storage_class: "longhorn-single-replica"
+        temp_pvc_storage_size: "10Gi"
   roles:
     - role: k8up
       tags: [target, k8up, restore]
