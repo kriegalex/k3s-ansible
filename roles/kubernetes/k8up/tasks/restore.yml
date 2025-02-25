@@ -93,8 +93,8 @@
         - name: Collect logs
           ansible.builtin.include_tasks: collect_logs.yml
           vars:
-            - collect_log_type: "restore"
-            - log_name: "{{ restore_item.name }}"
+            collect_log_type: "restore"
+            log_name: "{{ restore_item.name }}"
         - name: Display restore logs
           ansible.builtin.include_tasks: restore_logs.yml
 

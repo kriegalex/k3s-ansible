@@ -7,7 +7,7 @@
     namespace: "{{ k8up_default_namespace }}"
     label_selectors:
       - "k8upjob=true"
-      - "job-name={{ collect_log_type }}-{{ log_name }}"
+      - "job-name={{ collect_log_type }}-{{ log_name }}-0"
   register: backup_pods
 
 # - name: Debug backup_pods
