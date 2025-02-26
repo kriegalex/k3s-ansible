@@ -11,7 +11,9 @@ env:
   DB_DATABASE_NAME: "immich"
   DB_PASSWORD: "{{ vault_immich_db_password }}"
   IMMICH_MACHINE_LEARNING_URL: "http://immich-machine-learning:3003" # change if modifying the helm chart install
-
+{% if immich_db_skip_migrations %}
+  DB_SKIP_MIGRATIONS: true
+{% endif %}
 image:
   tag: v1.126.1
 
@@ -36,9 +38,13 @@ immich:
 persistence:
   external:
     enabled: true
-    storageClass: "longhorn"
+    existingClaim: "nfs-nextcloud"
+    globalMounts:
+      - path: /external
+        readOnly: true
+    {# storageClass: "longhorn"
     accessMode: ReadWriteOnce
-    size: 50Gi
+    size: 50Gi #}
 
 # Dependencies
 
