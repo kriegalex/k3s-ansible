@@ -11,6 +11,23 @@
       - restore_item.cnpg_cluster_name is defined
     fail_msg: "Missing required variables for database migration of {{ restore_item.name }}"
 
+- name: Get database password from existing secret
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ restore_item.database_credentials_secret }}"
+    namespace: "{{ restore_item.namespace }}"
+  register: db_secret
+
+- name: Set database password from secret
+  ansible.builtin.set_fact:
+    db_password: "{{ db_secret.resources[0].data.password | b64decode }}"
+
+- name: Add Bitnami helm repository
+  kubernetes.core.helm_repository:
+    name: bitnami
+    repo_url: https://charts.bitnami.com/bitnami
+
 - name: Create temporary restore PVC
   kubernetes.core.k8s:
     state: present
@@ -77,42 +94,6 @@
     wait_timeout: 10800  # 3h
   register: restore_status
 
-- name: Add Bitnami helm repository
-  kubernetes.core.helm_repository:
-    name: bitnami
-    repo_url: https://charts.bitnami.com/bitnami
-
-- name: Get database password from existing secret
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Secret
-    name: "{{ restore_item.database_credentials_secret }}"
-    namespace: "{{ restore_item.namespace }}"
-  register: db_secret
-
-- name: Set database password from secret
-  ansible.builtin.set_fact:
-    db_password: "{{ db_secret.resources[0].data.password | b64decode }}"
-
-- name: Create temp PostgreSQL values
-  ansible.builtin.set_fact:
-    temp_postgres_values:
-      auth:
-        username: "{{ restore_item.database_user }}"
-        password: "{{ db_password }}"
-        database: "{{ restore_item.database_name }}"
-      primary:
-        persistence:
-          existingClaim: "temp-restore-{{ restore_item.name }}"
-      architecture: standalone
-      volumePermissions:
-        enabled: true
-      metrics:
-        enabled: false
-      commonLabels:
-        app.kubernetes.io/component: temporary-database
-        app.kubernetes.io/instance: "temp-postgres-{{ restore_item.name }}"
-
 # - name: Debug temp PostgreSQL values
 #   ansible.builtin.debug:
 #     msg: "{{ temp_postgres_values | to_yaml }}"
@@ -121,21 +102,47 @@
   kubernetes.core.helm:
     name: "temp-postgres-{{ restore_item.name }}"
     chart_ref: bitnami/postgresql
-    chart_version: "15.5.38"  # Specify a stable version
+    chart_version: "16.4.14"  # Specify a stable version
     release_namespace: "{{ restore_item.namespace }}"
     create_namespace: true
-    values: "{{ temp_postgres_values | from_yaml }}"
+    values: "{{ lookup('template', 'temp-postgresql-values.yml.j2') | from_yaml }}"
     wait: true
     wait_timeout: 5m
+
+# https://immich.app/docs/administration/backup-and-restore/#manual-backup-and-restore
+- name: Fix SQL dump for immich
+  kubernetes.core.k8s_exec:
+    namespace: "{{ restore_item.namespace }}"
+    pod: "temp-postgres-{{ restore_item.name }}-postgresql-0"
+    container: postgresql
+    command: sh -c "sed \"s/SELECT pg_catalog.set_config('search_path', '', false);/SELECT pg_catalog.set_config('search_path', 'public, pg_catalog', true);/g\" \"/bitnami/postgresql/default-postgresql-{{ restore_item.name }}.sql\" > \"/bitnami/postgresql/default-postgresql-{{ restore_item.name }}.sql.fixed\""
+  register: restore_result
+  failed_when: restore_result.rc != 0
+  when: restore_item.name == "immich"
 
 - name: Restore SQL dump to temporary PostgreSQL
   kubernetes.core.k8s_exec:
     namespace: "{{ restore_item.namespace }}"
     pod: "temp-postgres-{{ restore_item.name }}-postgresql-0"
     container: postgresql
-    command: sh -c 'PGPASSWORD="{{ db_password }}" psql -U "{{ restore_item.database_user }}" -d "{{ restore_item.database_name }}" -f "/bitnami/postgresql/default-postgresql-{{ restore_item.name }}.sql"'
+    command: sh -c 'psql --username="{{ restore_item.database_user }}" --dbname="postgres" -f "/bitnami/postgresql/default-postgresql-{{ restore_item.name }}.sql.fixed"'
+  register: restore_result
+  failed_when: >
+    restore_result.rc != 0 and
+    restore_result.rc != 137 and
+    not ('ERROR:  current user cannot be dropped' in restore_result.stderr) and
+    not ('ERROR:  role "immich" already exists' in restore_result.stderr)
+  when: restore_item.name == "immich"
+
+- name: Restore SQL dump to temporary PostgreSQL
+  kubernetes.core.k8s_exec:
+    namespace: "{{ restore_item.namespace }}"
+    pod: "temp-postgres-{{ restore_item.name }}-postgresql-0"
+    container: postgresql
+    command: sh -c 'PGPASSWORD="{{ db_password }}" psql -U "{{ restore_item.database_user }}" -d "{{ restore_item.database_name }}" -f "/bitnami/postgresql/default-postgresql-{{ restore_item.name }}.sql.fixed"'
   register: restore_result
   failed_when: restore_result.rc != 0
+  when: restore_item.name != "immich"
 
 - name: Remove existing cluster
   kubernetes.core.k8s:
@@ -146,42 +153,22 @@
     namespace: "{{ restore_item.namespace }}"
     wait: true
 
-- name: Create CNPG import definition
+# - name: Generate debug YAML file
+#   ansible.builtin.template:
+#     src: templates/cnpg-import-cluster.yml.j2
+#     dest: /tmp/cnpg-import-cluster.yml
+#     mode: '0644'
+#   diff: true  # This will show the difference in the output
+
+- name: Create import DB credentials secret
   kubernetes.core.k8s:
     state: present
-    definition:
-      apiVersion: postgresql.cnpg.io/v1
-      kind: Cluster
-      metadata:
-        name: "{{ restore_item.cnpg_cluster_name }}"
-        namespace: "{{ restore_item.namespace }}"
-      spec:
-        instances: "{{ restore_item.cnpg_instances }}"
-        storage:
-          size: "{{ restore_item.cnpg_storage_size }}"
-          storageClass: "{{ restore_item.storage_class }}"
-        bootstrap:
-          initdb:
-            database: "{{ restore_item.database_name }}"
-            owner: "{{ restore_item.database_user }}"
-            secret:
-              name: "{{ restore_item.database_credentials_secret }}"
-            import:
-              type: microservice
-              databases:
-                - "{{ restore_item.database_name }}"
-              source:
-                externalCluster: "temp-postgres-{{ restore_item.name }}"
-        externalClusters:
-          - name: "temp-postgres-{{ restore_item.name }}"
-            connectionParameters:
-              host: "temp-postgres-{{ restore_item.name }}-postgresql"
-              user: "{{ restore_item.database_user }}"
-              dbname: "{{ restore_item.database_name }}"
-              sslmode: disable
-            password:
-              name: "{{ restore_item.database_credentials_secret }}"
-              key: password
+    template: templates/cnpg-existing-db-secret.yml.j2
+
+- name: Apply CNPG import definition
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'cnpg-import-cluster.yml.j2') | from_yaml }}"
 
 - name: Wait for PostgreSQL cluster to be ready
   kubernetes.core.k8s_info:
@@ -190,7 +177,7 @@
     name: "{{ restore_item.cnpg_cluster_name }}"
     namespace: "{{ restore_item.namespace }}"
     wait: true
-    wait_timeout: 150
+    wait_timeout: 180
     wait_condition:
       type: Ready
       status: "True"
@@ -200,26 +187,26 @@
     pg_cluster.resources is not defined or
     pg_cluster.resources | length == 0
 
-- name: Uninstall Bitnami Postgres (helm)
-  kubernetes.core.helm:
-    name: "temp-postgres-{{ restore_item.name }}"
-    release_namespace: "{{ restore_item.namespace }}"
-    state: absent
-    wait: true
+# - name: Uninstall Bitnami Postgres (helm)
+#   kubernetes.core.helm:
+#     name: "temp-postgres-{{ restore_item.name }}"
+#     release_namespace: "{{ restore_item.namespace }}"
+#     state: absent
+#     wait: true
 
-- name: Clean up temporary Restore
-  kubernetes.core.k8s:
-    state: absent
-    kind: Restore
-    api_version: k8up.io/v1
-    name: "{{ restore_item.name }}-psql"
-    namespace: "{{ restore_item.namespace }}"
-    wait: true
+# - name: Clean up temporary Restore
+#   kubernetes.core.k8s:
+#     state: absent
+#     kind: Restore
+#     api_version: k8up.io/v1
+#     name: "{{ restore_item.name }}-psql"
+#     namespace: "{{ restore_item.namespace }}"
+#     wait: true
 
-- name: Clean up temporary PVC
-  kubernetes.core.k8s:
-    state: absent
-    kind: PersistentVolumeClaim
-    api_version: v1
-    name: "temp-restore-{{ restore_item.name }}"
-    namespace: "{{ restore_item.namespace }}"
+# - name: Clean up temporary PVC
+#   kubernetes.core.k8s:
+#     state: absent
+#     kind: PersistentVolumeClaim
+#     api_version: v1
+#     name: "temp-restore-{{ restore_item.name }}"
+#     namespace: "{{ restore_item.namespace }}"

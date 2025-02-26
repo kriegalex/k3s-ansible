@@ -39,19 +39,33 @@
           metadata:
             annotations:
               "k8up.io/backup": "true"
-
     - name: Add backup annotation to PostgreSQL Pod
-      when: backup_item.psql_pod is defined
-      kubernetes.core.k8s:
-        state: patched
-        kind: Pod
-        name: "{{ backup_item.psql_pod }}"
-        namespace: "{{ backup_item.namespace | default(k8up_default_namespace) }}"
-        definition:
-          metadata:
-            annotations:
-              k8up.io/backupcommand: sh -c 'PGDATABASE="$POSTGRES_DATABASE" PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" pg_dump --clean'
-              k8up.io/file-extension: "-{{ backup_item.name }}.sql"
+      block:
+        - name: Add backup annotation to PostgreSQL Pod
+          when: backup_item.psql_pod is defined and backup_item.name != "immich"
+          kubernetes.core.k8s:
+            state: patched
+            kind: Pod
+            name: "{{ backup_item.psql_pod }}"
+            namespace: "{{ backup_item.namespace | default(k8up_default_namespace) }}"
+            definition:
+              metadata:
+                annotations:
+                  k8up.io/backupcommand: sh -c 'PGDATABASE="$POSTGRES_DATABASE" PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" pg_dump --clean'
+                  k8up.io/file-extension: "-{{ backup_item.name }}.sql"
+
+        - name: Add backup annotation to Immich PostgreSQL Pod
+          when: backup_item.psql_pod is defined and backup_item.db_username is defined and backup_item.name == "immich"
+          kubernetes.core.k8s:
+            state: patched
+            kind: Pod
+            name: "{{ backup_item.psql_pod }}"
+            namespace: "{{ backup_item.namespace | default(k8up_default_namespace) }}"
+            definition:
+              metadata:
+                annotations:
+                  k8up.io/backupcommand: sh -c 'PGDATABASE="$POSTGRES_DATABASE" PGUSER="$POSTGRES_USER" PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall --clean --if-exists --username="{{ backup_item.db_username }}"'
+                  k8up.io/file-extension: "-{{ backup_item.name }}.sql"
 
     # #
     # # Improvement: report the nodeSelector and tolerations from the backup_item.name main pod
@@ -142,8 +156,7 @@
         - name: Collect logs
           ansible.builtin.include_tasks: collect_logs.yml
           vars:
-            collect_log_type: "backup"
-            log_name: "{{ backup_item.name }}"
+            job_name: "backup-{{ backup_item.name }}-0"
         - name: Display backup logs
           ansible.builtin.include_tasks: backup_logs.yml
 

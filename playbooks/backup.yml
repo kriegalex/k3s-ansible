@@ -6,73 +6,74 @@
     KUBECONFIG: "{{ source_kubelet_config }}"
   vars:
     k8up_backup_list:
-      - name: "nextcloud"
-        pvc_name: "nextcloud-config"
-        psql_pod: "nextcloud-postgresql-0"
-        deployment_name: "nextcloud"
-        run_as_user: 33  # www-data
-      - name: "paperless"
-        pvc_name: "paperless-media"
-        psql_pod: "paperless-ngx-postgresql-0"
-        deployment_name: "paperless-ngx"
-        run_as_user: 1000  # paperless
-      - name: "prowlarr"
-        pvc_name: "prowlarr"
-        deployment_name: "prowlarr"
-        run_as_user: 1000  # hotio
-      - name: "sonarr"
-        pvc_name: "sonarr-anime"
-        deployment_name: "sonarr-anime"
-        run_as_user: 1000  # hotio
-      - name: "sonarr"
-        pvc_name: "sonarr-tv"
-        deployment_name: "sonarr-tv"
-        run_as_user: 1000  # hotio
-      - name: "radarr"
-        pvc_name: "radarr"
-        deployment_name: "radarr"
-        run_as_user: 1000  # hotio
-      - name: "actual-budget"
-        pvc_name: "actual-budget"
-        deployment_name: "actual-budget"
-        run_as_user: 0  # root
-      - name: "overseerr"
-        pvc_name: "overseerr-config"
-        deployment_name: "overseerr"
-        run_as_user: 1000  # node
-      - name: "qbittorrent"
-        pvc_name: "qbit-qbittorrent-config"
-        deployment_name: "qbit-qbittorrent"
-        run_as_user: 1000  # hotio
-      - name: "pihole"
-        pvc_name: "pihole-config"
-        deployment_name: "pihole"
-        run_as_user: 999  # pihole
-      - name: "gitea"
-        pvc_name: "nfs-gitea"
-        psql_pod: "gitea-postgresql-0"
-        deployment_name: "gitea"
-        run_as_user: 1000  # git
+      # - name: "nextcloud"
+      #   pvc_name: "nextcloud-config"
+      #   psql_pod: "nextcloud-postgresql-0"
+      #   deployment_name: "nextcloud"
+      #   run_as_user: 33  # www-data
+      # - name: "paperless"
+      #   pvc_name: "paperless-media"
+      #   psql_pod: "paperless-ngx-postgresql-0"
+      #   deployment_name: "paperless-ngx"
+      #   run_as_user: 1000  # paperless
+      # - name: "prowlarr"
+      #   pvc_name: "prowlarr"
+      #   deployment_name: "prowlarr"
+      #   run_as_user: 1000  # hotio
+      # - name: "sonarr"
+      #   pvc_name: "sonarr-anime"
+      #   deployment_name: "sonarr-anime"
+      #   run_as_user: 1000  # hotio
+      # - name: "sonarr"
+      #   pvc_name: "sonarr-tv"
+      #   deployment_name: "sonarr-tv"
+      #   run_as_user: 1000  # hotio
+      # - name: "radarr"
+      #   pvc_name: "radarr"
+      #   deployment_name: "radarr"
+      #   run_as_user: 1000  # hotio
+      # - name: "actual-budget"
+      #   pvc_name: "actual-budget"
+      #   deployment_name: "actual-budget"
+      #   run_as_user: 0  # root
+      # - name: "overseerr"
+      #   pvc_name: "overseerr-config"
+      #   deployment_name: "overseerr"
+      #   run_as_user: 1000  # node
+      # - name: "qbittorrent"
+      #   pvc_name: "qbit-qbittorrent-config"
+      #   deployment_name: "qbit-qbittorrent"
+      #   run_as_user: 1000  # hotio
+      # - name: "pihole"
+      #   pvc_name: "pihole-config"
+      #   deployment_name: "pihole"
+      #   run_as_user: 999  # pihole
+      # - name: "gitea"
+      #   pvc_name: "nfs-gitea"
+      #   psql_pod: "gitea-postgresql-0"
+      #   deployment_name: "gitea"
+      #   run_as_user: 1000  # git
       - name: "immich"
         pvc_name: "nfs-immich"
         psql_pod: "immich-postgresql-0"
         deployment_name: "immich-server"
         run_as_user: 0  # root
-      - name: "plex"
-        pvc_name: "pms-config-plex-media-server-0"
-        statefulset_name: "plex-media-server"
-        run_as_user: 1000
-      - name: "jellyfin"
-        pvc_name: "jellyfin-config"
-        statefulset_name: "jellyfin"
-        run_as_user: 0  # root
-      - name: "home-assistant"
-        pvc_name: "home-assistant-home-assistant-0"
-        statefulset_name: "home-assistant"
-        run_as_user: 0  # root
-      - name: "nextcloud"
-        pvc_name: "nfs-nextcloud"
-        run_as_user: 33  # www-data
+        db_username: "immich"
+      # - name: "plex"
+      #   pvc_name: "pms-config-plex-media-server-0"
+      #   statefulset_name: "plex-media-server"
+      #   run_as_user: 1000
+      # - name: "jellyfin"
+      #   pvc_name: "jellyfin-config"
+      #   statefulset_name: "jellyfin"
+      #   run_as_user: 0  # root
+      # - name: "home-assistant"
+      #   pvc_name: "home-assistant-home-assistant-0"
+      #   statefulset_name: "home-assistant"
+      #   run_as_user: 0  # root
+      # - name: "nextcloud"
+      #   pvc_name: "nfs-nextcloud"
+      #   run_as_user: 33  # www-data
   roles:
     - role: k8up
       tags: [source, k8up, backup]

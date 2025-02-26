@@ -62,18 +62,21 @@
       #   cnpg_storage_size: "10Gi"
       #   storage_class: "longhorn-single-replica"
       #   temp_pvc_storage_size: "10Gi"
-      # - name: "immich"
-      #   namespace: "default"
-      #   snapshot_id: "81bd27ce"
-      #   run_as_user: 0  # root
-      #   database_name: "immich"
-      #   database_user: "immich"
-      #   database_credentials_secret: "immich-db-secret"
-      #   cnpg_cluster_name: "immich-db"
-      #   cnpg_instances: 2
-      #   cnpg_storage_size: "10Gi"
-      #   storage_class: "longhorn-single-replica"
-      #   temp_pvc_storage_size: "10Gi"
+      #   cnpg_image_name: "ghcr.io/cloudnative-pg/postgresql:17.4"
+      - name: "immich"
+        namespace: "default"
+        snapshot_id: "236cb341"
+        run_as_user: 0  # root
+        database_name: "immich"
+        database_user: "immich"
+        database_credentials_secret: "immich-db-secret"
+        existing_db_password: "immich"
+        cnpg_cluster_name: "immich-db"
+        cnpg_instances: 1  # bug in pgvector <0.4
+        cnpg_storage_size: "10Gi"
+        storage_class: "longhorn-single-replica"
+        temp_pvc_storage_size: "10Gi"
+        cnpg_image_name: "ghcr.io/tensorchord/cloudnative-pgvecto.rs:14-v0.2.0"
       # - name: "paperless"
       #   namespace: "default"
       #   snapshot_id: "273e5882"
@@ -86,18 +89,18 @@
       #   cnpg_storage_size: "10Gi"
       #   storage_class: "longhorn-single-replica"
       #   temp_pvc_storage_size: "10Gi"
-      - name: "gitea"
-        namespace: "default"
-        snapshot_id: "cb1e1f74"
-        run_as_user: 1000  # git
-        database_name: "gitea"
-        database_user: "gitea"
-        database_credentials_secret: "gitea-db-credentials"
-        cnpg_cluster_name: "gitea-db"
-        cnpg_instances: 2
-        cnpg_storage_size: "10Gi"
-        storage_class: "longhorn-single-replica"
-        temp_pvc_storage_size: "10Gi"
+      # - name: "gitea"
+      #   namespace: "default"
+      #   snapshot_id: "cb1e1f74"
+      #   run_as_user: 1000  # git
+      #   database_name: "gitea"
+      #   database_user: "gitea"
+      #   database_credentials_secret: "gitea-db-credentials"
+      #   cnpg_cluster_name: "gitea-db"
+      #   cnpg_instances: 2
+      #   cnpg_storage_size: "10Gi"
+      #   storage_class: "longhorn-single-replica"
+      #   temp_pvc_storage_size: "10Gi"
   roles:
     - role: k8up
       tags: [target, k8up, restore]

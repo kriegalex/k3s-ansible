@@ -1,46 +1,32 @@
 # tasks/logs.yml
 ---
-- name: Get all backup pods
-  block:
-    - name: Backup
-      kubernetes.core.k8s_info:
-        api_version: v1
-        kind: Pod
-        namespace: "{{ k8up_default_namespace }}"
-        label_selectors:
-          - "k8upjob=true"
-          - "job-name={{ collect_log_type }}-{{ log_name }}-0"
-      register: backup_pods
-      when: collect_log_type == "backup"
+- name: Get all backup/restore pods
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ k8up_default_namespace }}"
+    label_selectors:
+      - "k8upjob=true"
+      - "job-name={{ job_name }}"
+  register: k8up_running_pods
 
-    - name: Restore
-      kubernetes.core.k8s_info:
-        api_version: v1
-        kind: Pod
-        namespace: "{{ k8up_default_namespace }}"
-        label_selectors:
-          - "k8upjob=true"
-          - "job-name={{ collect_log_type }}-{{ log_name }}"
-      register: backup_pods
-      when: collect_log_type == "restore"
-
-# - name: Debug backup_pods
+# - name: Debug backup/restore
 #   ansible.builtin.debug:
-#     msg: "{{ backup_pods.resources }}"
+#     msg: "{{ k8up_running_pods.resources }}"
 
 - name: Initialize pod logs array
   ansible.builtin.set_fact:
     all_pod_logs: []
 
-- name: Get logs from backup pods
+- name: Get logs from  pods
   kubernetes.core.k8s_log:
     name: "{{ item.metadata.name }}"
     namespace: "{{ k8up_default_namespace }}"
   register: pod_log
-  loop: "{{ backup_pods.resources }}"
+  loop: "{{ k8up_running_pods.resources }}"
   no_log: true
   when:
-    - backup_pods.resources | length > 0
+    - k8up_running_pods.resources | length > 0
     - item.status.phase == 'Succeeded'
   ignore_errors: true
 

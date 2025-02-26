@@ -1,0 +1,37 @@
+# postgres-values.yml
+---
+auth:
+  username: "{{ restore_item.database_user }}"
+  password: "{{ db_password }}"
+  database: "{{ restore_item.database_name }}"
+{% if restore_item.name == "immich" %}
+global:
+  security:
+    allowInsecureImages: true
+{% endif %}
+primary:
+{% if restore_item.name == "immich" %}
+  initdb:
+    scripts:
+      create-extensions.sql: |
+        CREATE EXTENSION cube;
+        CREATE EXTENSION earthdistance;
+        CREATE EXTENSION vectors;
+  containerSecurityContext:
+    readOnlyRootFilesystem: false
+{% endif %}
+  persistence:
+    existingClaim: "temp-restore-{{ restore_item.name }}"
+architecture: standalone
+volumePermissions:
+  enabled: true
+metrics:
+  enabled: false
+commonLabels:
+  app.kubernetes.io/component: temporary-database
+  app.kubernetes.io/instance: "temp-postgres-{{ restore_item.name }}"
+{% if restore_item.name == "immich" %}
+image:
+  repository: tensorchord/pgvecto-rs
+  tag: pg14-v0.2.0
+{% endif %}
