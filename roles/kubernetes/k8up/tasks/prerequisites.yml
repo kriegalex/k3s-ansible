@@ -1,46 +1,49 @@
 ---
 # Only for default namespace
-- name: Merge CNPG cluster names from different lists
-  ansible.builtin.set_fact:
-    all_cnpg_clusters: "{{ k8up_restore_psql_list + k8up_restore_immich }}"
+- name: Check restore Cluster prerequisites
+  when: k8up_restore_psql_list is defined and k8up_restore_immich is defined
+  block:
+    - name: Merge CNPG cluster names from different lists
+      ansible.builtin.set_fact:
+        all_cnpg_clusters: "{{ k8up_restore_psql_list + k8up_restore_immich }}"
 
-- name: Extract unique CNPG cluster names
-  ansible.builtin.set_fact:
-    cnpg_cluster_names: "{{ all_cnpg_clusters | map(attribute='cnpg_cluster_name') | list | unique }}"
+    - name: Extract unique CNPG cluster names
+      ansible.builtin.set_fact:
+        cnpg_cluster_names: "{{ all_cnpg_clusters | map(attribute='cnpg_cluster_name') | list | unique }}"
 
-- name: Show all CNPG cluster names to check
-  ansible.builtin.debug:
-    var: cnpg_cluster_names
+    - name: Show all CNPG cluster names to check
+      ansible.builtin.debug:
+        var: cnpg_cluster_names
 
-- name: Check if Cluster already exists
-  ansible.builtin.command:
-    cmd: kubectl get cluster "{{ item }}" -n "{{ k8up_default_namespace }}"
-  register: cluster_check_results
-  changed_when: false
-  failed_when: false
-  check_mode: false
-  loop: "{{ cnpg_cluster_names }}"
+    - name: Check if Cluster already exists
+      ansible.builtin.command:
+        cmd: kubectl get cluster "{{ item }}" -n "{{ k8up_default_namespace }}"
+      register: cluster_check_results
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      loop: "{{ cnpg_cluster_names }}"
 
-- name: Identify existing clusters
-  ansible.builtin.set_fact:
-    existing_clusters: "{{ existing_clusters | default([]) + [item.item] }}"
-  loop: "{{ cluster_check_results.results }}"
-  no_log: true
-  when: item.rc == 0
+    - name: Identify existing clusters
+      ansible.builtin.set_fact:
+        existing_clusters: "{{ existing_clusters | default([]) + [item.item] }}"
+      loop: "{{ cluster_check_results.results }}"
+      no_log: true
+      when: item.rc == 0
 
-- name: Display warning about existing clusters
-  ansible.builtin.fail:
-    msg: |
-      The following CloudNativePG clusters already exist:
-      {{ existing_clusters | default([]) | join(', ') }}
-      
-      To proceed with new cluster creation, you need to manually delete them first by running:
-      {% for cluster in existing_clusters | default([]) %}
-      kubectl delete cluster {{ cluster }} -n {{ k8up_default_namespace }}
-      {% endfor %}
-      
-      After deletion is complete, you can re-run this playbook.
-  when: existing_clusters is defined and existing_clusters | length > 0
+    - name: Display warning about existing clusters
+      ansible.builtin.fail:
+        msg: |
+          The following CloudNativePG clusters already exist:
+          {{ existing_clusters | default([]) | join(', ') }}
+          
+          To proceed with new cluster creation, you need to manually delete them first by running:
+          {% for cluster in existing_clusters | default([]) %}
+          kubectl delete cluster {{ cluster }} -n {{ k8up_default_namespace }}
+          {% endfor %}
+          
+          After deletion is complete, you can re-run this playbook.
+      when: existing_clusters is defined and existing_clusters | length > 0
 
 - name: Add K8up Helm repository
   kubernetes.core.helm_repository:
