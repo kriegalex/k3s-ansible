@@ -16,6 +16,13 @@ minio_access_key: "changeme"
 minio_secret_key: "changeme"
 minio_repository_password: "changeme"
 
+# Restic environment variables
+# restic_env_vars:
+#   AWS_ACCESS_KEY_ID: "{{ minio_access_key }}"
+#   AWS_SECRET_ACCESS_KEY: "{{ minio_secret_key }}"
+#   RESTIC_REPOSITORY: "{{ minio_endpoint }}/{{ minio_bucket }}"
+#   RESTIC_PASSWORD: "{{ minio_repository_password }}"
+
 # Backup configuration
 backup_tags: []
 backup_failed_jobs_history_limit: 2

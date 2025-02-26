@@ -1,0 +1,95 @@
+# tasks/migrate_immich_postgresql.yml
+---
+- name: Verify required variables are defined
+  ansible.builtin.assert:
+    that:
+      - restore_item.namespace is defined
+      - restore_item.snapshot_id is defined
+      - restore_item.database_name is defined
+      - restore_item.database_user is defined
+      - restore_item.database_password is defined
+      - restore_item.cnpg_storage_class is defined
+      - restore_item.cnpg_storage_size is defined
+      - restore_item.cnpg_cluster_name is defined
+    fail_msg: "Missing required variables for database migration of {{ restore_item.name }}"
+
+- name: Ensure required packages are installed
+  ansible.builtin.package:
+    name: "restic"
+    state: present
+  when: ansible_system != "Win32NT"
+
+- name: Create PostgreSQL credentials secret
+  kubernetes.core.k8s:
+    state: present
+    template: templates/cnpg-db-secret.yml.j2
+
+- name: Validate snapshot ID
+  ansible.builtin.command:
+    cmd: "restic snapshots {{ restore_item.snapshot_id }} --json"
+  environment: "{{ restic_env_vars }}"
+  register: snapshot_check
+  failed_when: snapshot_check.rc != 0
+  changed_when: false
+
+- name: Create temporary extraction directory
+  ansible.builtin.file:
+    path: "../tmp"
+    state: directory
+    mode: '0755'
+
+- name: Extract files from restic snapshot
+  ansible.builtin.command:
+    cmd: >-
+      restic restore {{ restore_item.snapshot_id }}
+      --target "./"
+    chdir: "../tmp"
+  environment: "{{ restic_env_vars }}"
+  register: restore_result
+  failed_when: restore_result.rc != 0
+  changed_when: restore_result.rc == 0
+
+# https://immich.app/docs/administration/backup-and-restore/#manual-backup-and-restore
+- name: Fix Dump for immich
+  ansible.builtin.replace:
+    path: "../tmp/default-postgresql-immich.sql"
+    regexp: "'search_path', '', false"
+    replace: "'search_path', 'public, pg_catalog', true"
+
+- name: Apply immich specific CNPG import definition
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'cnpg-immich-cluster.yml.j2') | from_yaml }}"
+
+- name: Wait for PostgreSQL cluster to be ready
+  kubernetes.core.k8s_info:
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    name: "{{ restore_item.cnpg_cluster_name }}"
+    namespace: "{{ restore_item.namespace }}"
+    wait: true
+    wait_timeout: 180
+    wait_condition:
+      type: Ready
+      status: "True"
+      reason: ClusterIsReady
+  register: pg_cluster
+  failed_when: >-
+    pg_cluster.resources is not defined or
+    pg_cluster.resources | length == 0
+
+- name: Upload to immich-db cluster
+  kubernetes.core.k8s_cp:
+    namespace: "{{ restore_item.namespace }}"
+    pod: "{{ restore_item.cnpg_cluster_name }}-1"
+    remote_path: /var/lib/postgresql/data/
+    local_path: ../tmp/default-postgresql-immich.sql
+
+# immich dump is specifically created with pgdump_all, hence the postgres default db
+# the target db should be created by the dump script
+- name: Restore SQL dump to immich cluster
+  kubernetes.core.k8s_exec:
+    namespace: "{{ restore_item.namespace }}"
+    pod: "{{ restore_item.cnpg_cluster_name }}-1"
+    container: postgres
+    command: sh -c 'PGPASSWORD="{{ restore_item.database_password }}" psql -U "{{ restore_item.database_user }}" -d "postgres" -h localhost -f "/var/lib/postgresql/data/default-postgresql-immich.sql"'

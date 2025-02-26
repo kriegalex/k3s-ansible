@@ -1,0 +1,34 @@
+# templates/cnpg-cluster.yaml.j2
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: "{{ restore_item.cnpg_cluster_name }}"
+  namespace: "{{ restore_item.namespace }}"
+spec:
+  instances: {{ restore_item.cnpg_instances | int }}
+
+{% if restore_item.cnpg_image_name %}
+  # Using the tensorchord image with pgvecto.rs
+  imageName: "{{ restore_item.cnpg_image_name }}"
+{% endif %}
+
+  bootstrap:
+    initdb:
+      database: "{{ restore_item.database_name }}"
+      owner: "{{ restore_item.database_user }}"
+      secret:
+        name: "{{ restore_item.name }}-db-credentials"
+
+  storage:
+    size: "{{ restore_item.cnpg_storage_size }}"
+    storageClass: "{{ restore_item.cnpg_storage_class }}"
+
+  # Resource requirements
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"

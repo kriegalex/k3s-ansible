@@ -51,7 +51,7 @@ gitea_postgresql_ha_enabled: false
 # controls postgresql.enabled in the chart
 gitea_postgresql_source: internal
 gitea_postgresql_create_cluster: false
-gitea_postgresql_password: "{{ vault_gitea_postgresql_password }}"
+gitea_postgresql_password: "{{ vault_gitea_db_password }}"
 gitea_postgresql_database: "gitea"
 gitea_postgresql_username: "gitea"
 gitea_postgresql_port: 5432

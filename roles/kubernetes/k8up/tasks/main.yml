@@ -13,11 +13,20 @@
     loop_var: backup_item
     label: "{{ backup_item.name }}"
 
-- name: Process individual restores
+- name: Process postgresql migration
   ansible.builtin.include_tasks:
-    file: migrate_to_cnpg.yml
+    file: migrate_postgresql.yml
   when: k8up_restore_psql_list is defined and k8up_restore_psql_list | length > 0
   loop: "{{ k8up_restore_psql_list }}"
+  loop_control:
+    loop_var: restore_item
+    label: "{{ restore_item.name }}"
+
+- name: Process immich postgresql migration
+  ansible.builtin.include_tasks:
+    file: migrate_immich_postgresql.yml
+  when: k8up_restore_immich is defined and k8up_restore_immich | length > 0
+  loop: "{{ k8up_restore_immich }}"
   loop_control:
     loop_var: restore_item
     label: "{{ restore_item.name }}"

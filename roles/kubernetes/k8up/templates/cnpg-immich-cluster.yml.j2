@@ -1,4 +1,4 @@
-# templates/cnpg-import-cluster.yaml.j2
+# templates/cnpg-immich-cluster.yml.j2
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
@@ -13,47 +13,37 @@ spec:
   imageName: "{{ restore_item.cnpg_image_name }}"
 {% endif %}
 
-{% if restore_item.name == "immich" %}
   # https://github.com/tensorchord/cloudnative-pgvecto.rs
   postgresql:
     shared_preload_libraries:
       - "vectors.so"
-
   managed:
     roles:
       - name: "{{ restore_item.database_user }}"
         superuser: true
         login: true
-{% endif %}
-  storage:
-    size: "{{ restore_item.cnpg_storage_size }}"
-    storageClass: "{{ restore_item.storage_class }}"
+
   bootstrap:
     initdb:
       database: "{{ restore_item.database_name }}"
       owner: "{{ restore_item.database_user }}"
       secret:
-        name: "{{ restore_item.database_credentials_secret }}"
-{% if restore_item.name == "immich" %}
+        name: "{{ restore_item.name }}-db-credentials"
       postInitApplicationSQL:
         - ALTER SYSTEM SET search_path TO "$user", public, vectors;
         - CREATE EXTENSION IF NOT EXISTS "vectors";
         - CREATE EXTENSION IF NOT EXISTS "cube" CASCADE;
         - CREATE EXTENSION IF NOT EXISTS "earthdistance" CASCADE;
-{% endif %}
-      import:
-        type: microservice
-        databases:
-          - "{{ restore_item.database_name }}"
-        source:
-          externalCluster: "temp-postgres-{{ restore_item.name }}"
-  externalClusters:
-    - name: "temp-postgres-{{ restore_item.name }}"
-      connectionParameters:
-        host: "temp-postgres-{{ restore_item.name }}-postgresql"
-        user: "{{ restore_item.database_user }}"
-        dbname: "{{ restore_item.database_name }}"
-        sslmode: disable
-      password:
-        name: "{{ restore_item.name }}-existing-db-secret"
-        key: password
+
+  storage:
+    size: "{{ restore_item.cnpg_storage_size }}"
+    storageClass: "{{ restore_item.cnpg_storage_class }}"
+
+  # Resource requirements
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
