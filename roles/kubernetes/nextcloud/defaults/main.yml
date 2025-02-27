@@ -56,7 +56,6 @@ nextcloud_postgresql_size: 10Gi
 nextcloud_redis_enabled: true
 nextcloud_redis_password: "{{ vault_nextcloud_redis_password }}"
 nextcloud_redis_storage_class: "longhorn-single-replica"
-nextcloud_redis_affinity_enabled: true
 
 # Collabora (document collaboration)
 nextcloud_collabora_enabled: false
@@ -66,6 +65,9 @@ nextcloud_collabora_extra_params: "--o:ssl.enable=false"
 nextcloud_collabora_username: admin # password comes from the vault
 nextcloud_collabora_ingress_enabled: true
 nextcloud_collabora_ingress_class_name: "{{ ingress_nginx_class }}"
+
+# Affinity
+nextcloud_affinity_enabled: true
 
 # Monitoring
 nextcloud_liveness_probe_enabled: true

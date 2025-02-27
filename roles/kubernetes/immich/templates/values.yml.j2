@@ -67,6 +67,16 @@ postgresql:
           CREATE EXTENSION cube;
           CREATE EXTENSION earthdistance;
           CREATE EXTENSION vectors;
+{% if immich_affinity_enabled %}
+  # Add affinity rules for Redis to co-locate with Nextcloud
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ immich_release_name }}
+          topologyKey: kubernetes.io/hostname
+{% endif %}
 
 redis:
   enabled: {{ immich_redis_enabled }}
@@ -77,16 +87,16 @@ redis:
     persistence:
       enabled: true
       storageClass: {{ immich_redis_storage_class }}
-    {% if immich_redis_affinity_enabled -%}
+{% if immich_affinity_enabled %}
     # Add affinity rules for Redis to co-locate with Nextcloud
     affinity:
       podAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchLabels:
-                app.kubernetes.io/instance: immich
+                app.kubernetes.io/instance: {{ immich_release_name }}
             topologyKey: kubernetes.io/hostname
-    {% endif %}
+{% endif %}
 
 # Immich components
 
@@ -133,6 +143,18 @@ machine-learning:
   resources:
     limits:
       cpu: {{ immich_machine_learning_resources_limits_cpu }}
+{% if immich_affinity_enabled %}
+  # Add affinity rules for Redis to co-locate with Paperless
+  affinity:
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        podAffinityTerm:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/instance: {{ immich_release_name }}
+            topologyKey: kubernetes.io/hostname
+{% endif %}
 
 resources:
   limits:
@@ -141,3 +163,16 @@ resources:
   requests:
     memory: {{ immich_resources_requests_memory }}
     cpu: {{ immich_resources_requests_cpu }}
+
+{% if immich_affinity_enabled %}
+# Add affinity rules for Redis to co-locate with Paperless
+affinity:
+  podAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80
+      podAffinityTerm:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ immich_release_name }}
+          topologyKey: kubernetes.io/hostname
+{% endif %}

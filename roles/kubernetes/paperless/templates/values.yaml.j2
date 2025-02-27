@@ -86,20 +86,38 @@ postgresql:
     persistence:
       enabled: true
       storageClass: "{{ paperless_postgresql_storage_class }}"
-
-redis:
-  enabled: true
-  auth:
-    password: {{ vault_paperless_redis_password }}
-  master:
-    # Add affinity rules for Redis to co-locate with Nextcloud
-    affinity:
-      podAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
+{% if paperless_affinity_enabled %}
+  # Add affinity rules for Redis to co-locate with Paperless
+  affinity:
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        podAffinityTerm:
           - labelSelector:
               matchLabels:
                 app.kubernetes.io/instance: {{ paperless_release_name }}
             topologyKey: kubernetes.io/hostname
+{% endif %}
+
+redis:
+  enabled: true
+  architecture: {{ paperless_redis_architecture }}
+  auth:
+    password: {{ paperless_redis_password }}
+  master:
+    count: {{ paperless_redis_master_count }}
+{% if paperless_affinity_enabled %}
+    # Add affinity rules for Redis to co-locate with Paperless
+    affinity:
+      podAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          podAffinityTerm:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: {{ paperless_release_name }}
+              topologyKey: kubernetes.io/hostname
+{% endif %}
 
 resources:
   limits:
@@ -108,3 +126,16 @@ resources:
   requests:
     memory: {{ paperless_resources_requests_memory }}
     cpu: {{ paperless_resources_requests_cpu }}
+
+{% if paperless_affinity_enabled %}
+# Add affinity rules for Redis to co-locate with Paperless
+affinity:
+  podAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80
+      podAffinityTerm:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ paperless_release_name }}
+          topologyKey: kubernetes.io/hostname
+{% endif %}

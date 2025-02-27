@@ -67,3 +67,6 @@ gitea_resources_limits_memory: "1Gi"
 gitea_resources_limits_cpu: "1000m"
 gitea_resources_requests_memory: "256Mi"
 gitea_resources_requests_cpu: "100m"
+
+# Affinity
+gitea_affinity_enabled: true

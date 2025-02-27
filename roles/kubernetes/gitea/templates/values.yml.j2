@@ -64,6 +64,18 @@ redis:
     count: {{ gitea_redis_master_count }}
     persistence:
       storageClass: "{{ gitea_redis_storage_class }}"
+{% if gitea_affinity_enabled %}
+    # Add affinity rules for Redis to co-locate with Nextcloud
+    affinity:
+      podAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          podAffinityTerm:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: {{ gitea_release_name }}
+              topologyKey: kubernetes.io/hostname
+{% endif %}
 
 postgresql-ha:
   enabled: {{ gitea_postgresql_ha_enabled }}
@@ -84,6 +96,18 @@ postgresql:
     persistence:
       storageClass: "{{ gitea_postgresql_storage_class }}"
 {% endif %}
+{% if gitea_affinity_enabled %}
+  # Add affinity rules for Redis to co-locate with Nextcloud
+  affinity:
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        podAffinityTerm:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/instance: {{ gitea_release_name }}
+            topologyKey: kubernetes.io/hostname
+{% endif %}
 
 resources:
   limits:
@@ -92,3 +116,16 @@ resources:
   requests:
     memory: {{ gitea_resources_requests_memory }}
     cpu: {{ gitea_resources_requests_cpu }}
+
+{% if gitea_affinity_enabled %}
+# Add affinity rules for Redis to co-locate with Nextcloud
+affinity:
+  podAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80
+      podAffinityTerm:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ gitea_release_name }}
+          topologyKey: kubernetes.io/hostname
+{% endif %}

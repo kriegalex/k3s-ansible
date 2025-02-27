@@ -14,7 +14,6 @@ immich_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_wo
 immich_db_skip_migrations: false
 
 immich_redis_enabled: false
-immich_redis_affinity_enabled: true
 immich_redis_storage_class: "longhorn-single-replica"
 
 immich_ingress_enabled: false
@@ -43,3 +42,6 @@ immich_resources_limits_memory: "4Gi"
 immich_resources_limits_cpu: "4000m"
 immich_resources_requests_memory: "1Gi"
 immich_resources_requests_cpu: "500m"
+
+# Affinity
+immich_affinity_enabled: true

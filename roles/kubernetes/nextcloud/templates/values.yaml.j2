@@ -75,6 +75,18 @@ postgresql:
       enabled: true
       storageClass: {{ nextcloud_postgresql_storage_class }}
       size: {{ nextcloud_postgresql_size }}
+{% if nextcloud_affinity_enabled %}
+  # Add affinity rules for Redis to co-locate with Nextcloud
+  affinity:
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        podAffinityTerm:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/instance: {{ nextcloud_release_name }}
+            topologyKey: kubernetes.io/hostname
+{% endif %}
 
 redis:
   enabled: {{ nextcloud_redis_enabled }}
@@ -86,16 +98,18 @@ redis:
     persistence:
       enabled: true
       storageClass: {{ nextcloud_redis_storage_class }}
-    {% if nextcloud_redis_affinity_enabled -%}
+{% if nextcloud_affinity_enabled %}
     # Add affinity rules for Redis to co-locate with Nextcloud
     affinity:
       podAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: nextcloud
-            topologyKey: kubernetes.io/hostname
-    {% endif %}
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          podAffinityTerm:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: {{ nextcloud_release_name }}
+              topologyKey: kubernetes.io/hostname
+{% endif %}
 
 collabora:
   enabled: {{ nextcloud_collabora_enabled }}
@@ -121,6 +135,18 @@ collabora:
     requests:
       memory: {{ nextcloud_collabora_resources_requests_memory }}
       cpu: {{ nextcloud_collabora_resources_requests_cpu }}
+{% if nextcloud_affinity_enabled %}
+  # Add affinity rules for Redis to co-locate with Nextcloud
+  affinity:
+    podAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        podAffinityTerm:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/instance: {{ nextcloud_release_name }}
+            topologyKey: kubernetes.io/hostname
+{% endif %}
 
 service:
   type: ClusterIP
@@ -135,6 +161,19 @@ persistence:
   nextcloudData:
     enabled: {{ nextcloud_persistence_data_enabled }}
     existingClaim: {{ nextcloud_persistence_data_existing_claim }}
+
+{% if nextcloud_affinity_enabled %}
+# Add affinity rules for Redis to co-locate with Nextcloud
+affinity:
+  podAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80
+      podAffinityTerm:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ nextcloud_release_name }}
+          topologyKey: kubernetes.io/hostname
+{% endif %}
 
 resources:
   limits:
