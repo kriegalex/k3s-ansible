@@ -6,7 +6,8 @@
     state: absent
     wait: true
   tags:
-    - cleanup
+    - reset
+    - immich
 
 - name: Delete Cluster
   kubernetes.core.k8s:
@@ -16,4 +17,5 @@
     namespace: "{{ immich_namespace }}"
   when: immich_postgresql_source == "cloudnativepg"
   tags:
-    - cleanup
+    - reset
+    - immich

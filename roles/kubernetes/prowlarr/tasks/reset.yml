@@ -7,4 +7,5 @@
     wait: true
   tags:
     - reset
+    - media
     - prowlarr

@@ -6,4 +6,6 @@
     state: absent
     wait: true
   tags:
-    - cleanup
+    - reset
+    - plex
+    - media

@@ -6,7 +6,8 @@
     state: absent
     wait: true
   tags:
-    - cleanup
+    - reset
+    - paperless
 
 - name: Delete Cluster
   kubernetes.core.k8s:
@@ -16,4 +17,13 @@
     namespace: "{{ paperless_namespace }}"
   when: paperless_database_source == "cloudnativepg"
   tags:
-    - cleanup
+    - reset
+    - paperless
+
+- name: Delete NFS PV and PVC resources
+  kubernetes.core.k8s:
+    state: absent
+    definition: "{{ lookup('template', 'nfs-resources.yaml.j2') | from_yaml_all | list }}"
+  tags:
+    - reset
+    - paperless

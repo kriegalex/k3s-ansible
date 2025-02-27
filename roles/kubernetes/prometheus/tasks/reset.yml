@@ -1,0 +1,12 @@
+---
+- name: Uninstall prometheus-grafana stack (helm)
+  kubernetes.core.helm:
+    name: prometheus
+    release_namespace: "{{ prometheus_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - prometheus
+    - grafana
+    - monitoring

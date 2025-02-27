@@ -6,7 +6,8 @@
     state: absent
     wait: true
   tags:
-    - cleanup
+    - reset
+    - nextcloud
 
 - name: Delete Cluster
   kubernetes.core.k8s:
@@ -16,4 +17,5 @@
     namespace: "{{ nextcloud_namespace }}"
   when: nextcloud_postgresql_source == "cloudnativepg"
   tags:
-    - cleanup
+    - reset
+    - nextcloud

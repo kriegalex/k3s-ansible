@@ -1,0 +1,11 @@
+---
+- name: Uninstall k8up (helm)
+  kubernetes.core.helm:
+    name: k8up
+    release_namespace: "{{ k8up_chart_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - k8up
+    - backup

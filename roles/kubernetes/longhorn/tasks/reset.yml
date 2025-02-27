@@ -1,14 +1,19 @@
 ---
-
 - name: Clean up longhorn PVCs
-  include_tasks: cleanup_pvc.yml
+  ansible.builtin.include_tasks: cleanup_pvc.yml
   vars:
     storage_class_name: "longhorn"
+  tags:
+    - reset
+    - longhorn
 
 - name: Clean up longhorn-single-replica PVCs
-  include_tasks: cleanup_pvc.yml
+  ansible.builtin.include_tasks: cleanup_pvc.yml
   vars:
     storage_class_name: "longhorn-single-replica"
+  tags:
+    - reset
+    - longhorn
 
 - name: Ensure Longhorn deletion Setting is applied
   kubernetes.core.k8s:
@@ -22,11 +27,17 @@
       value: "true"
   register: setting_result
   ignore_errors: true  # In case the CRD is already gone
+  tags:
+    - reset
+    - longhorn
 
 - name: Wait for Setting to be applied
-  pause:
+  ansible.builtin.pause:
     seconds: 15
   when: setting_result is succeeded
+  tags:
+    - reset
+    - longhorn
 
 - name: Uninstall longhorn (helm)
   kubernetes.core.helm:
@@ -36,4 +47,5 @@
     wait: true
     wait_timeout: 600s  # 10 minutes timeout for clean deletion
   tags:
-    - cleanup
+    - reset
+    - longhorn
