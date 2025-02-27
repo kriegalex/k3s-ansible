@@ -7,7 +7,7 @@ spec:
   instances: {{ nextcloud_postgresql_replicas }}
   primaryUpdateStrategy: unsupervised
   storage:
-    size: 10Gi
+    size: {{ nextcloud_postgresql_size }}
     storageClass: {{ nextcloud_postgresql_storage_class }}
   bootstrap:
     initdb:

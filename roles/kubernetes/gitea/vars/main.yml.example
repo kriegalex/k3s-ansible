@@ -1,0 +1,19 @@
+---
+gitea_enabled: true
+gitea_image_tag: "1.23.4"
+
+gitea_persistence_enabled: true
+gitea_persistence_claim_name: "nfs-gitea" # takes precedence over storage class
+
+gitea_admin_username: "admin"
+gitea_admin_email: "admin@example.com"
+# gitea_admin_password: "changeme"  # prefer using ansible vault
+
+gitea_postgresql_source: cloudnativepg
+gitea_postgresql_create_cluster: true
+# # Alternative with internal postgresql
+# gitea_postgresql_source: internal
+# gitea_postgresql_create_cluster: false
+# gitea_postgresql_storage_class: "longhorn"
+
+gitea_redis_enabled: true

@@ -1,0 +1,19 @@
+---
+immich_enabled: true
+immich_image_tag: "v1.127.0"
+
+# internal | cloudnativepg
+immich_postgresql_source: "cloudnativepg"
+immich_postgresql_create_cluster: true
+
+immich_redis_enabled: true
+
+immich_ingress_enabled: true
+immich_subdomain: "immich"
+
+# longhorn | pvc
+immich_persistence_type: "pvc"
+# immich_persistence_longhorn_storage_class: nfs-client
+immich_persistence_pvc_existing_claim: nfs-immich # enable with pvc
+immich_persistence_external_enabled: true
+immich_persistence_external_existing_claim: "nfs-nextcloud-ro"

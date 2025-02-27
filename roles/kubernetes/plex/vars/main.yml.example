@@ -1,0 +1,21 @@
+# vars/main.yml
+---
+plex_enabled: true
+# known to work with Intel HW accel + Ubuntu 24.04.1 6.8 kernel
+plex_image_tag: "1.41.4.9463-630c9f557"
+
+plex_ingress_enabled: true
+plex_ingress_subdomain: "plex"
+
+plex_config_size: "200Gi"
+# adapt media volumes to your needs
+plex_media_volumes:
+  - name: movies
+    claim_name: nfs-movies  # existingClaim
+    mount_path: /movies
+  - name: tv
+    claim_name: nfs-tv      # existingClaim
+    mount_path: /tv
+
+plex_intel_hw_accel: true
+plex_intel_hw_affinity: "gpu.intel.com/device-id.0300-7d55.count"

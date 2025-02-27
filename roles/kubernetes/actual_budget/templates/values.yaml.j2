@@ -34,4 +34,9 @@ ingress:
 {% endif %}
 
 resources:
-{{ actual_budget_resources | to_nice_yaml(indent=2) | indent(2, first=true) }}
+  requests:
+    memory: {{ actual_budget_resources_requests_memory }}
+    cpu: {{ actual_budget_resources_requests_cpu }}
+  limits:
+    memory: {{ actual_budget_resources_limits_memory }}
+    cpu: {{ actual_budget_resources_limits_cpu }}

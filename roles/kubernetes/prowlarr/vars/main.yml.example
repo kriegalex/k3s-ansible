@@ -1,0 +1,18 @@
+---
+# Base
+prowlarr_enabled: true
+prowlarr_chart_version: "1.12.0"
+# https://github.com/hotio/radarr/pkgs/container/prowlarr/
+prowlarr_image_tag: "release-1.31.2.4975"
+
+# Storage
+prowlarr_persistence_enabled: true
+prowlarr_storage_class: "longhorn" # override defaults
+prowlarr_storage_size: "5Gi" # override defaults
+# Choose storage class (and size) OR existingClaim
+# prowlarr_existing_claim: "prowlarr-pvc"
+
+# Ingress
+# If you don't want to use the defaults created by cert-manager and ingress-nginx
+# prowlarr_ingress_class_name: "myclass"
+# prowlarr_cluster_issuer: "myissuer"

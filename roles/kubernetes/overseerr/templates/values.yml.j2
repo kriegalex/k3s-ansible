@@ -32,11 +32,15 @@ ingress:
 
 persistence:
   config:
-    storageClass: {{ overseerr_storage_class }}
     enabled: {{ overseerr_persistence_enabled }}
     mountPath: {{ overseerr_persistence_mount_path }}
+{% if overseerr_storage_class %}
+    storageClass: {{ overseerr_storage_class }}
     accessMode: {{ overseerr_storage_access_mode }}
     size: {{ overseerr_storage_size }}
+{% elif overseerr_persistence_claim_name %}
+    existingClaim: "{{ overseerr_persistence_claim_name }}"
+{% endif %}
 
 resources:
   limits:

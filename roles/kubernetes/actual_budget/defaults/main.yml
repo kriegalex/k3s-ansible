@@ -11,7 +11,7 @@ actual_budget_chart_version: "0.1.1"  # Adjust based on latest version
 # Application configuration
 actual_budget_replicas: 1
 actual_budget_image_repository: "actualbudget/actual-server"
-actual_budget_image_tag: "24.10.1"
+actual_budget_image_tag: "latest"
 actual_budget_image_pull_policy: "IfNotPresent"
 
 # Service configuration
@@ -20,12 +20,12 @@ actual_budget_service_port: 5006
 
 # Storage configuration
 actual_budget_storage_enabled: true
-actual_budget_storage_size: "1Gi"
+actual_budget_storage_size: "5Gi"
 # change if you disabled longhorn
 actual_budget_storage_class: "longhorn"
 
 # Ingress configuration
-actual_budget_ingress_enabled: false
+actual_budget_ingress_enabled: true
 actual_budget_subdomain: "budget"
 actual_budget_ingress_host: "{{ actual_budget_subdomain }}.{{ ingress_nginx_domain_name }}"
 actual_budget_ingress_tls_enabled: false # not used for now
@@ -36,10 +36,7 @@ actual_budget_annotations:
   cert-manager.io/cluster-issuer: "{{ actual_budget_ingress_cluster_issuer }}"
 
 # Resources
-actual_budget_resources:
-  requests:
-    memory: "256Mi"
-    cpu: "250m"
-  limits:
-    memory: "1Gi"
-    cpu: "1"
+actual_budget_resources_requests_memory: "256Mi"
+actual_budget_resources_requests_cpu: "250m"
+actual_budget_resources_limits_memory: "1Gi"
+actual_budget_resources_limits_cpu: "1000m"

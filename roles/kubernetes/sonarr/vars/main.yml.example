@@ -1,11 +1,18 @@
 ---
 # Base
 sonarr_enabled: true
+sonarr_chart_version: "1.7.0"
+# https://github.com/hotio/sonarr/pkgs/container/sonarr/versions
+sonarr_image_tag: "release-4.0.13.2932"
+
+# Release
+sonarr_release_name: "sonarr-tv"
+sonarr_subdomain: "sonarr-tv"
 
 # Storage
 sonarr_persistence_enabled: true
+sonarr_storage_size: "5Gi" # override defaults
 # sonarr_storage_class: "longhorn" # override defaults
-# sonarr_storage_size: "1Gi" # override defaults
 
 # Ingress
 # If you don't want to use the defaults created by cert-manager and ingress-nginx

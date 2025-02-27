@@ -1,57 +1,3 @@
-ingress:
-  main:
-    enabled: true
-    ingressClassName: "{{ paperless_ingress_class_name }}"
-    annotations:
-{% if paperless_ingress_annotations %}
-      {{ paperless_ingress_annotations | to_nice_yaml(indent=2) | indent(6) }}
-{% endif %}
-    hosts:
-      - host: {{ paperless_app_domain }}
-        paths:
-          - path: /
-    tls:
-      - secretName: paperless-ingress-tls
-        hosts:
-          - {{ paperless_app_domain }}
-
-persistence:
-  data:
-    enabled: false # merged with media via ENV variable
-  media:
-    enabled: true
-    retain: true
-    mountPath: "/usr/src/paperless/media"
-{% if paperless_media_existing_claim is defined %}
-    existingClaim: "{{ paperless_media_existing_claim }}"
-{% elif paperless_media_storage_class is defined %}
-    storageClass: "{{ paperless_media_storage_class }}"
-    size: "{{ paperless_media_storage_size }}"
-    accessMode: "{{ paperless_media_access_mode }}"
-{% endif %}
-
-  export:
-    enabled: true
-    mountPath: "/usr/src/paperless/export"
-{% if paperless_export_existing_claim is defined %}
-    existingClaim: "{{ paperless_export_existing_claim }}"
-{% elif paperless_export_storage_class is defined %}
-    storageClass: "{{ paperless_export_storage_class }}"
-    size: "{{ paperless_export_storage_size }}"
-    accessMode: "{{ paperless_export_access_mode }}"
-{% endif %}
-
-  consume:
-    enabled: true
-    mountPath: "/usr/src/paperless/consume"
-{% if paperless_consume_existing_claim is defined %}
-    existingClaim: "{{ paperless_consume_existing_claim }}"
-{% elif paperless_consume_storage_class is defined %}
-    storageClass: "{{ paperless_consume_storage_class }}"
-    size: "{{ paperless_consume_storage_size }}"
-    accessMode: "{{ paperless_consume_access_mode }}"
-{% endif %}
-
 image:
   tag: {{ paperless_image_tag }}
 
@@ -75,6 +21,60 @@ env:
   PAPERLESS_DBUSER: {{ paperless_database_user }}
   PAPERLESS_DBPASS: {{ vault_paperless_db_password }}
   {% endif %}
+
+ingress:
+  main:
+    enabled: {{ paperless_ingress_enabled }}
+    ingressClassName: "{{ paperless_ingress_class_name }}"
+    annotations:
+{% if paperless_ingress_annotations %}
+      {{ paperless_ingress_annotations | to_nice_yaml(indent=2) | indent(6) }}
+{% endif %}
+    hosts:
+      - host: {{ paperless_app_domain }}
+        paths:
+          - path: /
+    tls:
+      - secretName: paperless-ingress-tls
+        hosts:
+          - {{ paperless_app_domain }}
+
+persistence:
+  data:
+    enabled: false # merged with media via ENV variable
+  media:
+    enabled: {{ paperless_persistence_media_enabled }}
+    retain: true
+    mountPath: "/usr/src/paperless/media"
+{% if paperless_media_existing_claim %}
+    existingClaim: "{{ paperless_media_existing_claim }}"
+{% elif paperless_media_storage_class %}
+    storageClass: "{{ paperless_media_storage_class }}"
+    size: "{{ paperless_media_storage_size }}"
+    accessMode: "{{ paperless_media_access_mode }}"
+{% endif %}
+
+  export:
+    enabled: {{ paperless_persistence_export_enabled }}
+    mountPath: "/usr/src/paperless/export"
+{% if paperless_export_existing_claim %}
+    existingClaim: "{{ paperless_export_existing_claim }}"
+{% elif paperless_export_storage_class %}
+    storageClass: "{{ paperless_export_storage_class }}"
+    size: "{{ paperless_export_storage_size }}"
+    accessMode: "{{ paperless_export_access_mode }}"
+{% endif %}
+
+  consume:
+    enabled: {{ paperless_persistence_consume_enabled }}
+    mountPath: "/usr/src/paperless/consume"
+{% if paperless_consume_existing_claim %}
+    existingClaim: "{{ paperless_consume_existing_claim }}"
+{% elif paperless_consume_storage_class %}
+    storageClass: "{{ paperless_consume_storage_class }}"
+    size: "{{ paperless_consume_storage_size }}"
+    accessMode: "{{ paperless_consume_access_mode }}"
+{% endif %}
 
 postgresql:
   enabled: {{ paperless_database_source == 'internal' }}

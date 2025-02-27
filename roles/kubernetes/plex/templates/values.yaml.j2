@@ -2,7 +2,7 @@
 image:
   registry: index.docker.io
   repository: plexinc/pms-docker
-  tag: "latest"
+  tag: "{{ plex_image_tag }}"
   pullPolicy: IfNotPresent
 
 ingress:
@@ -11,7 +11,11 @@ ingress:
   ingressClassName: {{ plex_ingress_class_name }}
   url: "https://{{ plex_ingress_subdomain }}.{{ ingress_nginx_domain_name }}"
   annotations:
-{{ plex_annotations | to_nice_yaml(indent=2) | indent(4, first=true) }}
+    cert-manager.io/cluster-issuer: "{{ plex_ingress_cluster_issuer }}"
+    nginx.ingress.kubernetes.io/backend-protocol: "{{ plex_ingress_backend_protocol }}"
+{% if plex_ingress_annotations %}
+{{ plex_ingress_annotations | to_nice_yaml(indent=2) | indent(4, first=true) }}
+{% endif %}
 {% endif %}
 
 pms:
@@ -21,11 +25,22 @@ pms:
     nvidia:
       enabled: {{ plex_nvidia_gpu_enabled | bool | lower }}
   resources:
-{{ plex_resources | to_nice_yaml(indent=2) | indent(4, first=true) }}
+    requests:
+      cpu: "{{ plex_resources_requests_cpu }}"
+      memory: "{{ plex_resources_requests_memory }}"
+{% if plex_intel_hw_accel %}
+      gpu.intel.com/i915: "1"
+{% endif %}
+    limits:
+      cpu: "{{ plex_resources_limits_cpu }}"
+      memory: "{{ plex_resources_limits_memory }}"
+{% if plex_intel_hw_accel %}
+      gpu.intel.com/i915: "1"
+{% endif %}
 
 service:
   type: {{ plex_service_type }}
-  port: 32400
+  port: {{ plex_service_port | int }}
 
 {% if plex_media_volumes %}
 extraVolumeMounts:
@@ -47,8 +62,23 @@ extraEnv:
   PLEX_CLAIM: "{{ plex_claim_token }}"
 {% endif %}
   TZ: "{{ plex_timezone }}"
+{% if plex_extra_env | length > 0 %}
+{{ plex_extra_env | to_nice_yaml | indent(2) }}
+{% endif %}
 
-{% if plex_affinity %}
+{% if plex_affinity or plex_intel_hw_accel %}
 affinity:
+{% if plex_affinity %}
 {{ plex_affinity | to_nice_yaml(indent=2) | indent(2, first=true) }}
+{% endif %}
+{% if plex_intel_hw_accel %}
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: "{{ plex_intel_hw_affinity }}"
+            operator: In
+            values:
+              - "1"
+{% endif %}
 {% endif %}

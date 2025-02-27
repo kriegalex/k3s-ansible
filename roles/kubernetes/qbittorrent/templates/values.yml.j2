@@ -84,11 +84,11 @@ persistence:
   config:
     enabled: {{ qbittorrent_config_persistence_enabled }}
 {% if qbittorrent_config_persistence_enabled %}
-{% if qbittorrent_config_storage_class is defined %}
+{% if qbittorrent_config_storage_class %}
     size: {{ qbittorrent_config_size }}
     accessMode: ReadWriteOnce
     storageClass: {{ qbittorrent_config_storage_class }}
-{% elif qbittorrent_config_existing_claim is defined %}
+{% elif qbittorrent_config_existing_claim %}
     existingClaim: {{ qbittorrent_config_existing_claim }}
 {% endif %}
 {% endif %}
@@ -96,11 +96,11 @@ persistence:
   data:
     enabled: {{ qbittorrent_data_persistence_enabled }}
 {% if qbittorrent_data_persistence_enabled %}
-{% if qbittorrent_data_storage_class is defined %}
+{% if qbittorrent_data_storage_class %}
     size: {{ qbittorrent_data_size }}
     accessMode: ReadWriteOnce
     storageClass: {{ qbittorrent_data_storage_class }}
-{% elif qbittorrent_data_existing_claim != "" %}
+{% elif qbittorrent_data_existing_claim %}
     existingClaim: {{ qbittorrent_data_existing_claim }}
 {% endif %}
 {% endif %}

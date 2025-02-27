@@ -7,12 +7,13 @@ gitea_chart_version: "10.6.0"
 # Image configuration
 gitea_image_registry: ""
 gitea_image_repository: "gitea/gitea"
-gitea_image_tag: ""  # Defaults to chart appVersion
+# -rootless suffix is added by the helm chart if using rootless: true
+gitea_image_tag: "latest"
 gitea_image_pull_policy: "IfNotPresent"
 gitea_image_rootless: true
 
 # SSH Service configuration
-gitea_service_ssh_type: "ClusterIP"
+gitea_service_ssh_type: "LoadBalancer"
 gitea_service_ssh_port: 8022
 gitea_service_ssh_traffic_policy: "Local"
 
@@ -34,8 +35,9 @@ gitea_persistence_size: "" # optional, only for storage class
 
 # Gitea admin configuration
 gitea_admin_secret_name: "gitea-admin-credentials"
-gitea_admin_username: "gitea-admin"
+gitea_admin_username: "admin"
 gitea_admin_email: "admin@example.com"
+gitea_admin_password: "{{ vault_gitea_admin_password }}"
 
 # Redis configuration
 gitea_redis_cluster_enabled: false
@@ -47,15 +49,16 @@ gitea_redis_storage_class: "longhorn-single-replica" # fast cache
 
 # PostgreSQL configuration
 gitea_postgresql_ha_enabled: false
-# internal | cloudnativepgm
+# internal | cloudnativepg
 # controls postgresql.enabled in the chart
-gitea_postgresql_source: internal
-gitea_postgresql_create_cluster: false
-gitea_postgresql_password: "{{ vault_gitea_db_password }}"
-gitea_postgresql_database: "gitea"
+gitea_postgresql_source: cloudnativepg
+gitea_postgresql_create_cluster: true
 gitea_postgresql_username: "gitea"
+gitea_postgresql_database: "gitea"
+gitea_postgresql_password: "{{ vault_gitea_db_password }}"
 gitea_postgresql_port: 5432
-gitea_postgresql_storage_class: "longhorn"
+# use single replica for cloudnativepg, normal for internal
+gitea_postgresql_storage_class: "longhorn-single-replica"
 gitea_postgresql_storage_size: "10Gi" # used for cloudnativepg
 gitea_postgresql_instances: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
 

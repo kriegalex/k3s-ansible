@@ -1,22 +1,43 @@
 ---
-# Helm chart details
-plex_chart_name: "plex-media-server"
-plex_chart_repo: "https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages"
-plex_chart_version: "0.8.0"
-plex_claim_token: ""
-plex_config_size: "50Gi"
+# Base
 plex_enabled: false
-plex_ingress_class_name: "{{ ingress_nginx_class }}"
-plex_ingress_enabled: false
-plex_ingress_subdomain: "plex"
-plex_intel_hw_accel: false
 plex_namespace: "default"
-plex_nvidia_gpu_enabled: false
 plex_release_name: "plex-media-server"
-plex_service_type: ClusterIP
-plex_storage_class: "longhorn"
+plex_chart_name: "plex-media-server"
+plex_chart_version: "0.8.0"
+plex_chart_repo: "https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages"
+plex_image_tag: "latest"
+
+# Plex specific
 plex_timezone: "Europe/Paris"
+plex_claim_token: ""
+plex_intel_hw_accel: false
+# https://github.com/intel/intel-device-plugins-for-kubernetes/blob/main/cmd/gpu_plugin/labels.md
+# https://dgpu-docs.intel.com/devices/hardware-table.html#graphics-processor-table
+# The 7d55 here corresponds to "7D55 Intel Arc Graphics Xe-LPG Meteor Lake"
+plex_intel_hw_affinity: "gpu.intel.com/device-id.0300-7d55.count"
+plex_nvidia_gpu_enabled: false
+
+plex_ingress_enabled: true
+plex_ingress_class_name: "{{ ingress_nginx_class }}"
+plex_ingress_subdomain: "plex"
+plex_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+plex_ingress_backend_protocol: "HTTP"
+plex_ingress_annotations: {}
+
+# Service
+plex_service_type: ClusterIP
+plex_service_port: 32400
+
+# Persistence
+plex_config_size: "50Gi"
+plex_storage_class: "longhorn"
+
+# Resource limits (empty by default)
+plex_resources_limits_cpu: "4000m"
+plex_resources_limits_memory: "16Gi"
+plex_resources_requests_cpu: "2000m"
+plex_resources_requests_memory: "4Gi"
 
 plex_affinity: {}
-plex_annotations: {}
-plex_resources: {}
+plex_extra_env: []

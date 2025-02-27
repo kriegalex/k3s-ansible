@@ -1,0 +1,17 @@
+# group_vars/ansible_local/nextcloud.yml
+---
+nextcloud_enabled: true
+nextcloud_image_tag: "31.0-fpm"
+
+nextcloud_ingress_enabled: true
+
+nextcloud_persistence_enabled: true
+nextcloud_persistence_data_enabled: true
+nextcloud_persistence_data_existing_claim: "nfs-nextcloud"
+
+nextcloud_postgresql_source: "cloudnativepg"
+nextcloud_postgresql_create_cluster: true
+
+nextcloud_redis_enabled: true
+
+nextcloud_collabora_enabled: true

@@ -8,7 +8,7 @@ overseerr_namespace: default
 
 # Image configuration
 overseerr_image_repository: lscr.io/linuxserver/overseerr
-overseerr_image_tag: 1.33.2
+overseerr_image_tag: "latest"
 overseerr_image_pull_policy: IfNotPresent
 
 # Application configuration
@@ -27,11 +27,12 @@ overseerr_tls_secret_name: overseerr-tls
 # Storage configuration
 # /app/config for official sctx/overseerr
 # /config for linuxserver/overseerr
+overseerr_persistence_enabled: true
 overseerr_persistence_mount_path: "/config"
 overseerr_storage_class: longhorn
-overseerr_persistence_enabled: true
 overseerr_storage_access_mode: ReadWriteOnce
 overseerr_storage_size: 5Gi
+overseerr_persistence_claim_name: ""
 
 # Resources
 overseerr_resources_limits_memory: "1Gi"

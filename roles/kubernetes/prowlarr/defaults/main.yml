@@ -22,10 +22,10 @@ prowlarr_resources_requests_memory: "256Mi"
 prowlarr_resources_requests_cpu: "100m"
 
 # Storage configuration
-prowlarr_persistence_enabled: false
+prowlarr_persistence_enabled: true
 # Use either storage_class + storage_size OR existing_claim
 prowlarr_storage_class: "longhorn"
-prowlarr_storage_size: "1Gi"
+prowlarr_storage_size: "5Gi"
 # prowlarr_existing_claim: "existing-claim-name"
 prowlarr_access_mode: "ReadWriteOnce"
 

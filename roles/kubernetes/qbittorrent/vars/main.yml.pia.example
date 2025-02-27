@@ -1,0 +1,36 @@
+---
+# vars/main.yml
+# Override these variables as needed
+
+# Please also use the global variable, if you want Ansible to setup allowedUnsafeSysctls
+# https://hotio.dev/containers/qbittorrent/#__tabbed_2_2
+# https://www.reddit.com/r/kubernetes/comments/1byamtc/how_to_set_unsafe_sysctls_in_kubernetes/
+qbittorrent_enabled: true
+
+qbittorrent_vpn_enabled: true
+# your LAN network, watch out for conflicts with the VPN own DNS IP
+# qbittorrent_vpn_lan_network: "10.0.0.0/24"
+
+# PIA
+qbittorrent_vpn_provider: "pia"
+qbittorrent_vpn_pia_username: "changeme"
+qbittorrent_vpn_pia_password: "changeme"
+qbittorrent_vpn_pia_preferred_region: "changeme"
+qbittorrent_vpn_pia_dip_token: "no"
+qbittorrent_vpn_pia_port_forward_persist: false
+# qbittorrent_extra_env: []
+
+# Advanced features
+qbittorrent_privoxy_enabled: false
+qbittorrent_unbound_enabled: false
+
+# Storage configuration overrides default storage classes
+qbittorrent_config_storage_class: "longhorn"
+qbittorrent_config_size: "5Gi"
+# qbittorrent_config_existing_claim: ""
+
+qbittorrent_data_persistence_enabled: true
+# qbittorrent_data_existing_claim: "nfs-torrent"
+# Use NFS subdir provisioner
+# qbittorrent_data_storage_class: "nfs-client"
+# qbittorrent_data_size: "100Gi"

@@ -1,0 +1,46 @@
+# group_vars/ansible_local/paperless.yml
+---
+# Base
+paperless_enabled: true
+paperless_chart_version: "0.23.0"
+paperless_image_tag: "2.14.7"
+
+# Paperless
+paperless_app_trusted_proxies: "10.42.0.0/16"
+paperless_admin_user: "admin"
+paperless_admin_mail: "admin@example.com"
+paperless_app_filename_format: "{created_year}/{correspondent}/{title}"
+
+# creates 3 PVCs from this NFS server
+paperless_create_nfs_pvc: true
+paperless_nfs_server: 10.0.0.2
+paperless_nfs_base_path: /mnt/user/paperless
+
+# Persistence
+paperless_media_existing_claim: "paperless-media-pvc"
+# You can also use nfs subdir provisioner
+# paperless_media_storage_size: "50Gi"
+# paperless_media_storage_class: "nfs-client"
+# paperless_media_access_mode: "ReadWriteOnce"
+paperless_export_existing_claim: "paperless-export-pvc"
+# You can also use nfs subdir provisioner
+# paperless_export_storage_class: ""
+# paperless_export_storage_size: ""
+# paperless_export_access_mode: ""
+paperless_consume_existing_claim: "paperless-consume-pvc"
+# You can also use nfs subdir provisioner
+# paperless_consume_storage_class: ""
+# paperless_consume_storage_size: ""
+# paperless_consume_access_mode: ""
+
+# Ingress
+paperless_subdomain: "paperless"
+# paperless_app_domain: "paperless.kube.home" # override if needed
+
+# Postgresql
+# internal | cloudnativepg , internal if you disabled cloudnativepg
+paperless_database_source: "cloudnativepg"
+# set this to false if you want to restore the cluster from a backup manually
+paperless_postgresql_create_cluster: true
+# change if you disabled longhorn
+paperless_postgresql_storage_class: "longhorn-single-replica"

@@ -1,6 +1,7 @@
 image:
   repository: nextcloud
-  flavor: fpm
+  flavor: {{ nextcloud_image_flavor }}
+  tag: {{ nextcloud_image_tag }}
   pullPolicy: IfNotPresent
 
 ingress:
@@ -20,13 +21,13 @@ ingress:
   pathType: Prefix
 
 phpClientHttpsFix:
-  enabled: true
+  enabled: {{ nextcloud_php_client_fix }}
   protocol: https
 
 nextcloud:
   host: {{ nextcloud_host }}
   username: {{ nextcloud_admin_user }}
-  password: {{ vault_nextcloud_admin_password }}
+  password: {{ nextcloud_admin_password }}
   existingSecret:
     enabled: false
   extraEnv:
@@ -35,7 +36,7 @@ nextcloud:
 
 nginx:
   ## You need to set an fpm version of the image for nextcloud if you want to use nginx!
-  enabled: true
+  enabled: {{ nextcloud_nginx_enabled }}
 
 internalDatabase:
   enabled: {{ nextcloud_postgresql_source == 'internal' }}
@@ -67,19 +68,19 @@ postgresql:
     postgresql:
       auth:
         username: {{ nextcloud_postgresql_username }}
-        password: {{ vault_nextcloud_db_password }}
+        password: {{ nextcloud_postgresql_password }}
         database: {{ nextcloud_postgresql_database }}
   primary:
     persistence:
       enabled: true
       storageClass: {{ nextcloud_postgresql_storage_class }}
-      size: 8Gi
+      size: {{ nextcloud_postgresql_size }}
 
 redis:
   enabled: {{ nextcloud_redis_enabled }}
   auth:
     enabled: true
-    password: {{ vault_nextcloud_redis_password }}
+    password: {{ nextcloud_redis_password }}
   architecture: standalone # standalone if only 1 master pod
   master:
     persistence:

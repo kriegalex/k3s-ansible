@@ -1,6 +1,11 @@
 ---
 # defaults/main.yml
-# qbittorrent_enabled: please check global variables, because of allowedUnsafeSysctls
+
+# Please also use the global variable, if you want Ansible to setup allowedUnsafeSysctls
+# https://hotio.dev/containers/qbittorrent/#__tabbed_2_2
+# https://www.reddit.com/r/kubernetes/comments/1byamtc/how_to_set_unsafe_sysctls_in_kubernetes/
+qbittorrent_enabled: false
+
 # General deployment settings
 qbittorrent_namespace: "default"
 qbittorrent_create_namespace: true
@@ -33,9 +38,9 @@ qbittorrent_unbound_enabled: false
 
 # VPN Configuration (disabled by default)
 qbittorrent_vpn_enabled: false
-qbittorrent_vpn_provider: ""
+qbittorrent_vpn_provider: "proton"
 qbittorrent_vpn_conf: "wg0"
-qbittorrent_vpn_lan_network: "192.168.1.0/24"
+qbittorrent_vpn_lan_network: "10.0.0.0/24"
 qbittorrent_vpn_lan_leak_enabled: false
 qbittorrent_vpn_auto_port_forward: true
 qbittorrent_vpn_keep_local_dns: false
@@ -53,7 +58,7 @@ qbittorrent_wg_endpoint: ""
 qbittorrent_wg_persistent_keepalive: ""
 
 # Ingress
-qbittorrent_ingress_enabled: false
+qbittorrent_ingress_enabled: true
 qbittorrent_ingress_class_name: "{{ ingress_nginx_class }}"
 qbittorrent_ingress_cert_issuer: "{{ letsencrypt_env_tag }}"
 qbittorrent_ingress_subdomain: "torrent"
@@ -62,13 +67,15 @@ qbittorrent_ingress_tls_enabled: false
 qbittorrent_ingress_tls_secret_name: "qbittorrent-tls"
 
 # Storage configuration
-qbittorrent_config_persistence_enabled: false
+qbittorrent_config_persistence_enabled: true
 qbittorrent_config_storage_class: "longhorn"
-qbittorrent_config_size: "1Gi"
+qbittorrent_config_size: "5Gi"
 
-qbittorrent_data_persistence_enabled: false
-qbittorrent_data_storage_class: "nfs-client"
-qbittorrent_data_size: "100Gi"
+qbittorrent_data_persistence_enabled: true
+qbittorrent_data_existing_claim: "nfs-torrent"
+# Use NFS subdir provisioner
+# qbittorrent_data_storage_class: "nfs-client"
+# qbittorrent_data_size: "100Gi"
 
 # Resource limits (empty by default)
 qbittorrent_resources_limits_cpu: "1"

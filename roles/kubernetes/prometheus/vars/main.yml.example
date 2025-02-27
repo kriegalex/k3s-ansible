@@ -1,0 +1,8 @@
+---
+# Base
+prometheus_enabled: true
+# Prefer using Ansible vault, see defaults/main.yml
+# prometheus_grafana_admin_password: "changeme"
+
+prometheus_grafana_default_dashboards_enabled: true
+prometheus_grafana_dashboard_providers_enabled: true

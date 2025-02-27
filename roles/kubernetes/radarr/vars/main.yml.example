@@ -1,11 +1,14 @@
 ---
 # Base
 radarr_enabled: true
+radarr_chart_version: "1.12.0"
+# https://github.com/hotio/sonarr/pkgs/container/radarr/versions
+radarr_image_tag: "release-5.19.3.9730"
 
 # Storage
 radarr_persistence_enabled: true
 # radarr_storage_class: "longhorn" # override defaults
-# radarr_storage_size: "1Gi" # override defaults
+radarr_storage_size: "10Gi" # override defaults
 
 # Ingress
 # If you don't want to use the defaults created by cert-manager and ingress-nginx

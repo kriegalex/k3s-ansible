@@ -1,44 +1,64 @@
 # roles/kubernetes/nextcloud/defaults/main.yaml
 ---
+# Base
 nextcloud_enabled: false
 nextcloud_namespace: default
 nextcloud_release_name: nextcloud
 nextcloud_chart_version: "6.6.3"
+# fpm or apache
+nextcloud_image_flavor: fpm
+# 31.0 is apache based, 31.0-fpm is php fastCGI based
+# fpm goes with nginx (cluster has ingress-nginx)
+nextcloud_image_tag: "fpm"
 
+# Nextcloud
 nextcloud_admin_user: admin
+nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
 nextcloud_subdomain: "cloud"
 nextcloud_host: "{{ nextcloud_subdomain }}.{{ ingress_nginx_domain_name }}"
 nextcloud_trusted_proxies: "10.42.0.0/16"
+nextcloud_cronjob_enabled: true
+nextcloud_php_client_fix: true
 
-# persistent storage for nextcloud config
-nextcloud_persistence_enabled: false
+# Persistence
+nextcloud_persistence_enabled: true
 nextcloud_persistence_storage_class: "longhorn"
 nextcloud_persistence_size: 8Gi
 # separate storage for nextcloud data (not config)
-nextcloud_persistence_data_enabled: false
-nextcloud_persistence_data_existing_claim: "nextcloud-data-pvc"
+nextcloud_persistence_data_enabled: true
+nextcloud_persistence_data_existing_claim: "nfs-nextcloud"
 
-nextcloud_ingress_enabled: false
+# Ingress
+ # false if you use ingress-nginx (k3s ingress) or apache nextcloud image
+nextcloud_nginx_enabled: false
+nextcloud_ingress_enabled: true
 nextcloud_ingress_class_name: "{{ ingress_nginx_class }}"
 # allow to override without touching letsencrypt_env_tag
 nextcloud_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
 nextcloud_ingress_tls_enabled: true
 nextcloud_ingress_tls_secret_name: nextcloud-tls
 
+# Postgresql
 # https://github.com/nextcloud/helm/blob/main/charts/nextcloud/values.yaml#L375
 # for CloudNativePG, check roles/kubernetes/cloudnative_pg/README.md
 # internal | external | cloudnativepg
-nextcloud_postgresql_source: internal
+nextcloud_postgresql_source: cloudnativepg
+# useful when restoring a DB
 nextcloud_postgresql_create_cluster: false
 nextcloud_postgresql_storage_class: "longhorn-single-replica"
 nextcloud_postgresql_username: nextcloud # password comes from the vault
 nextcloud_postgresql_database: nextcloud
+nextcloud_postgresql_password: "{{ vault_nextcloud_db_password }}"
 nextcloud_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+nextcloud_postgresql_size: 10Gi
 
-nextcloud_redis_enabled: false # password comes from the vault
+# Redis
+nextcloud_redis_enabled: true
+nextcloud_redis_password: "{{ vault_nextcloud_redis_password }}"
 nextcloud_redis_storage_class: "longhorn-single-replica"
 nextcloud_redis_affinity_enabled: true
 
+# Collabora (document collaboration)
 nextcloud_collabora_enabled: false
 nextcloud_collabora_subdomain: collabora
 nextcloud_collabora_host: "{{ nextcloud_collabora_subdomain }}.{{ ingress_nginx_domain_name }}"
@@ -47,10 +67,10 @@ nextcloud_collabora_username: admin # password comes from the vault
 nextcloud_collabora_ingress_enabled: true
 nextcloud_collabora_ingress_class_name: "{{ ingress_nginx_class }}"
 
+# Monitoring
 nextcloud_liveness_probe_enabled: true
 nextcloud_readiness_probe_enabled: true
 nextcloud_metrics_enabled: false
-nextcloud_cronjob_enabled: true
 
 # Resources
 nextcloud_resources_limits_memory: "4Gi"
@@ -64,6 +84,7 @@ nextcloud_collabora_resources_limits_cpu: "1000m"
 nextcloud_collabora_resources_requests_memory: "512Mi"
 nextcloud_collabora_resources_requests_cpu: "100m"
 
+# Ingress annotations
 nextcloud_ingress_annotations:
   nginx.ingress.kubernetes.io/proxy-body-size: 4G
   # letsencrypt-staging | letsencrypt-prod

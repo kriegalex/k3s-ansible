@@ -23,6 +23,23 @@ global:
         # -- Node selector for system-managed Longhorn components.
         systemManagedComponentsNodeSelector: kubernetes.io/os:linux
 
+{% if longhorn_image_tag %}
+image:
+  longhorn:
+    engine:
+      tag: {{ longhorn_image_tag }}
+    manager:
+      tag: {{ longhorn_image_tag }}
+    ui:
+      tag: {{ longhorn_image_tag }}
+    instanceManager:
+      tag: {{ longhorn_image_tag }}
+    shareManager:
+      tag: {{ longhorn_image_tag }}
+    backingImageManager:
+      tag: {{ longhorn_image_tag }}
+{% endif %}
+
 networkPolicies:
   # -- Setting that allows you to enable network policies that control access to Longhorn pods.
   enabled: false

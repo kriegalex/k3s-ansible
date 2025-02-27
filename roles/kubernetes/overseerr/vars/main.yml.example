@@ -1,0 +1,11 @@
+---
+overseerr_enabled: true
+overseerr_chart_version: "5.4.2"
+overseerr_image_tag: 1.33.2
+
+# /config for linuxserver version
+overseerr_persistence_enabled: true
+overseerr_persistence_mount_path: "/config"
+overseerr_storage_class: longhorn
+overseerr_storage_size: 5Gi
+# overseerr_persistence_claim_name: ""

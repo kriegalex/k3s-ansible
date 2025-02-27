@@ -22,10 +22,10 @@ radarr_resources_requests_memory: "256Mi"
 radarr_resources_requests_cpu: "100m"
 
 # Storage configuration
-radarr_persistence_enabled: false
+radarr_persistence_enabled: true
 # Use either storage_class + storage_size OR existing_claim
 radarr_storage_class: "longhorn"
-radarr_storage_size: "1Gi"
+radarr_storage_size: "10Gi"
 # radarr_existing_claim: "existing-claim-name"
 radarr_access_mode: "ReadWriteOnce"
 

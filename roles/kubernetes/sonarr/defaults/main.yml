@@ -23,10 +23,10 @@ sonarr_resources_requests_memory: "512Mi"
 sonarr_resources_requests_cpu: "100m"
 
 # Storage configuration
-sonarr_persistence_enabled: false
+sonarr_persistence_enabled: true
 # Use either storage_class + storage_size OR existing_claim
 sonarr_storage_class: "longhorn"
-sonarr_storage_size: "1Gi"
+sonarr_storage_size: "5Gi"
 # sonarr_existing_claim: "existing-claim-name"
 sonarr_access_mode: "ReadWriteOnce"
 

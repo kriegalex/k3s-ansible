@@ -3,6 +3,7 @@ immich_enabled: false
 immich_namespace: default
 immich_release_name: immich
 immich_chart_version: "0.9.0"
+immich_image_tag: "release"
 
 # internal | cloudnativepg
 immich_postgresql_source: "internal"

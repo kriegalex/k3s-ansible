@@ -1,0 +1,12 @@
+---
+longhorn_enabled: true
+longhorn_chart_version: 1.8.1-rc2
+
+longhorn_dashboard_tls: true
+longhorn_dashboard_subdomain: "longhorn"
+
+longhorn_minio_backup_enabled: false
+# must include http(s), must not include trailing slash ("/")
+longhorn_minio_endpoint: "http://10.0.0.7:8010"
+longhorn_minio_backup_key: "CHANGEME"
+longhorn_minio_backup_secret: "CHANGEME"
