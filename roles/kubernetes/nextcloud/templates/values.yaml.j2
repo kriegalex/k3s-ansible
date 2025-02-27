@@ -113,6 +113,13 @@ collabora:
         paths:
         - path: /
           pathType: Prefix
+  resources:
+    limits:
+      memory: {{ nextcloud_collabora_resources_limits_memory }}
+      cpu: {{ nextcloud_collabora_resources_limits_cpu }}
+    requests:
+      memory: {{ nextcloud_collabora_resources_requests_memory }}
+      cpu: {{ nextcloud_collabora_resources_requests_cpu }}
 
 service:
   type: ClusterIP
@@ -129,7 +136,12 @@ persistence:
     existingClaim: {{ nextcloud_persistence_data_existing_claim }}
 
 resources:
-{{ nextcloud_resources | to_nice_yaml(indent=2) | indent(2, first=true) }}
+  limits:
+    memory: {{ nextcloud_resources_limits_memory }}
+    cpu: {{ nextcloud_resources_limits_cpu }}
+  requests:
+    memory: {{ nextcloud_resources_requests_memory }}
+    cpu: {{ nextcloud_resources_requests_cpu }}
 
 livenessProbe:
   enabled: {{ nextcloud_liveness_probe_enabled }}

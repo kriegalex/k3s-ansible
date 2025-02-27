@@ -63,3 +63,9 @@ paperless_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
 paperless_ingress_annotations:
   nginx.ingress.kubernetes.io/proxy-body-size: "64m"
   cert-manager.io/cluster-issuer: "{{ paperless_ingress_cluster_issuer }}"
+
+# Resources
+paperless_resources_limits_memory: "4Gi"
+paperless_resources_limits_cpu: "1000m"
+paperless_resources_requests_memory: "1Gi"
+paperless_resources_requests_cpu: "100m"

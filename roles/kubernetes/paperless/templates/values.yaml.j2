@@ -100,3 +100,11 @@ redis:
               matchLabels:
                 app.kubernetes.io/instance: {{ paperless_release_name }}
             topologyKey: kubernetes.io/hostname
+
+resources:
+  limits:
+    memory: {{ paperless_resources_limits_memory }}
+    cpu: {{ paperless_resources_limits_cpu }}
+  requests:
+    memory: {{ paperless_resources_requests_memory }}
+    cpu: {{ paperless_resources_requests_cpu }}

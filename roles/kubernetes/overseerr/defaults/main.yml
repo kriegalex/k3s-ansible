@@ -32,3 +32,9 @@ overseerr_storage_class: longhorn
 overseerr_persistence_enabled: true
 overseerr_storage_access_mode: ReadWriteOnce
 overseerr_storage_size: 5Gi
+
+# Resources
+overseerr_resources_limits_memory: "1Gi"
+overseerr_resources_limits_cpu: "1000m"
+overseerr_resources_requests_memory: "512Mi"
+overseerr_resources_requests_cpu: "100m"

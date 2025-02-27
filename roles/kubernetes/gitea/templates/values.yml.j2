@@ -84,3 +84,11 @@ postgresql:
     persistence:
       storageClass: "{{ gitea_postgresql_storage_class }}"
 {% endif %}
+
+resources:
+  limits:
+    memory: {{ gitea_resources_limits_memory }}
+    cpu: {{ gitea_resources_limits_cpu }}
+  requests:
+    memory: {{ gitea_resources_requests_memory }}
+    cpu: {{ gitea_resources_requests_cpu }}

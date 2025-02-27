@@ -37,3 +37,11 @@ persistence:
     mountPath: {{ overseerr_persistence_mount_path }}
     accessMode: {{ overseerr_storage_access_mode }}
     size: {{ overseerr_storage_size }}
+
+resources:
+  limits:
+    memory: {{ overseerr_resources_limits_memory }}
+    cpu: {{ overseerr_resources_limits_cpu }}
+  requests:
+    memory: {{ overseerr_resources_requests_memory }}
+    cpu: {{ overseerr_resources_requests_cpu }}

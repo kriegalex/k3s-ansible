@@ -52,12 +52,17 @@ nextcloud_readiness_probe_enabled: true
 nextcloud_metrics_enabled: false
 nextcloud_cronjob_enabled: true
 
-nextcloud_resources:
-  requests:
-    cpu: 1
-    memory: 1Gi
-  limits:
-    memory: 4Gi
+# Resources
+nextcloud_resources_limits_memory: "4Gi"
+nextcloud_resources_limits_cpu: "4000m"
+nextcloud_resources_requests_memory: "1Gi"
+nextcloud_resources_requests_cpu: "500m"
+
+# Collabora Resources
+nextcloud_collabora_resources_limits_memory: "2Gi"
+nextcloud_collabora_resources_limits_cpu: "1000m"
+nextcloud_collabora_resources_requests_memory: "512Mi"
+nextcloud_collabora_resources_requests_cpu: "100m"
 
 nextcloud_ingress_annotations:
   nginx.ingress.kubernetes.io/proxy-body-size: 4G

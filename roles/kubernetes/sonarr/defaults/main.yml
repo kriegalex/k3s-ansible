@@ -19,7 +19,7 @@ sonarr_image_pull_policy: "IfNotPresent"
 # Resources
 sonarr_resources_limits_memory: "1Gi"
 sonarr_resources_limits_cpu: "1000m"
-sonarr_resources_requests_memory: "256Mi"
+sonarr_resources_requests_memory: "512Mi"
 sonarr_resources_requests_cpu: "100m"
 
 # Storage configuration

@@ -58,3 +58,9 @@ gitea_postgresql_port: 5432
 gitea_postgresql_storage_class: "longhorn"
 gitea_postgresql_storage_size: "10Gi" # used for cloudnativepg
 gitea_postgresql_instances: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+
+# Resources
+gitea_resources_limits_memory: "1Gi"
+gitea_resources_limits_cpu: "1000m"
+gitea_resources_requests_memory: "256Mi"
+gitea_resources_requests_cpu: "100m"

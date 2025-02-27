@@ -35,10 +35,10 @@ immich_persistence_external_enabled: false
 immich_machine_learning_enabled: true
 immich_machine_learning_persistence_type: pvc
 immich_machine_learning_persistence_storage_class: longhorn
+immich_machine_learning_resources_limits_cpu: "4000m"
 
-immich_resources:
-  requests:
-    cpu: 1
-    memory: 1Gi
-  limits:
-    memory: 4Gi
+# Resources
+immich_resources_limits_memory: "4Gi"
+immich_resources_limits_cpu: "4000m"
+immich_resources_requests_memory: "1Gi"
+immich_resources_requests_cpu: "500m"

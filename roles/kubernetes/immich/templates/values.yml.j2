@@ -130,6 +130,14 @@ machine-learning:
       {% if immich_machine_learning_persistence_type != 'emptyDir' -%}
       storageClass: {{ immich_machine_learning_persistence_storage_class }}
       {% endif %}
+  resources:
+    limits:
+      cpu: {{ immich_machine_learning_resources_limits_cpu }}
 
 resources:
-{{ immich_resources | to_nice_yaml(indent=2) | indent(2, first=true) }}
+  limits:
+    memory: {{ immich_resources_limits_memory }}
+    cpu: {{ immich_resources_limits_cpu }}
+  requests:
+    memory: {{ immich_resources_requests_memory }}
+    cpu: {{ immich_resources_requests_cpu }}
