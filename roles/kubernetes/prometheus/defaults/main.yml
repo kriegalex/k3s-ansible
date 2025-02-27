@@ -1,0 +1,30 @@
+---
+prometheus_enabled: false
+prometheus_namespace: monitoring
+prometheus_chart_version: 63.1.0
+
+prometheus_grafana_admin_user: admin
+prometheus_grafana_admin_password: "{{ vault_grafana_admin_password | default('changeme') }}"
+
+prometheus_grafana_enabled: true
+prometheus_grafana_subdomain_name: "grafana"
+prometheus_grafana_root_url: "https://{{ prometheus_grafana_ingress_host }}"
+
+prometheus_grafana_ingress_enabled: true
+prometheus_grafana_ingress_class_name: "{{ ingress_nginx_class }}"
+prometheus_grafana_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+prometheus_grafana_ingress_host: "{{ prometheus_grafana_subdomain_name + '.' + ingress_nginx_domain_name }}"
+
+prometheus_grafana_default_dashboards_enabled: true
+prometheus_grafana_dashboard_providers_enabled: false
+
+prometheus_grafana_openid_enabled: false
+prometheus_grafana_openid_name: authentik
+prometheus_grafana_openid_oauth_auto_login: true
+prometheus_grafana_openid_client_id: ""
+prometheus_grafana_openid_client_secret: ""
+prometheus_grafana_openid_scopes: "openid profile email"
+prometheus_grafana_openid_auth_url: ""
+prometheus_grafana_openid_token_url: ""
+prometheus_grafana_openid_api_url: ""
+prometheus_grafana_openid_signout_redirect_url: ""

@@ -2,6 +2,7 @@
 # ansible-vault encrypt --vault-password-file .vault_pass \
 #  --encrypt-vault-id default group_vars/all/vault.yml --output group_vars/all/vault.yml
 # K3s cluster token
+---
 k3s_token: "SUPER_LONG_PASSWORD_32BITS_ALPHANUMERICAL"
 
 # Admin password for Nextcloud
@@ -37,3 +38,6 @@ vault_gitea_admin_password: "CHANGEME_GITEA_ADMIN"
 
 # PIA VPN password when using qbittorrent with VPN
 vault_qbittorrent_vpn_pia_password: ""
+
+# Grafana WebUI admin password
+vault_grafana_admin_password: "CHANGEME_GRAFANA_ADMIN"

@@ -1,0 +1,140 @@
+alertmanager:
+  enabled: true
+
+grafana:
+  enabled: {{ prometheus_grafana_enabled }}
+  assertNoLeakedSecrets: false
+
+  # Administrator credentials when not using an existing secret (see below)
+  adminUser: {{ prometheus_grafana_admin_user }}
+  adminPassword: {{ prometheus_grafana_admin_password }}
+
+{% if prometheus_grafana_openid_enabled %}
+  grafana.ini:
+    auth:
+      signout_redirect_url: {{ prometheus_grafana_openid_signout_redirect_url }}
+      oauth_auto_login: {{ prometheus_grafana_openid_oauth_auto_login }}
+    auth.generic_oauth:
+      name: {{ prometheus_grafana_openid_name }}
+      enabled: {{ prometheus_grafana_openid_enabled }}
+      client_id: {{ prometheus_grafana_openid_client_id }}
+      client_secret: {{ prometheus_grafana_openid_client_secret }}
+      scopes: {{ prometheus_grafana_openid_scopes }}
+      auth_url: {{ prometheus_grafana_openid_auth_url }}
+      token_url: {{ prometheus_grafana_openid_token_url }}
+      api_url: {{ prometheus_grafana_openid_api_url }}
+    server:
+      root_url: {{ prometheus_grafana_root_url }}
+{% endif %}
+
+  ingress:
+    enabled: {{ prometheus_grafana_ingress_enabled }}
+{% if prometheus_grafana_ingress_enabled %}
+    ingressClassName: {{ prometheus_grafana_ingress_class_name }}
+    annotations:
+      cert-manager.io/cluster-issuer: {{ prometheus_grafana_ingress_cluster_issuer }}
+
+    hosts:
+      - {{ prometheus_grafana_ingress_host }}
+
+    ## Path for grafana ingress
+    path: /
+
+    ## TLS configuration for grafana Ingress
+    ## Secret must be manually created in the namespace
+    ##
+    tls:
+    - secretName: grafana-general-tls
+      hosts:
+      - {{ prometheus_grafana_ingress_host }}
+{% endif %}
+
+  defaultDashboardsEnabled: {{ prometheus_grafana_default_dashboards_enabled }}
+
+{% if prometheus_grafana_dashboard_providers_enabled %}
+  # Provision grafana-dashboards-kubernetes
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'grafana-dashboards-kubernetes'
+        orgId: 1
+        folder: 'Kubernetes'
+        type: file
+        disableDeletion: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/grafana-dashboards-kubernetes
+  dashboards:
+    grafana-dashboards-kubernetes:
+      k8s-system-api-server:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-api-server.json
+        token: ''
+      k8s-system-coredns:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-coredns.json
+        token: ''
+      k8s-views-global:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-global.json
+        token: ''
+      k8s-views-namespaces:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-namespaces.json
+        token: ''
+      k8s-views-nodes:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-nodes.json
+        token: ''
+      k8s-views-pods:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-pods.json
+        token: ''
+{% endif %}
+
+kubeApiServer:
+  enabled: true
+
+kubelet:
+  enabled: true
+  namespace: kube-system
+
+kubeControllerManager:
+  enabled: true
+
+  ## If your kube controller manager is not deployed as a pod, specify IPs it can be found on
+  ##
+  endpoints: []
+  # - 10.141.4.22
+  # - 10.141.4.23
+  # - 10.141.4.24
+
+kubeEtcd:
+  enabled: true
+
+  ## If your etcd is not deployed as a pod, specify IPs it can be found on
+  ##
+  endpoints: []
+  # - 10.141.4.22
+  # - 10.141.4.23
+  # - 10.141.4.24
+
+kubeScheduler:
+  enabled: true
+
+  ## If your kube scheduler is not deployed as a pod, specify IPs it can be found on
+  ##
+  endpoints: []
+  # - 10.141.4.22
+  # - 10.141.4.23
+  # - 10.141.4.24
+
+kubeProxy:
+  enabled: true
+
+  ## If your kube proxy is not deployed as a pod, specify IPs it can be found on
+  ##
+  endpoints: []
+  # - 10.141.4.22
+  # - 10.141.4.23
+  # - 10.141.4.24
+
+prometheus:
+  enabled: true
+
+

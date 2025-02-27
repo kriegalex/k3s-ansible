@@ -46,18 +46,26 @@
   connection: local
   gather_facts: false
   roles:
+    - role: prometheus
+      when: prometheus_enabled
+      tags:
+        - monitoring
+        - prometheus
     - role: nfs_client
       when: nfs_client_enabled
       tags:
         - nfs
+        - nfs_client
     - role: nfs_pvc
       when: nfs_pvc_enabled
       tags:
         - nfs
+        - nfs_pvc
     - role: intel_gpu_plugin
       when: intel_gpu_plugin_enabled
       tags:
         - gpu
+        - intel_gpu
     - role: cloudnative_pg
       when: cloudnative_pg_enabled
       tags:
