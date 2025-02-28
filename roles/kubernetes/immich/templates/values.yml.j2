@@ -68,13 +68,18 @@ postgresql:
           CREATE EXTENSION earthdistance;
           CREATE EXTENSION vectors;
 {% if immich_affinity_enabled %}
-  # Add affinity rules for Redis to co-locate with Nextcloud
+  # Add affinity rules for postgresql to co-locate with Immich
   affinity:
     podAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/instance: {{ immich_release_name }}
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - {{ immich_release_name }}
           topologyKey: kubernetes.io/hostname
 {% endif %}
 
@@ -88,13 +93,18 @@ redis:
       enabled: true
       storageClass: {{ immich_redis_storage_class }}
 {% if immich_affinity_enabled %}
-    # Add affinity rules for Redis to co-locate with Nextcloud
+    # Add affinity rules for Redis to co-locate with Immich
     affinity:
       podAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/instance: {{ immich_release_name }}
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - {{ immich_release_name }}
             topologyKey: kubernetes.io/hostname
 {% endif %}
 
@@ -144,16 +154,19 @@ machine-learning:
     limits:
       cpu: {{ immich_machine_learning_resources_limits_cpu }}
 {% if immich_affinity_enabled %}
-  # Add affinity rules for Redis to co-locate with Paperless
+  # Add affinity rules for ml to co-locate with Immich
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 80
         podAffinityTerm:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/instance: {{ immich_release_name }}
-            topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - {{ immich_release_name }}
+          topologyKey: kubernetes.io/hostname
 {% endif %}
 
 resources:
@@ -165,14 +178,17 @@ resources:
     cpu: {{ immich_resources_requests_cpu }}
 
 {% if immich_affinity_enabled %}
-# Add affinity rules for Redis to co-locate with Paperless
+# Add affinity rules for immich to co-locate with others
 affinity:
   podAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
     - weight: 80
       podAffinityTerm:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/instance: {{ immich_release_name }}
-          topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/instance
+            operator: In
+            values:
+            - {{ immich_release_name }}
+        topologyKey: kubernetes.io/hostname
 {% endif %}
