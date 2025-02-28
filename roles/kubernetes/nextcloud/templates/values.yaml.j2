@@ -82,10 +82,13 @@ postgresql:
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 80
         podAffinityTerm:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/instance: {{ nextcloud_release_name }}
-            topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - {{ nextcloud_release_name }}
+          topologyKey: kubernetes.io/hostname
 {% endif %}
 
 redis:
@@ -105,10 +108,13 @@ redis:
         preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 80
           podAffinityTerm:
-            - labelSelector:
-                matchLabels:
-                  app.kubernetes.io/instance: {{ nextcloud_release_name }}
-              topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - {{ nextcloud_release_name }}
+            topologyKey: kubernetes.io/hostname
 {% endif %}
 
 collabora:
@@ -142,10 +148,13 @@ collabora:
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 80
         podAffinityTerm:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/instance: {{ nextcloud_release_name }}
-            topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - {{ nextcloud_release_name }}
+          topologyKey: kubernetes.io/hostname
 {% endif %}
 
 service:
@@ -169,10 +178,13 @@ affinity:
     preferredDuringSchedulingIgnoredDuringExecution:
     - weight: 80
       podAffinityTerm:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/instance: {{ nextcloud_release_name }}
-          topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/instance
+            operator: In
+            values:
+            - {{ nextcloud_release_name }}
+        topologyKey: kubernetes.io/hostname
 {% endif %}
 
 resources:

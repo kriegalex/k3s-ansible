@@ -87,16 +87,19 @@ postgresql:
       enabled: true
       storageClass: "{{ paperless_postgresql_storage_class }}"
 {% if paperless_affinity_enabled %}
-  # Add affinity rules for Redis to co-locate with Paperless
+  # Add affinity rules for Redis to co-locate with Nextcloud
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 80
         podAffinityTerm:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/instance: {{ paperless_release_name }}
-            topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - {{ paperless_release_name }}
+          topologyKey: kubernetes.io/hostname
 {% endif %}
 
 redis:
@@ -107,16 +110,19 @@ redis:
   master:
     count: {{ paperless_redis_master_count }}
 {% if paperless_affinity_enabled %}
-    # Add affinity rules for Redis to co-locate with Paperless
+    # Add affinity rules for Redis to co-locate with Nextcloud
     affinity:
       podAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 80
           podAffinityTerm:
-            - labelSelector:
-                matchLabels:
-                  app.kubernetes.io/instance: {{ paperless_release_name }}
-              topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - {{ paperless_release_name }}
+            topologyKey: kubernetes.io/hostname
 {% endif %}
 
 resources:
@@ -128,14 +134,17 @@ resources:
     cpu: {{ paperless_resources_requests_cpu }}
 
 {% if paperless_affinity_enabled %}
-# Add affinity rules for Redis to co-locate with Paperless
+# Add affinity rules for Redis to co-locate with Nextcloud
 affinity:
   podAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
     - weight: 80
       podAffinityTerm:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/instance: {{ paperless_release_name }}
-          topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/instance
+            operator: In
+            values:
+            - {{ paperless_release_name }}
+        topologyKey: kubernetes.io/hostname
 {% endif %}

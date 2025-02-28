@@ -147,9 +147,9 @@ machine-learning:
       # Optional: Set this to pvc to avoid downloading the ML models every start.
       type: {{ immich_machine_learning_persistence_type }}
       accessMode: ReadWriteMany
-      {% if immich_machine_learning_persistence_type != 'emptyDir' -%}
+{% if immich_machine_learning_persistence_type != 'emptyDir' %}
       storageClass: {{ immich_machine_learning_persistence_storage_class }}
-      {% endif %}
+{% endif %}
   resources:
     limits:
       cpu: {{ immich_machine_learning_resources_limits_cpu }}

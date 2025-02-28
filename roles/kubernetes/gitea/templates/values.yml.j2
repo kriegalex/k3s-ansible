@@ -71,10 +71,13 @@ redis:
         preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 80
           podAffinityTerm:
-            - labelSelector:
-                matchLabels:
-                  app.kubernetes.io/instance: {{ gitea_release_name }}
-              topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - {{ gitea_release_name }}
+            topologyKey: kubernetes.io/hostname
 {% endif %}
 
 postgresql-ha:
@@ -103,10 +106,13 @@ postgresql:
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 80
         podAffinityTerm:
-          - labelSelector:
-              matchLabels:
-                app.kubernetes.io/instance: {{ gitea_release_name }}
-            topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - {{ gitea_release_name }}
+          topologyKey: kubernetes.io/hostname
 {% endif %}
 
 resources:
@@ -124,8 +130,11 @@ affinity:
     preferredDuringSchedulingIgnoredDuringExecution:
     - weight: 80
       podAffinityTerm:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/instance: {{ gitea_release_name }}
-          topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/instance
+            operator: In
+            values:
+            - {{ gitea_release_name }}
+        topologyKey: kubernetes.io/hostname
 {% endif %}

@@ -70,12 +70,13 @@ qbittorrent_ingress_tls_secret_name: "qbittorrent-tls"
 qbittorrent_config_persistence_enabled: true
 qbittorrent_config_storage_class: "longhorn"
 qbittorrent_config_size: "5Gi"
+qbittorrent_config_existing_claim: ""
 
 qbittorrent_data_persistence_enabled: true
 qbittorrent_data_existing_claim: "nfs-torrent"
 # Use NFS subdir provisioner
-# qbittorrent_data_storage_class: "nfs-client"
-# qbittorrent_data_size: "100Gi"
+qbittorrent_data_storage_class: ""
+qbittorrent_data_size: ""
 
 # Resource limits (empty by default)
 qbittorrent_resources_limits_cpu: "1"

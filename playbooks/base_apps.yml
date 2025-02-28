@@ -76,31 +76,11 @@
       tags:
         - plex
         - media
-    - role: nextcloud
-      when: nextcloud_enabled
-      tags:
-        - nextcloud
-        - cloud
-    - role: immich
-      when: immich_enabled
-      tags:
-        - immich
-        - photo
-    - role: paperless
-      when: paperless_enabled
-      tags:
-        - paperless
-        - document
     - role: actual_budget
       when: actual_budget_enabled
       tags:
         - actual_budget
         - finance
-    - role: gitea
-      when: gitea_enabled
-      tags:
-        - git
-        - gitea
     - role: overseerr
       when: overseerr_enabled
       tags:
@@ -131,6 +111,26 @@
       tags:
         - qbittorrent
         - torrent
+    - role: immich
+      when: immich_enabled
+      tags:
+        - immich
+        - photo
+    - role: paperless
+      when: paperless_enabled
+      tags:
+        - paperless
+        - document
+    - role: gitea
+      when: gitea_enabled
+      tags:
+        - git
+        - gitea
+    - role: nextcloud
+      when: nextcloud_enabled
+      tags:
+        - nextcloud
+        - cloud
     # - role: home-assistant
     #   when: home_assistant.enabled
     #   tags:

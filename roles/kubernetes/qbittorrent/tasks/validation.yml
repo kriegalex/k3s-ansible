@@ -8,7 +8,7 @@
         (qbittorrent_config_storage_class is defined and qbittorrent_config_size is defined)
       - >-
         not qbittorrent_config_persistence_enabled or
-        not (qbittorrent_config_existing_claim is defined and qbittorrent_config_storage_class is defined)
+        not (qbittorrent_config_existing_claim and qbittorrent_config_storage_class)
     fail_msg: >-
       When config persistence is enabled, either:
       - Define an existing claim using qbittorrent_existing_claim
@@ -24,7 +24,7 @@
         (qbittorrent_data_storage_class is defined and qbittorrent_data_size is defined)
       - >-
         not qbittorrent_data_persistence_enabled or
-        not (qbittorrent_data_existing_claim is defined and qbittorrent_data_storage_class is defined)
+        not (qbittorrent_data_existing_claim and qbittorrent_data_storage_class)
     fail_msg: >-
       When config persistence is enabled, either:
       - Define an existing claim using qbittorrent_existing_claim
