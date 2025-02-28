@@ -52,14 +52,14 @@ externalDatabase:
   type: postgresql
   
   ## Database host
-  {% if nextcloud_postgresql_source == 'external' -%}
+{% if nextcloud_postgresql_source == 'external' %}
   host: nextcloud-postgresql
-  {% elif nextcloud_postgresql_source == 'cloudnativepg' -%}
+{% elif nextcloud_postgresql_source == 'cloudnativepg' %}
   host: nextcloud-db-rw
-  {% endif %}
+{% endif %}
 
   user: {{ nextcloud_postgresql_username }}
-  password: {{ vault_nextcloud_db_password }}
+  password: {{ nextcloud_postgresql_password }}
   database: {{ nextcloud_postgresql_database }}
 
 postgresql:
