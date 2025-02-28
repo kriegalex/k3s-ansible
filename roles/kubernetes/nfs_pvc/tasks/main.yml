@@ -20,7 +20,7 @@
           server: "{{ nfs_pvc_server }}"
           path: "{{ item.path | default(nfs_pvc_root_path ~ '/' ~ item.name) }}"
         mountOptions:
-          - nfsvers=4.2
+          - nfsvers={{ nfs_version }}
           - hard
           - noatime
   loop: "{{ nfs_pvc_shares }}"

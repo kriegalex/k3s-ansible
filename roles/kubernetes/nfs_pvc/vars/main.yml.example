@@ -1,0 +1,33 @@
+---
+nfs_pvc_enabled: true
+nfs_pvc_server: "10.0.0.2"
+# Define all NFS shares with their specific requirements
+nfs_pvc_shares:
+  - name: movies
+    size: 1Ti  # Adjust based on your actual needs
+    path: "/mnt/user/movies"
+    description: "Movies library storage"
+
+  - name: nextcloud
+    size: 1Ti
+    path: "/mnt/user/nextcloud"
+    description: "Nextcloud data storage"
+    access_mode: "ReadWriteMany"  # Required for Nextcloud
+
+  - name: backup
+    size: 1Ti
+    path: "/mnt/user/backup"
+    description: "Backup storage location"
+    access_mode: "ReadWriteMany"
+
+  - name: immich
+    size: 1Ti
+    path: "/mnt/user/immich"
+    description: "Immich media storage"
+    access_mode: "ReadWriteMany"
+
+  - name: paperless
+    size: 1Ti
+    path: "/mnt/user/paperless"
+    description: "Paperless consume export"
+    access_mode: "ReadWriteMany"
