@@ -12,6 +12,7 @@ nextcloud_image_flavor: fpm
 nextcloud_image_tag: "fpm"
 
 # Nextcloud
+nextcloud_replica_count: 1
 nextcloud_admin_user: admin
 nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
 nextcloud_subdomain: "cloud"

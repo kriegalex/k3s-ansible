@@ -17,6 +17,9 @@ env:
 image:
   tag: {{ immich_image_tag }}
 
+controller:
+  replicas: {{ immich_replica_count }}  # useful for restore db or config
+
 immich:
   metrics:
     # Enabling this will create the service monitors needed to monitor immich with the prometheus operator
@@ -109,7 +112,6 @@ redis:
 {% endif %}
 
 # Immich components
-
 server:
   enabled: true
   image:

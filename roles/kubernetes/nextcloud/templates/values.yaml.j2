@@ -4,6 +4,10 @@ image:
   tag: {{ nextcloud_image_tag }}
   pullPolicy: IfNotPresent
 
+# Number of replicas to be deployed
+# Useful for restore operation (database or config)
+replicaCount: {{ nextcloud_replica_count | int }}
+
 ingress:
   enabled: {{ nextcloud_ingress_enabled }}
   className: {{ nextcloud_ingress_class_name }}
