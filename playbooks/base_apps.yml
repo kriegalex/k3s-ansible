@@ -46,11 +46,6 @@
   connection: local
   gather_facts: false
   roles:
-    - role: prometheus
-      when: prometheus_enabled
-      tags:
-        - monitoring
-        - prometheus
     - role: nfs_client
       when: nfs_client_enabled
       tags:
@@ -66,16 +61,41 @@
       tags:
         - gpu
         - intel_gpu
-    - role: cloudnative_pg
-      when: cloudnative_pg_enabled
-      tags:
-        - database
-        - cloudnativepg
     - role: plex
       when: plex_enabled
       tags:
         - plex
         - media
+    - role: prometheus
+      when: prometheus_enabled
+      tags:
+        - monitoring
+        - prometheus
+    - role: cloudnative_pg
+      when: cloudnative_pg_enabled
+      tags:
+        - database
+        - cloudnativepg
+    - role: immich
+      when: immich_enabled
+      tags:
+        - immich
+        - photo
+    - role: paperless
+      when: paperless_enabled
+      tags:
+        - paperless
+        - document
+    - role: gitea
+      when: gitea_enabled
+      tags:
+        - git
+        - gitea
+    - role: nextcloud
+      when: nextcloud_enabled
+      tags:
+        - nextcloud
+        - cloud
     - role: actual_budget
       when: actual_budget_enabled
       tags:
@@ -111,26 +131,6 @@
       tags:
         - qbittorrent
         - torrent
-    - role: immich
-      when: immich_enabled
-      tags:
-        - immich
-        - photo
-    - role: paperless
-      when: paperless_enabled
-      tags:
-        - paperless
-        - document
-    - role: gitea
-      when: gitea_enabled
-      tags:
-        - git
-        - gitea
-    - role: nextcloud
-      when: nextcloud_enabled
-      tags:
-        - nextcloud
-        - cloud
     # - role: home-assistant
     #   when: home_assistant.enabled
     #   tags:
