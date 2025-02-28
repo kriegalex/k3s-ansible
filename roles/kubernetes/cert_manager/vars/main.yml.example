@@ -1,0 +1,10 @@
+# cert_manager/vars/main.yml
+---
+# letsencrypt | selfsigned
+cert_manager_certificate_type: "letsencrypt"
+cert_manager_certificate_letsencrypt_environment: "staging"
+cert_manager_dns_provider: "route53"
+cert_manager_route53_email: "admin@yourdomain.com"
+cert_manager_route53_region: "eu-central-1"
+cert_manager_route53_access_key_id: "KEY_ID"
+cert_manager_route53_access_key: "ACCESS_KEY"

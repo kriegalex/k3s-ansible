@@ -19,10 +19,10 @@ gitea_service_ssh_traffic_policy: "Local"
 
 # Ingress configuration
 gitea_ingress_enabled: true
-gitea_ingress_class_name: "{{ ingress_nginx_class }}"
-gitea_ingress_cert_issuer: "{{ letsencrypt_env_tag }}"
+gitea_ingress_class_name: "{{ global_nginx_class }}"
+gitea_ingress_cert_issuer: "{{ global_cluster_issuer }}"
 gitea_ingress_subdomain: "git"
-gitea_ingress_hostname: "{{ gitea_ingress_subdomain }}.{{ ingress_nginx_domain_name }}"
+gitea_ingress_hostname: "{{ gitea_ingress_subdomain }}.{{ global_domain_name }}"
 gitea_ingress_tls_secret_name: "gitea-tls"
 
 # Persistence configuration
@@ -69,4 +69,10 @@ gitea_resources_requests_memory: "256Mi"
 gitea_resources_requests_cpu: "100m"
 
 # Affinity
+# This settings tries to help gitea/redis/postgresql/collabora stay together
 gitea_affinity_enabled: true
+gitea_affinity_weight: 60
+# This settings tries to help gitea/redis/postgresql/collabora avoid another app
+gitea_anti_affinity_enabled: true
+gitea_anti_affinity_weight: 50
+gitea_anti_affinity_target_name: plex-media-server

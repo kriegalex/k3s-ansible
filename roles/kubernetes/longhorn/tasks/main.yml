@@ -29,5 +29,5 @@
     definition: "{{ lookup('template', 'longhorn-single-replica.yaml.j2') | from_yaml }}"
 
 - name: Import S3 bucket related tasks
-  ansible.builtin.include_tasks: s3_bucket.yaml
+  ansible.builtin.include_tasks: s3_bucket.yml
   when: longhorn_minio_backup_enabled

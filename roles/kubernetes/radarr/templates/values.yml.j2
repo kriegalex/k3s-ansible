@@ -45,14 +45,14 @@ service:
 ingress:
   enabled: {{ radarr_ingress_enabled | lower }}
   annotations:
-    kubernetes.io/ingress.class: {{ ingress_nginx_class }}
-    cert-manager.io/cluster-issuer: {{ letsencrypt_env_tag }}
+    kubernetes.io/ingress.class: {{ global_nginx_class }}
+    cert-manager.io/cluster-issuer: {{ global_cluster_issuer }}
   hosts:
-    - host: {{ radarr_subdomain }}.{{ ingress_nginx_domain_name }}
+    - host: {{ radarr_subdomain }}.{{ global_domain_name }}
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: radarr-tls
       hosts:
-        - {{ radarr_subdomain }}.{{ ingress_nginx_domain_name }}
+        - {{ radarr_subdomain }}.{{ global_domain_name }}

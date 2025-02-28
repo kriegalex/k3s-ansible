@@ -11,7 +11,7 @@ paperless_image_tag: "latest"
 paperless_admin_user: "admin"
 paperless_admin_mail: "admin@example.com"
 
-paperless_app_domain: "{{ paperless_subdomain }}.{{ ingress_nginx_domain_name }}"
+paperless_app_domain: "{{ paperless_subdomain }}.{{ global_domain_name }}"
 paperless_app_timezone: "UTC"
 paperless_app_trusted_proxies: "10.42.0.0/16"
 paperless_app_filename_format: "{created_year}/{correspondent}/{title}"
@@ -70,9 +70,9 @@ paperless_redis_password: "{{ vault_paperless_redis_password }}"
 # Ingress
 paperless_subdomain: "paperless"
 paperless_ingress_enabled: true
-paperless_ingress_class_name: "{{ ingress_nginx_class }}"
-# allow to override without touching letsencrypt_env_tag
-paperless_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+paperless_ingress_class_name: "{{ global_nginx_class }}"
+# allow to override without touching global_cluster_issuer
+paperless_ingress_cluster_issuer: "{{ global_cluster_issuer }}"
 paperless_ingress_annotations:
   nginx.ingress.kubernetes.io/proxy-body-size: "64m"
   cert-manager.io/cluster-issuer: "{{ paperless_ingress_cluster_issuer }}"
@@ -84,4 +84,10 @@ paperless_resources_requests_memory: "1Gi"
 paperless_resources_requests_cpu: "100m"
 
 # Affinity
+# This settings tries to help paperless/redis/postgresql/collabora stay together
 paperless_affinity_enabled: true
+paperless_affinity_weight: 60
+# This settings tries to help paperless/redis/postgresql/collabora avoid another app
+paperless_anti_affinity_enabled: true
+paperless_anti_affinity_weight: 50
+paperless_anti_affinity_target_name: plex-media-server

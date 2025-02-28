@@ -1,0 +1,3 @@
+---
+intel_gpu_plugin_enabled: true
+intel_gpu_plugin_app_version: "v0.30.0"

@@ -9,7 +9,7 @@ ingress:
   enabled: {{ plex_ingress_enabled | bool | lower }}
 {% if plex_ingress_enabled %}
   ingressClassName: {{ plex_ingress_class_name }}
-  url: "https://{{ plex_ingress_subdomain }}.{{ ingress_nginx_domain_name }}"
+  url: "https://{{ plex_ingress_subdomain }}.{{ global_domain_name }}"
   annotations:
     cert-manager.io/cluster-issuer: "{{ plex_ingress_cluster_issuer }}"
     nginx.ingress.kubernetes.io/backend-protocol: "{{ plex_ingress_backend_protocol }}"

@@ -17,7 +17,7 @@
           - "{{ item.access_mode | default(nfs_pvc_access_mode) }}"
         persistentVolumeReclaimPolicy: "{{ item.reclaim_policy | default(nfs_pvc_reclaim_policy) }}"
         nfs:
-          server: "{{ nfs_pvc_server }}"
+          server: "{{ item.server | default(nfs_pvc_server) }}"
           path: "{{ item.path | default(nfs_pvc_root_path ~ '/' ~ item.name) }}"
         mountOptions:
           - nfsvers={{ nfs_version }}

@@ -14,10 +14,8 @@ cert_type: "{{ cert_manager_certificate_type }}"
 is_letsencrypt_staging: "{{ cert_manager_certificate_letsencrypt_environment == 'staging' }}"
 
 # letsencrypt | selfsigned
-cert_manager_certificate_type: "letsencrypt"
-cert_manager_certificate_letsencrypt_environment: "staging"
-cert_manager_certificate_selfsigned_cert_name: "{{ ingress_nginx_domain_name }}-selfsigned-ca"
-cert_manager_certificate_selfsigned_common_name: "{{ ingress_nginx_domain_name }}"
+cert_manager_certificate_selfsigned_cert_name: "{{ global_domain_name }}-selfsigned-ca"
+cert_manager_certificate_selfsigned_common_name: "{{ global_domain_name }}"
 cert_manager_certificate_selfsigned_country_name: "CH"
 cert_manager_certificate_selfsigned_organization_name: "K3S Homelab"
 

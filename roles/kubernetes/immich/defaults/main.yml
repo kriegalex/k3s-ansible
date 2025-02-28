@@ -17,12 +17,12 @@ immich_redis_enabled: false
 immich_redis_storage_class: "longhorn-single-replica"
 
 immich_ingress_enabled: false
-# allow to override without touching letsencrypt_env_tag
-immich_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
-immich_ingress_class_name: "{{ ingress_nginx_class }}"
+# allow to override without touching global_cluster_issuer
+immich_ingress_cluster_issuer: "{{ global_cluster_issuer }}"
+immich_ingress_class_name: "{{ global_nginx_class }}"
 
 immich_subdomain: "immich"
-immich_ingress_host: "{{ immich_subdomain }}.{{ ingress_nginx_domain_name }}"
+immich_ingress_host: "{{ immich_subdomain }}.{{ global_domain_name }}"
 
 # longhorn | pvc
 immich_persistence_type: "longhorn"
@@ -44,4 +44,10 @@ immich_resources_requests_memory: "1Gi"
 immich_resources_requests_cpu: "500m"
 
 # Affinity
+# This settings tries to help immich/redis/postgresql/collabora stay together
 immich_affinity_enabled: true
+immich_affinity_weight: 80
+# This settings tries to help immich/redis/postgresql/collabora avoid another app
+immich_anti_affinity_enabled: true
+immich_anti_affinity_weight: 80
+immich_anti_affinity_target_name: plex-media-server

@@ -10,5 +10,5 @@ spec:
     name: selfsigned-issuer
     kind: ClusterIssuer
   dnsNames:
-  - "{{ ingress_nginx_domain_name }}"
-  - "*.{{ ingress_nginx_domain_name }}"
+  - "{{ global_domain_name }}"
+  - "*.{{ global_domain_name }}"

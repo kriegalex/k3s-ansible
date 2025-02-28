@@ -80,7 +80,7 @@ postgresql:
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
+      - weight: {{ nextcloud_affinity_weight | int }}
         podAffinityTerm:
           labelSelector:
             matchExpressions:
@@ -106,7 +106,7 @@ redis:
     affinity:
       podAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
+        - weight: {{ nextcloud_affinity_weight | int }}
           podAffinityTerm:
             labelSelector:
               matchExpressions:
@@ -146,7 +146,7 @@ collabora:
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
+      - weight: {{ nextcloud_affinity_weight | int }}
         podAffinityTerm:
           labelSelector:
             matchExpressions:
@@ -171,12 +171,13 @@ persistence:
     enabled: {{ nextcloud_persistence_data_enabled }}
     existingClaim: {{ nextcloud_persistence_data_existing_claim }}
 
-{% if nextcloud_affinity_enabled %}
+{% if nextcloud_affinity_enabled or nextcloud_anti_affinity_enabled %}
 # Add affinity rules for Redis to co-locate with Nextcloud
 affinity:
+{% if nextcloud_affinity_enabled %}
   podAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 80
+    - weight: {{ nextcloud_affinity_weight | int }}
       podAffinityTerm:
         labelSelector:
           matchExpressions:
@@ -185,6 +186,20 @@ affinity:
             values:
             - {{ nextcloud_release_name }}
         topologyKey: kubernetes.io/hostname
+{% endif %}
+{% if nextcloud_anti_affinity_enabled %}
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ nextcloud_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ nextcloud_anti_affinity_target_name }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}
 {% endif %}
 
 resources:

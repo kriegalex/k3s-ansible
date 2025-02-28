@@ -14,11 +14,12 @@
   hosts: ansible_local
   connection: local
   gather_facts: false
-  tasks:
-    - name: Include roles
-      ansible.builtin.include_role:
-        name: longhorn
+  roles:
+    - role: longhorn
       when: longhorn_enabled
+      tags:
+        - longhorn
+        - storage
 
 - name: Disable local_storage_provisioner persistently
   hosts: k3s_servers

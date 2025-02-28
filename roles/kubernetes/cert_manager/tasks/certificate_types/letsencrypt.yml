@@ -9,5 +9,5 @@
   ansible.builtin.get_url:
     url: https://letsencrypt.org/certs/staging/letsencrypt-stg-int-r3.pem
     dest: "{{ role_path }}/files/certs"
+    mode: "644"
   when: cert_type == 'letsencrypt' and is_letsencrypt_staging
-

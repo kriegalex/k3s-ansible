@@ -91,7 +91,7 @@ postgresql:
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
+      - weight: {{ paperless_affinity_weight | int }}
         podAffinityTerm:
           labelSelector:
             matchExpressions:
@@ -114,7 +114,7 @@ redis:
     affinity:
       podAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
+        - weight: {{ paperless_affinity_weight | int }}
           podAffinityTerm:
             labelSelector:
               matchExpressions:
@@ -133,12 +133,13 @@ resources:
     memory: {{ paperless_resources_requests_memory }}
     cpu: {{ paperless_resources_requests_cpu }}
 
-{% if paperless_affinity_enabled %}
+{% if paperless_affinity_enabled or paperless_anti_affinity_enabled %}
 # Add affinity rules for Redis to co-locate with Nextcloud
 affinity:
+{% if paperless_affinity_enabled %}
   podAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 80
+    - weight: {{ paperless_affinity_weight | int }}
       podAffinityTerm:
         labelSelector:
           matchExpressions:
@@ -147,4 +148,18 @@ affinity:
             values:
             - {{ paperless_release_name }}
         topologyKey: kubernetes.io/hostname
+{% endif %}
+{% if paperless_anti_affinity_enabled %}
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ paperless_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ paperless_anti_affinity_target_name }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}
 {% endif %}

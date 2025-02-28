@@ -59,10 +59,10 @@ qbittorrent_wg_persistent_keepalive: ""
 
 # Ingress
 qbittorrent_ingress_enabled: true
-qbittorrent_ingress_class_name: "{{ ingress_nginx_class }}"
-qbittorrent_ingress_cert_issuer: "{{ letsencrypt_env_tag }}"
+qbittorrent_ingress_class_name: "{{ global_nginx_class }}"
+qbittorrent_ingress_cert_issuer: "{{ global_cluster_issuer }}"
 qbittorrent_ingress_subdomain: "torrent"
-qbittorrent_ingress_hostname: "{{ qbittorrent_ingress_subdomain }}.{{ ingress_nginx_domain_name }}"
+qbittorrent_ingress_hostname: "{{ qbittorrent_ingress_subdomain }}.{{ global_domain_name }}"
 qbittorrent_ingress_tls_enabled: false
 qbittorrent_ingress_tls_secret_name: "qbittorrent-tls"
 

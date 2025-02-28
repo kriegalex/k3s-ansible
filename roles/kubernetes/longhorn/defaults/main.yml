@@ -14,3 +14,7 @@ longhorn_minio_backup_enabled: false
 longhorn_minio_endpoint: "http://IP:PORT"
 longhorn_minio_backup_key: ""
 longhorn_minio_backup_secret: ""
+longhorn_minio_bucket_name: longhorn
+# value should not matter unless you use a cloud provider, like AWS S3
+# but is required in the format
+longhorn_minio_region: "ch-fr-1"

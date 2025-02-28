@@ -47,8 +47,10 @@
 
 - name: Copying kubeconfig file
   hosts: k3s_servers
+  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: fetch
+      become: true
 
 - name: Include base ingress helm install after k3s installation
   ansible.builtin.import_playbook: base_ingress.yml

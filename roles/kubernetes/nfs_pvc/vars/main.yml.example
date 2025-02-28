@@ -31,3 +31,10 @@ nfs_pvc_shares:
     path: "/mnt/user/paperless"
     description: "Paperless consume export"
     access_mode: "ReadWriteMany"
+
+  - name: other_server
+    size: 1Ti
+    server: "10.0.0.3"
+    path: "/mnt/user/paperless"
+    description: "Paperless consume export"
+    access_mode: "ReadWriteMany"

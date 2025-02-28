@@ -72,7 +72,7 @@ postgresql:
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
+      - weight: {{ immich_affinity_weight | int }}
         podAffinityTerm:
           labelSelector:
             matchExpressions:
@@ -97,7 +97,7 @@ redis:
     affinity:
       podAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
+        - weight: {{ immich_affinity_weight | int }}
           podAffinityTerm:
             labelSelector:
               matchExpressions:
@@ -158,7 +158,7 @@ machine-learning:
   affinity:
     podAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
+      - weight: {{ immich_affinity_weight | int }}
         podAffinityTerm:
           labelSelector:
             matchExpressions:
@@ -177,12 +177,13 @@ resources:
     memory: {{ immich_resources_requests_memory }}
     cpu: {{ immich_resources_requests_cpu }}
 
-{% if immich_affinity_enabled %}
-# Add affinity rules for immich to co-locate with others
+{% if immich_affinity_enabled or immich_anti_affinity_enabled %}
+# Add affinity rules for Redis to co-locate with Nextcloud
 affinity:
+{% if immich_affinity_enabled %}
   podAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 80
+    - weight: {{ immich_affinity_weight | int }}
       podAffinityTerm:
         labelSelector:
           matchExpressions:
@@ -191,4 +192,18 @@ affinity:
             values:
             - {{ immich_release_name }}
         topologyKey: kubernetes.io/hostname
+{% endif %}
+{% if immich_anti_affinity_enabled %}
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ immich_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ immich_anti_affinity_target_name }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}
 {% endif %}

@@ -30,14 +30,14 @@ service:
 ingress:
   enabled: {{ prowlarr_ingress_enabled | lower }}
   annotations:
-    kubernetes.io/ingress.class: {{ ingress_nginx_class }}
-    cert-manager.io/cluster-issuer: {{ letsencrypt_env_tag }}
+    kubernetes.io/ingress.class: {{ global_nginx_class }}
+    cert-manager.io/cluster-issuer: {{ global_cluster_issuer }}
   hosts:
-    - host: {{ prowlarr_subdomain }}.{{ ingress_nginx_domain_name }}
+    - host: {{ prowlarr_subdomain }}.{{ global_domain_name }}
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: prowlarr-tls
       hosts:
-        - {{ prowlarr_subdomain }}.{{ ingress_nginx_domain_name }}
+        - {{ prowlarr_subdomain }}.{{ global_domain_name }}

@@ -8,7 +8,7 @@ prowlarr_chart_name: "prowlarr"
 prowlarr_namespace: default
 prowlarr_chart_version: "1.12.0"
 prowlarr_subdomain: "prowlarr"
-prowlarr_host: "{{ prowlarr_subdomain }}.{{ ingress_nginx_domain_name }}"
+prowlarr_host: "{{ prowlarr_subdomain }}.{{ global_domain_name }}"
 
 # Image configuration
 prowlarr_image_repository: "hotio/prowlarr"
@@ -41,6 +41,6 @@ prowlarr_service_port: 80
 
 # Ingress configuration
 prowlarr_ingress_enabled: true
-prowlarr_ingress_class_name: "{{ ingress_nginx_class }}"
+prowlarr_ingress_class_name: "{{ global_nginx_class }}"
 prowlarr_ingress_tls_enabled: true
-prowlarr_cluster_issuer: "{{ letsencrypt_env_tag }}"
+prowlarr_cluster_issuer: "{{ global_cluster_issuer }}"

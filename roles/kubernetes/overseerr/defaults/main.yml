@@ -18,10 +18,10 @@ overseerr_port: 5055
 
 # Ingress configuration
 overseerr_ingress_enabled: true
-overseerr_ingress_class_name: "{{ ingress_nginx_class }}"
-overseerr_cert_issuer: "{{ letsencrypt_env_tag }}"
+overseerr_ingress_class_name: "{{ global_nginx_class }}"
+overseerr_cert_issuer: "{{ global_cluster_issuer }}"
 overseerr_subdomain: "overseerr"
-overseerr_hostname: "{{ overseerr_subdomain }}.{{ ingress_nginx_domain_name }}"
+overseerr_hostname: "{{ overseerr_subdomain }}.{{ global_domain_name }}"
 overseerr_tls_secret_name: overseerr-tls
 
 # Storage configuration

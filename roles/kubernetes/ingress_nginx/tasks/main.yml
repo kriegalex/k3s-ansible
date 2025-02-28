@@ -22,4 +22,3 @@
     create_namespace: false
     update_repo_cache: true
     values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
-

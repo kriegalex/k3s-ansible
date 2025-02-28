@@ -260,6 +260,17 @@ defaultSettings:
   # -- Setting that temporarily prevents all attempts to purge volume snapshots.
   disableSnapshotPurge: ~
 
+{% if longhorn_minio_backup_enabled %}
+# -- Setting that allows you to update the default backupstore.
+defaultBackupStore:
+  # -- Endpoint used to access the default backupstore. (Options: "NFS", "CIFS", "AWS", "GCP", "AZURE")
+  backupTarget: "s3://{{ longhorn_minio_bucket_name }}@{{ longhorn_minio_region }}/"
+  # -- Name of the Kubernetes secret associated with the default backup target.
+  backupTargetCredentialSecret: minio-bucket-credentials
+  # -- Number of seconds that Longhorn waits before checking the default backupstore for new backups. The default value is "300". When the value is "0", polling is disabled.
+  pollInterval: ~
+{% endif %}
+
 privateRegistry:
   # -- Setting that allows you to create a private registry secret.
   createSecret: ~
@@ -343,10 +354,10 @@ ingress:
 
   # -- IngressClass resource that contains ingress configuration, including the name of the Ingress controller.
   # ingressClassName can replace the kubernetes.io/ingress.class annotation used in earlier Kubernetes releases.
-  ingressClassName: {{ ingress_nginx_class | default('nginx') }}
+  ingressClassName: {{ global_nginx_class | default('nginx') }}
 
   # -- Hostname of the Layer 7 load balancer.
-  host: "{{ (longhorn_dashboard_subdomain + '.' + ingress_nginx_domain_name) | default('longhorn.k3s.local') }}"
+  host: "{{ (longhorn_dashboard_subdomain + '.' + global_domain_name) | default('longhorn.k3s.local') }}"
 
   # -- Setting that allows you to enable TLS on ingress records.
   tls: {{ longhorn_dashboard_tls | default(false) }}
@@ -370,7 +381,7 @@ ingress:
   # -- Ingress annotations in the form of key-value pairs.
   annotations:
     {% if longhorn_dashboard_tls -%}
-    cert-manager.io/cluster-issuer: {{ letsencrypt_env_tag }}
+    cert-manager.io/cluster-issuer: {{ global_cluster_issuer }}
     {% endif %}
   #  kubernetes.io/ingress.class: nginx
   #  kubernetes.io/tls-acme: true

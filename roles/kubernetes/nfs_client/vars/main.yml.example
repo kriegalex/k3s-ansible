@@ -1,0 +1,4 @@
+---
+nfs_client_enabled: true
+nfs_client_server: 10.0.0.2
+nfs_client_path: "/mnt/user/k8s-data"

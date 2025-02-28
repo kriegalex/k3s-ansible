@@ -15,7 +15,7 @@ nextcloud_image_tag: "fpm"
 nextcloud_admin_user: admin
 nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
 nextcloud_subdomain: "cloud"
-nextcloud_host: "{{ nextcloud_subdomain }}.{{ ingress_nginx_domain_name }}"
+nextcloud_host: "{{ nextcloud_subdomain }}.{{ global_domain_name }}"
 nextcloud_trusted_proxies: "10.42.0.0/16"
 nextcloud_cronjob_enabled: true
 nextcloud_php_client_fix: true
@@ -32,9 +32,9 @@ nextcloud_persistence_data_existing_claim: "nfs-nextcloud"
  # false if you use ingress-nginx (k3s ingress) or apache nextcloud image
 nextcloud_nginx_enabled: true
 nextcloud_ingress_enabled: true
-nextcloud_ingress_class_name: "{{ ingress_nginx_class }}"
-# allow to override without touching letsencrypt_env_tag
-nextcloud_ingress_cluster_issuer: "{{ letsencrypt_env_tag }}"
+nextcloud_ingress_class_name: "{{ global_nginx_class }}"
+# allow to override without touching global_cluster_issuer
+nextcloud_ingress_cluster_issuer: "{{ global_cluster_issuer }}"
 nextcloud_ingress_tls_enabled: true
 nextcloud_ingress_tls_secret_name: nextcloud-tls
 
@@ -60,14 +60,20 @@ nextcloud_redis_storage_class: "longhorn-single-replica"
 # Collabora (document collaboration)
 nextcloud_collabora_enabled: false
 nextcloud_collabora_subdomain: collabora
-nextcloud_collabora_host: "{{ nextcloud_collabora_subdomain }}.{{ ingress_nginx_domain_name }}"
+nextcloud_collabora_host: "{{ nextcloud_collabora_subdomain }}.{{ global_domain_name }}"
 nextcloud_collabora_extra_params: "--o:ssl.enable=false"
 nextcloud_collabora_username: admin # password comes from the vault
 nextcloud_collabora_ingress_enabled: true
-nextcloud_collabora_ingress_class_name: "{{ ingress_nginx_class }}"
+nextcloud_collabora_ingress_class_name: "{{ global_nginx_class }}"
 
 # Affinity
+# This settings tries to help nextcloud/redis/postgresql/collabora stay together
 nextcloud_affinity_enabled: true
+nextcloud_affinity_weight: 80
+# This settings tries to help nextcloud/redis/postgresql/collabora avoid another app
+nextcloud_anti_affinity_enabled: true
+nextcloud_anti_affinity_weight: 80
+nextcloud_anti_affinity_target_name: plex-media-server
 
 # Monitoring
 nextcloud_liveness_probe_enabled: true

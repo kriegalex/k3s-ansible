@@ -8,7 +8,7 @@ radarr_chart_name: "radarr"
 radarr_namespace: default
 radarr_chart_version: "1.12.0"
 radarr_subdomain: "radarr"
-radarr_host: "{{ radarr_subdomain }}.{{ ingress_nginx_domain_name }}"
+radarr_host: "{{ radarr_subdomain }}.{{ global_domain_name }}"
 
 # Image configuration
 radarr_image_repository: "hotio/radarr"
@@ -42,6 +42,6 @@ radarr_service_port: 80
 
 # Ingress configuration
 radarr_ingress_enabled: true
-radarr_ingress_class_name: "{{ ingress_nginx_class }}"
+radarr_ingress_class_name: "{{ global_nginx_class }}"
 radarr_ingress_tls_enabled: true
-radarr_cluster_issuer: "{{ letsencrypt_env_tag }}"
+radarr_cluster_issuer: "{{ global_cluster_issuer }}"
