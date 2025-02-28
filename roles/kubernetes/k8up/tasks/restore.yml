@@ -34,7 +34,7 @@
             name: "{{ restore_item.name }}"
             namespace: "{{ k8up_default_namespace }}"
           spec:
-            snapshot: "{{ restore_item.snapshot_id | default(omit) | string }}"
+            # snapshot: "{{ restore_item.snapshot_id | default(omit) | string }}"
             podSecurityContext:
               runAsUser: "{{ restore_item.run_as_user | default(omit) | int }}"
               runAsGroup: "{{ restore_item.run_as_user | default(omit) | int }}"
@@ -46,7 +46,7 @@
                 key: password
               s3:
                 endpoint: "{{ minio_endpoint }}"
-                bucket: "{{ minio_bucket }}"
+                bucket: "{{ restore_item.repo_bucket }}"
                 accessKeyIDSecretRef:
                   name: minio-credentials
                   key: username

@@ -4,7 +4,7 @@
   ansible.builtin.assert:
     that:
       - restore_item.namespace is defined
-      - restore_item.snapshot_id is defined
+      - restore_item.repo_bucket is defined
       - restore_item.database_name is defined
       - restore_item.database_user is defined
       - restore_item.database_password is defined
@@ -24,13 +24,13 @@
     state: present
     template: templates/cnpg-db-secret.yml.j2
 
-- name: Validate snapshot ID
-  ansible.builtin.command:
-    cmd: "restic snapshots {{ restore_item.snapshot_id }} --json"
-  environment: "{{ restic_env_vars }}"
-  register: snapshot_check
-  failed_when: snapshot_check.rc != 0
-  changed_when: false
+# - name: Validate snapshot ID
+#   ansible.builtin.command:
+#     cmd: "restic snapshots {{ restore_item.snapshot_id }} --json"
+#   environment: "{{ restic_env_vars }}"
+#   register: snapshot_check
+#   failed_when: snapshot_check.rc != 0
+#   changed_when: false
 
 - name: Create temporary extraction directory
   ansible.builtin.file:
@@ -40,9 +40,7 @@
 
 - name: Extract files from restic snapshot
   ansible.builtin.command:
-    cmd: >-
-      restic restore {{ restore_item.snapshot_id }}
-      --target "./"
+    cmd: restic restore latest --target "./" --repo "s3:{{ minio_endpoint }}/{{ restore_item.repo_bucket }}"
     chdir: "../tmp"
   environment: "{{ restic_env_vars }}"
   register: restore_result
