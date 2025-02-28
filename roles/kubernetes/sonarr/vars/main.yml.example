@@ -18,3 +18,8 @@ sonarr_storage_size: "5Gi" # override defaults
 # If you don't want to use the defaults created by cert-manager and ingress-nginx
 # sonarr_ingress_class_name: "myclass"
 # sonarr_cluster_issuer: "myissuer"
+
+sonarr_additional_volumes:
+  - name: media
+    claim_name: nfs-tv
+    mount_path: /media

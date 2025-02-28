@@ -30,6 +30,8 @@ sonarr_storage_size: "5Gi"
 # sonarr_existing_claim: "existing-claim-name"
 sonarr_access_mode: "ReadWriteOnce"
 
+sonarr_additional_volumes: []
+
 # Pod configuration
 sonarr_pod_user_id: "1000"
 sonarr_pod_group_id: "1000"

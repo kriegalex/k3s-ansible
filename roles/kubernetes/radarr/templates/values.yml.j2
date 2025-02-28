@@ -22,6 +22,21 @@ persistence:
 {% endif %}
   accessMode: {{ radarr_access_mode }}
 {% endif %}
+{% if radarr_additional_volumes %}
+  # -- if you need any additional volumes, you can define them here
+  additionalVolumes:
+{% for volume in radarr_additional_volumes %}
+    - name: {{ volume.name }}
+      persistentVolumeClaim:
+        claimName: {{ volume.claim_name }}
+  # -- if you need any additional volume mounts, you can define them here
+{% endfor %}
+  additionalMounts:
+{% for volume in radarr_additional_volumes %}
+    - name: {{ volume.name }}
+      mountPath: {{ volume.mount_path }}
+{% endfor %}
+{% endif %}
 
 service:
   type: {{ radarr_service_type }}

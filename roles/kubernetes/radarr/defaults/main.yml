@@ -28,6 +28,7 @@ radarr_storage_class: "longhorn"
 radarr_storage_size: "10Gi"
 # radarr_existing_claim: "existing-claim-name"
 radarr_access_mode: "ReadWriteOnce"
+radarr_additional_volumes: []
 
 # Pod configuration
 radarr_pod_user_id: "1000"
