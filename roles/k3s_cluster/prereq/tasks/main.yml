@@ -111,3 +111,8 @@
           Initial status: {{ (multipathd_status.rc == 0) | ternary('Service was running', 'Service was not running') }}
           Package removal: {{ package_removed.changed | ternary('Package was removed', 'Package was already removed') }}
           Final status: {{ (final_check.rc != 0) | ternary('Service is now completely removed', 'Service might still be present - manual check required') }}
+
+- name: Install nfs tools
+  ansible.builtin.apt:
+    name:
+      - nfs-common
