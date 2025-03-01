@@ -43,5 +43,5 @@ radarr_service_port: 80
 # Ingress configuration
 radarr_ingress_enabled: true
 radarr_ingress_class_name: "{{ global_nginx_class }}"
-radarr_ingress_tls_enabled: true
+radarr_ingress_tls_enabled: false
 radarr_cluster_issuer: "{{ global_cluster_issuer }}"

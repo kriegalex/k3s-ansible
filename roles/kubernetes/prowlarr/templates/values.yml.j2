@@ -31,13 +31,17 @@ ingress:
   enabled: {{ prowlarr_ingress_enabled | lower }}
   annotations:
     kubernetes.io/ingress.class: {{ global_nginx_class }}
+{% if prowlarr_ingress_tls_enabled %}
     cert-manager.io/cluster-issuer: {{ global_cluster_issuer }}
+{% endif %}
   hosts:
-    - host: {{ prowlarr_subdomain }}.{{ global_domain_name }}
+    - host: {{ prowlarr_host }}
       paths:
         - path: /
           pathType: Prefix
+{% if prowlarr_ingress_tls_enabled %}
   tls:
     - secretName: prowlarr-tls
       hosts:
-        - {{ prowlarr_subdomain }}.{{ global_domain_name }}
+        - {{ prowlarr_host }}
+{% endif %}

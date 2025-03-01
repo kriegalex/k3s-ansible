@@ -357,7 +357,7 @@ ingress:
   ingressClassName: {{ global_nginx_class | default('nginx') }}
 
   # -- Hostname of the Layer 7 load balancer.
-  host: "{{ (longhorn_dashboard_subdomain + '.' + global_domain_name) | default('longhorn.k3s.local') }}"
+  host: {{ longhorn_host }}
 
   # -- Setting that allows you to enable TLS on ingress records.
   tls: {{ longhorn_dashboard_tls | default(false) }}
@@ -380,9 +380,9 @@ ingress:
   ## If tls is set to true, annotation ingress.kubernetes.io/secure-backends: "true" will automatically be set
   # -- Ingress annotations in the form of key-value pairs.
   annotations:
-    {% if longhorn_dashboard_tls -%}
+{% if longhorn_dashboard_tls %}
     cert-manager.io/cluster-issuer: {{ global_cluster_issuer }}
-    {% endif %}
+{% endif %}
   #  kubernetes.io/ingress.class: nginx
   #  kubernetes.io/tls-acme: true
 

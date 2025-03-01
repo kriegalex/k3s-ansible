@@ -46,13 +46,17 @@ ingress:
   enabled: {{ radarr_ingress_enabled | lower }}
   annotations:
     kubernetes.io/ingress.class: {{ global_nginx_class }}
+{% if radarr_ingress_tls_enabled %}
     cert-manager.io/cluster-issuer: {{ global_cluster_issuer }}
+{% endif %}
   hosts:
-    - host: {{ radarr_subdomain }}.{{ global_domain_name }}
+    - host: {{ radarr_host }}
       paths:
         - path: /
           pathType: Prefix
+{% if radarr_ingress_tls_enabled %}
   tls:
     - secretName: radarr-tls
       hosts:
-        - {{ radarr_subdomain }}.{{ global_domain_name }}
+        - {{ radarr_host }}
+{% endif %}

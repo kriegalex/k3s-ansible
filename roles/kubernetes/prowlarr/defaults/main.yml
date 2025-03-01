@@ -41,6 +41,6 @@ prowlarr_service_port: 80
 
 # Ingress configuration
 prowlarr_ingress_enabled: true
+prowlarr_ingress_tls_enabled: false
 prowlarr_ingress_class_name: "{{ global_nginx_class }}"
-prowlarr_ingress_tls_enabled: true
 prowlarr_cluster_issuer: "{{ global_cluster_issuer }}"

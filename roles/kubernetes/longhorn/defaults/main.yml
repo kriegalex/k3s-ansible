@@ -4,10 +4,15 @@ longhorn_enabled: true
 longhorn_namespace: longhorn-system
 longhorn_chart_version: 1.8.1-rc2
 longhorn_image_tag: ""  # v1.8.1-rc2
+
 # Dashboard
 longhorn_dashboard_enabled: true
 longhorn_dashboard_subdomain: "longhorn"
 longhorn_dashboard_tls: false
+
+# Ingress
+longhorn_host: "{{ (longhorn_dashboard_subdomain + '.' + global_domain_name) }}"
+
 # S3 backups
 longhorn_minio_backup_enabled: false
 # must include http(s), must not include trailing slash ("/")

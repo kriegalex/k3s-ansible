@@ -46,13 +46,17 @@ ingress:
   enabled: {{ sonarr_ingress_enabled | lower }}
   annotations:
     kubernetes.io/ingress.class: {{ global_nginx_class }}
+{% if sonarr_ingress_tls_enabled %}
     cert-manager.io/cluster-issuer: {{ global_cluster_issuer }}
+{% endif %}
   hosts:
-    - host: {{ sonarr_subdomain }}.{{ global_domain_name }}
+    - host: {{ sonarr_host }}
       paths:
         - path: /
           pathType: Prefix
+{% if sonarr_ingress_tls_enabled %}
   tls:
     - secretName: sonarr-tls
       hosts:
-        - {{ sonarr_subdomain }}.{{ global_domain_name }}
+        - {{ sonarr_host }}
+{% endif %}
