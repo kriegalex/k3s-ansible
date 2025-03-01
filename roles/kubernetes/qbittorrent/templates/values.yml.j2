@@ -112,3 +112,18 @@ resources:
   requests:
     cpu: {{ qbittorrent_resources_requests_cpu }}
     memory: {{ qbittorrent_resources_requests_memory }}
+
+{% if qbittorrent_anti_affinity_enabled %}
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ qbittorrent_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ qbittorrent_anti_affinity_target_name }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}

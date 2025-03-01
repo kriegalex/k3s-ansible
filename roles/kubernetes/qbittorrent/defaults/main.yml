@@ -9,7 +9,7 @@ qbittorrent_enabled: false
 # General deployment settings
 qbittorrent_namespace: "default"
 qbittorrent_create_namespace: true
-qbittorrent_chart_version: "1.2.0"
+qbittorrent_chart_version: "1.3.0"
 qbittorrent_chart_name: "qbittorrent"
 qbittorrent_repository_name: "k8s-charts"
 qbittorrent_repository_url: "https://kriegalex.github.io/k8s-charts/"
@@ -83,6 +83,12 @@ qbittorrent_resources_limits_cpu: "1"
 qbittorrent_resources_limits_memory: "8Gi"
 qbittorrent_resources_requests_cpu: "250m"
 qbittorrent_resources_requests_memory: "2Gi"
+
+# Affinity
+# This settings tries to help qbittorrent avoid another app
+qbittorrent_anti_affinity_enabled: true
+qbittorrent_anti_affinity_weight: 90
+qbittorrent_anti_affinity_target_name: plex-media-server
 
 # Extra
 qbittorrent_extra_env: []

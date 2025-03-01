@@ -42,12 +42,15 @@ immich_machine_learning_enabled: true
 immich_machine_learning_persistence_type: pvc
 immich_machine_learning_persistence_storage_class: longhorn
 immich_machine_learning_resources_limits_cpu: "4000m"
+immich_machine_learning_resources_limits_memory: "8Gi"
+immich_machine_learning_resources_requests_memory: "512Mi"
 
 # Resources
 immich_resources_limits_memory: "4Gi"
 immich_resources_limits_cpu: "4000m"
-immich_resources_requests_memory: "1Gi"
+immich_resources_requests_memory: "512Mi"
 immich_resources_requests_cpu: "500m"
+immich_intel_hw_accel: false
 
 # Affinity
 # This settings tries to help immich/redis/postgresql/collabora stay together

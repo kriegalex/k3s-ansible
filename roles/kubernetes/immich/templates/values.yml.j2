@@ -134,6 +134,19 @@ server:
         - secretName: immich-tls
           hosts:
             - {{ immich_ingress_host }}
+  resources:
+    limits:
+      memory: {{ immich_resources_limits_memory }}
+      cpu: {{ immich_resources_limits_cpu }}
+{% if immich_intel_hw_accel %}
+      gpu.intel.com/i915: "1"
+{% endif %}
+    requests:
+      memory: {{ immich_resources_requests_memory }}
+      cpu: {{ immich_resources_requests_cpu }}
+{% if immich_intel_hw_accel %}
+      gpu.intel.com/i915: "1"
+{% endif %}
 
 machine-learning:
   enabled: {{ immich_machine_learning_enabled }}
@@ -155,6 +168,9 @@ machine-learning:
   resources:
     limits:
       cpu: {{ immich_machine_learning_resources_limits_cpu }}
+      memory: {{ immich_machine_learning_resources_limits_memory }}
+    requests:
+      memory: {{ immich_machine_learning_resources_requests_memory }}
 {% if immich_affinity_enabled %}
   # Add affinity rules for ml to co-locate with Immich
   affinity:
@@ -170,14 +186,6 @@ machine-learning:
               - {{ immich_release_name }}
           topologyKey: kubernetes.io/hostname
 {% endif %}
-
-resources:
-  limits:
-    memory: {{ immich_resources_limits_memory }}
-    cpu: {{ immich_resources_limits_cpu }}
-  requests:
-    memory: {{ immich_resources_requests_memory }}
-    cpu: {{ immich_resources_requests_cpu }}
 
 {% if immich_affinity_enabled or immich_anti_affinity_enabled %}
 # Add affinity rules for Redis to co-locate with Nextcloud
