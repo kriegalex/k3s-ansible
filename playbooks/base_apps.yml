@@ -131,7 +131,7 @@
       tags:
         - qbittorrent
         - torrent
-    # - role: home-assistant
-    #   when: home_assistant.enabled
-    #   tags:
-    #     - home-assistant
+    - role: home_assistant_ingress
+      when: home_assistant_enabled
+      tags:
+        - home_assistant
