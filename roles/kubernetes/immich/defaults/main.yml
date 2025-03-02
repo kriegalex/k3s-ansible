@@ -8,12 +8,18 @@ immich_replica_count: 1
 
 # Postgresql
 # internal | cloudnativepg
+immich_db_skip_migrations: false
 immich_postgresql_source: "internal"
 immich_postgresql_create_cluster: false
 immich_postgresql_pgvectors_version: "16-v0.3.0"
 immich_postgresql_storage_class: "longhorn-single-replica"
 immich_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
-immich_db_skip_migrations: false
+
+immich_postgresql_override_resources: true
+immich_postgresql_resources_requests_memory: "512Mi"
+immich_postgresql_resources_requests_cpu: "150m"
+immich_postgresql_resources_limits_memory: "1Gi"
+immich_postgresql_resources_limits_cpu: "500m"
 
 # Redis
 immich_redis_enabled: false
@@ -48,7 +54,7 @@ immich_machine_learning_resources_requests_memory: "512Mi"
 # Resources
 immich_resources_limits_memory: "4Gi"
 immich_resources_limits_cpu: "4000m"
-immich_resources_requests_memory: "512Mi"
+immich_resources_requests_memory: "2Gi"
 immich_resources_requests_cpu: "500m"
 immich_intel_hw_accel: false
 

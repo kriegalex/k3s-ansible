@@ -4,14 +4,23 @@ metadata:
   name: paperless-db
   namespace: {{ paperless_namespace }}
 spec:
-  instances: {{ paperless_database_replicas }}
+  instances: {{ paperless_postgresql_replicas }}
   primaryUpdateStrategy: unsupervised
   storage:
     size: 10Gi
     storageClass: {{ paperless_postgresql_storage_class }}
   bootstrap:
     initdb:
-      database: {{ paperless_database_name }}
-      owner: {{ paperless_database_user }}
+      database: {{ paperless_postgresql_name }}
+      owner: {{ paperless_postgresql_user }}
       secret:
         name: paperless-db-credentials
+{% if paperless_postgresql_override_resources %}
+  resources:
+    requests:
+      memory: {{ paperless_postgresql_resources_requests_memory }}
+      cpu: {{ paperless_postgresql_resources_requests_cpu }}
+    limits:
+      memory: {{ paperless_postgresql_resources_limits_memory }}
+      cpu: {{ paperless_postgresql_resources_limits_cpu }}
+{% endif %}

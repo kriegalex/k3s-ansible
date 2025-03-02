@@ -56,11 +56,16 @@ paperless_nfs_media_path: media
 # Postgresql
 paperless_postgresql_storage_class: "longhorn-single-replica"
 # internal | cloudnativepg
-paperless_database_source: "cloudnativepg"
+paperless_postgresql_source: "cloudnativepg"
 paperless_postgresql_create_cluster: false
-paperless_database_user: paperless
-paperless_database_name: paperless
-paperless_database_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+paperless_postgresql_user: paperless
+paperless_postgresql_name: paperless
+paperless_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
+paperless_postgresql_override_resources: true
+paperless_postgresql_resources_requests_memory: "150Mi"
+paperless_postgresql_resources_requests_cpu: "150m"
+paperless_postgresql_resources_limits_memory: "500Mi"
+paperless_postgresql_resources_limits_cpu: "300m"
 
 # Redis
 paperless_redis_architecture: "standalone"

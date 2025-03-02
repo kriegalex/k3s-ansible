@@ -14,11 +14,11 @@ env:
   PAPERLESS_ADMIN_USER: "{{ paperless_admin_user }}"
   PAPERLESS_ADMIN_MAIL: "{{ paperless_admin_mail }}"
   PAPERLESS_ADMIN_PASSWORD: "{{ vault_paperless_admin_password }}"
-  {% if paperless_database_source == 'cloudnativepg' -%}
+  {% if paperless_postgresql_source == 'cloudnativepg' -%}
   PAPERLESS_DBENGINE: postgresql
   PAPERLESS_DBHOST: paperless-db-rw
-  PAPERLESS_DBNAME: {{ paperless_database_name }}
-  PAPERLESS_DBUSER: {{ paperless_database_user }}
+  PAPERLESS_DBNAME: {{ paperless_postgresql_name }}
+  PAPERLESS_DBUSER: {{ paperless_postgresql_user }}
   PAPERLESS_DBPASS: {{ vault_paperless_db_password }}
   {% endif %}
 
@@ -77,10 +77,10 @@ persistence:
 {% endif %}
 
 postgresql:
-  enabled: {{ paperless_database_source == 'internal' }}
+  enabled: {{ paperless_postgresql_source == 'internal' }}
   auth:
-    username: {{ paperless_database_user }}
-    database: {{ paperless_database_name }}
+    username: {{ paperless_postgresql_user }}
+    database: {{ paperless_postgresql_name }}
     password: {{ vault_paperless_db_password }}
   primary:
     persistence:

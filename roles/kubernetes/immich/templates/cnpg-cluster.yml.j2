@@ -34,11 +34,12 @@ spec:
     size: 10Gi
     storageClass: {{ immich_postgresql_storage_class }}
 
-  # Resource requirements
+{% if immich_postgresql_override_resources %}
   resources:
     requests:
-      memory: "500Mi"
-      cpu: "500m"
+      memory: {{ immich_postgresql_resources_requests_memory }}
+      cpu: {{ immich_postgresql_resources_requests_cpu }}
     limits:
-      memory: "2Gi"
-      cpu: "1000m"
+      memory: {{ immich_postgresql_resources_limits_memory }}
+      cpu: {{ immich_postgresql_resources_limits_cpu }}
+{% endif %}

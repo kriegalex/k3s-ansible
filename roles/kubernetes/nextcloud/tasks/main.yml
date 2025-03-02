@@ -43,7 +43,7 @@
     wait: true
 
 - name: Execute post helm steps
-  when: nextcloud_replica_count > 0
+  when: nextcloud_replica_count > 0 and nextcloud_first_install
   block:
     - name: Get nextcloud pod name
       kubernetes.core.k8s_info:
@@ -65,6 +65,7 @@
     - name: Print occ command result
       ansible.builtin.debug:
         msg: "{{ occ_add_missing_indices_status.stdout }}"
+      when: occ_add_missing_indices_status.stdout is defined
 
     - name: Set maintenance window for Nextcloud
       kubernetes.core.k8s_exec:
@@ -72,7 +73,9 @@
         pod: "{{ pod_list.resources[0].metadata.name }}"
         command: su -s /bin/sh www-data -c "php occ config:system:set maintenance_window_start --value=\"1\" --type=integer"
       register: occ_maintenance_window_start
+      when: nextcloud_postgresql_create_cluster or (nextcloud_postgresql_source != "cloudnativepg")
 
     - name: Print occ command result
       ansible.builtin.debug:
         msg: "{{ occ_maintenance_window_start.stdout }}"
+      when: occ_maintenance_window_start.stdout is defined

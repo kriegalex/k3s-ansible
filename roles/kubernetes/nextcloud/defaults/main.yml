@@ -12,6 +12,8 @@ nextcloud_image_flavor: fpm
 nextcloud_image_tag: "fpm"
 
 # Nextcloud
+# You need to perform extra steps with occ on first install
+nextcloud_first_install: false
 nextcloud_replica_count: 1
 nextcloud_admin_user: admin
 nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
@@ -52,6 +54,12 @@ nextcloud_postgresql_database: nextcloud
 nextcloud_postgresql_password: "{{ vault_nextcloud_db_password }}"
 nextcloud_postgresql_replicas: "{{ groups['k3s_workers'] | length if groups['k3s_workers'] | length > 1 else 1 }}"
 nextcloud_postgresql_size: 10Gi
+
+nextcloud_postgresql_override_resources: true
+nextcloud_postgresql_resources_requests_memory: "512Mi"
+nextcloud_postgresql_resources_requests_cpu: "150m"
+nextcloud_postgresql_resources_limits_memory: "1Gi"
+nextcloud_postgresql_resources_limits_cpu: "500m"
 
 # Redis
 nextcloud_redis_enabled: true

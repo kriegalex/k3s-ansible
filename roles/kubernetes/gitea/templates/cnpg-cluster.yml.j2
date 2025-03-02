@@ -25,4 +25,13 @@ spec:
       owner: {{ gitea_postgresql_username }}
       secret:
         name: gitea-db-credentials
+{% if gitea_postgresql_override_resources %}
+  resources:
+    requests:
+      memory: {{ gitea_postgresql_resources_requests_memory }}
+      cpu: {{ gitea_postgresql_resources_requests_cpu }}
+    limits:
+      memory: {{ gitea_postgresql_resources_limits_memory }}
+      cpu: {{ gitea_postgresql_resources_limits_cpu }}
+{% endif %}
 {% endif %}

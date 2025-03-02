@@ -15,7 +15,7 @@
     kind: Cluster
     name: paperless-db
     namespace: "{{ paperless_namespace }}"
-  when: paperless_database_source == "cloudnativepg"
+  when: paperless_postgresql_source == "cloudnativepg"
   tags:
     - reset
     - paperless

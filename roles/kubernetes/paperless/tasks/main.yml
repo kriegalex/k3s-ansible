@@ -3,10 +3,10 @@
 - name: Validate PostgreSQL source configuration
   ansible.builtin.assert:
     that:
-      - paperless_database_source in ['internal', 'cloudnativepg']
-    fail_msg: "Invalid postgresql source '{{ paperless_database_source }}'. \
+      - paperless_postgresql_source in ['internal', 'cloudnativepg']
+    fail_msg: "Invalid postgresql source '{{ paperless_postgresql_source }}'. \
                Must be one of: internal or cloudnativepg"
-    success_msg: "PostgreSQL source '{{ paperless_database_source }}' is valid"
+    success_msg: "PostgreSQL source '{{ paperless_postgresql_source }}' is valid"
 
 - name: Add paperless helm repository
   kubernetes.core.helm_repository:
@@ -17,13 +17,13 @@
   ansible.builtin.include_role:
     name: cloudnative_pg
   when:
-    - paperless_database_source == "cloudnativepg"
+    - paperless_postgresql_source == "cloudnativepg"
     - not cloudnative_pg_enabled
 
 - name: Configure CloudNativePG
   ansible.builtin.import_tasks: cloudnative_pg.yml
   when:
-    - paperless_database_source == "cloudnativepg"
+    - paperless_postgresql_source == "cloudnativepg"
     - paperless_postgresql_create_cluster
 
 - name: Create NFS PV and PVC resources

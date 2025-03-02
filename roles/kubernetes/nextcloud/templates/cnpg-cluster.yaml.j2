@@ -15,3 +15,12 @@ spec:
       owner: {{ nextcloud_postgresql_username }}
       secret:
         name: nextcloud-db-credentials
+{% if nextcloud_postgresql_override_resources %}
+  resources:
+    requests:
+      memory: {{ nextcloud_postgresql_resources_requests_memory }}
+      cpu: {{ nextcloud_postgresql_resources_requests_cpu }}
+    limits:
+      memory: {{ nextcloud_postgresql_resources_limits_memory }}
+      cpu: {{ nextcloud_postgresql_resources_limits_cpu }}
+{% endif %}
