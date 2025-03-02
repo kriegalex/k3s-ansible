@@ -4,7 +4,14 @@ controller:
   # when users add those annotations.
   # Global snippets in ConfigMap are still respected
   allowSnippetAnnotations: true
-  enableAnnotationValidations: false
+
+  # https://github.com/kubernetes/ingress-nginx/issues/12634
+  # Since ingress-nginx v1.12.0: 
+  # https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+  # https://github.com/kubernetes/ingress-nginx/pull/11819
+  # Disable when not using nextcloud, see nextcloud annotations
+  config:
+    annotations-risk-level: Critical
 
   service:
     # -- External traffic policy of the external controller service. Set to "Local" to preserve source IP on providers supporting it.
