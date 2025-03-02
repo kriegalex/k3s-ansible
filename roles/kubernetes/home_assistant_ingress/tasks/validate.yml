@@ -1,0 +1,20 @@
+---
+- name: Skip validation if Home Assistant is disabled
+  ansible.builtin.meta: end_play
+  when: not home_assistant_enabled | bool
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - home_assistant_external_ip is defined
+      - home_assistant_external_ip | string | length > 0
+      - home_assistant_subdomain is defined
+      - home_assistant_subdomain | string | length > 0
+    fail_msg: "Required variables are not defined or are empty"
+
+- name: Validate port settings
+  ansible.builtin.assert:
+    that:
+      - home_assistant_external_port | int > 0
+      - home_assistant_external_port | int < 65536
+    fail_msg: "Invalid port configuration"

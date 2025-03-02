@@ -1,0 +1,26 @@
+---
+# Home Assistant connection settings
+home_assistant_enabled: false
+home_assistant_subdomain: "home"
+home_assistant_host: "{{ home_assistant_subdomain }}.{{ global_domain_name }}"
+home_assistant_external_ip: "192.168.1.100"  # IP of your Home Assistant device
+home_assistant_external_port: 8123  # Default Home Assistant port
+
+# Kubernetes resource settings
+home_assistant_namespace: "default"
+home_assistant_create_namespace: true
+
+# Ingress settings
+home_assistant_ingress_enabled: true
+home_assistant_ingress_class: "{{ global_nginx_class }}"
+home_assistant_ingress_cluster_issuer: "{{ global_cluster_issuer }}"
+home_assistant_ingress_annotations:
+  # Proxy settings for external service
+  nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+  nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+# TLS settings
+home_assistant_tls_enabled: true

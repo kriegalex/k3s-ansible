@@ -1,0 +1,67 @@
+---
+- name: Include validation tasks
+  ansible.builtin.import_tasks: validate.yml
+
+- name: Create namespace if it doesn't exist
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ home_assistant_namespace }}"
+    state: present
+  when: home_assistant_create_namespace | bool
+
+# Proper way to handle external IP/port services
+- name: Set up Service and Endpoints for external Home Assistant
+  when: home_assistant_enabled | bool
+  block:
+    - name: Create Service for external Home Assistant
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: home-assistant-external
+            namespace: "{{ home_assistant_namespace }}"
+          spec:
+            ports:
+              - port: 80
+                targetPort: http
+                protocol: TCP
+            selector: {}  # Empty selector - will be linked to Endpoints
+
+    - name: Create Endpoints for external Home Assistant
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Endpoints
+          metadata:
+            name: home-assistant-external
+            namespace: "{{ home_assistant_namespace }}"
+          subsets:
+            - addresses:
+                - ip: "{{ home_assistant_external_ip }}"
+              ports:
+                - port: "{{ home_assistant_external_port }}"
+                  name: http
+
+- name: Configure Home Assistant Ingress
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('ansible.builtin.template', 'ingress.yml.j2') | from_yaml }}"
+  when: home_assistant_ingress_enabled | bool
+
+# Cleanup section
+- name: Remove Home Assistant resources if disabled
+  kubernetes.core.k8s:
+    state: absent
+    kind: "{{ item.kind }}"
+    api_version: "{{ item.api_version }}"
+    namespace: "{{ home_assistant_namespace }}"
+    name: "{{ item.name }}"
+  loop:
+    - {kind: "Ingress", api_version: "networking.k8s.io/v1", name: "home-assistant"}
+    - {kind: "Service", api_version: "v1", name: "home-assistant-external"}
+    - {kind: "Endpoints", api_version: "v1", name: "home-assistant-external"}
+  when: not home_assistant_enabled | bool
