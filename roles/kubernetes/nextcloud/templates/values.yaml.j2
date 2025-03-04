@@ -123,21 +123,40 @@ redis:
 
 collabora:
   enabled: {{ nextcloud_collabora_enabled }}
+  replicaCount: 1
+  autoscaling:
+    enabled: false
   collabora:
     server_name: {{ nextcloud_collabora_host }}
     extra_params: {{ nextcloud_collabora_extra_params }}
     password: {{ vault_nextcloud_collabora_password }}
     username: {{ nextcloud_collabora_username }}
     aliasgroups:
-      - host: "https://{{ nextcloud_host }}"
+      - host: "https://{{ nextcloud_host }}:443"
   ingress:
     enabled: {{ nextcloud_collabora_ingress_enabled }}
     className: {{ nextcloud_collabora_ingress_class_name }}
+    annotations:
+{% if nextcloud_collabora_ingress_tls_enabled %}
+      cert-manager.io/cluster-issuer: "{{ nextcloud_ingress_cluster_issuer }}"
+{% endif %}
+      nginx.ingress.kubernetes.io/upstream-hash-by: "$arg_WOPISrc"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
     hosts:
       - host: {{ nextcloud_collabora_host }}
         paths:
         - path: /
-          pathType: Prefix
+          pathType: ImplementationSpecific
+{% if nextcloud_collabora_ingress_tls_enabled %}
+    tls:
+      - secretName: nextcloud-collabora-tls
+        hosts:
+          - {{ nextcloud_collabora_host }}
+{% endif %}
+  service:
+    type: {{ nextcloud_collabora_service_type }}
   resources:
     limits:
       memory: {{ nextcloud_collabora_resources_limits_memory }}

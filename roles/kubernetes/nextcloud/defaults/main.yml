@@ -70,9 +70,11 @@ nextcloud_redis_storage_class: "longhorn-single-replica"
 nextcloud_collabora_enabled: false
 nextcloud_collabora_subdomain: collabora
 nextcloud_collabora_host: "{{ nextcloud_collabora_subdomain }}.{{ global_domain_name }}"
-nextcloud_collabora_extra_params: "--o:ssl.enable=false"
+nextcloud_collabora_extra_params: "--o:ssl.enable=false --o:ssl.termination=true"
 nextcloud_collabora_username: admin # password comes from the vault
+nextcloud_collabora_service_type: ClusterIP
 nextcloud_collabora_ingress_enabled: true
+nextcloud_collabora_ingress_tls_enabled: false
 nextcloud_collabora_ingress_class_name: "{{ global_nginx_class }}"
 
 # Affinity
