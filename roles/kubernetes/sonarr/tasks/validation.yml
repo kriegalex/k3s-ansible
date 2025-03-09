@@ -5,10 +5,10 @@
       - >-
         not sonarr_persistence_enabled or
         (sonarr_existing_claim is defined) or
-        (sonarr_storage_class is defined and sonarr_storage_size is defined)
+        (sonarr_storage_class and sonarr_storage_size is defined)
       - >-
         not sonarr_persistence_enabled or
-        not (sonarr_existing_claim is defined and sonarr_storage_class is defined)
+        not (sonarr_existing_claim is defined and sonarr_storage_class)
     fail_msg: >-
       When persistence is enabled, either:
       - Define an existing claim using sonarr_existing_claim
