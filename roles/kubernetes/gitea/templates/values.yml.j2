@@ -124,7 +124,7 @@ resources:
     cpu: {{ gitea_resources_requests_cpu }}
 
 {% if gitea_affinity_enabled or gitea_anti_affinity_enabled %}
-# Add affinity rules for Redis to co-locate with Nextcloud
+# Add affinity rules for Redis to co-locate with Gitea
 affinity:
 {% if gitea_affinity_enabled %}
   podAffinity:

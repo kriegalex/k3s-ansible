@@ -11,9 +11,17 @@ gitea_admin_email: "admin@example.com"
 
 gitea_postgresql_source: cloudnativepg
 gitea_postgresql_create_cluster: true
+gitea_migrate_database: false
 # # Alternative with internal postgresql
 # gitea_postgresql_source: internal
 # gitea_postgresql_create_cluster: false
 # gitea_postgresql_storage_class: "longhorn"
 
 gitea_redis_enabled: true
+
+# S3 Backup Credentials
+gitea_postgresql_backup_enabled: false
+gitea_postgresql_backup_s3_endpoint: "http://10.0.0.7:8010"
+gitea_postgresql_backup_s3_bucket: "gitea-backups"
+gitea_postgresql_backup_s3_access_key: "{{ vault_cnpg_backup_s3_access_key }}"
+gitea_postgresql_backup_s3_secret_key: "{{ vault_cnpg_backup_s3_secret_key }}"

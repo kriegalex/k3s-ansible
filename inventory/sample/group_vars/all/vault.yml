@@ -41,3 +41,7 @@ vault_qbittorrent_vpn_pia_password: ""
 
 # Grafana WebUI admin password
 vault_grafana_admin_password: "CHANGEME_GRAFANA_ADMIN"
+
+# CloudNativePG backup S3 credentials
+vault_cnpg_backup_s3_access_key: "CHANGEME_ACCESS_KEY"
+vault_cnpg_backup_s3_secret_key: "CHANGEME_SECRET_KEY"

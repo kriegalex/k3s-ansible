@@ -19,6 +19,37 @@
 #     mode: '0644'
 #   diff: true  # This will show the difference in the output
 
+- name: Create Gitea namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ gitea_namespace }}"
+
+- name: Create NFS PV and PVC for Gitea
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  vars:
+    nfs_pvc_items:
+      - name: "{{ gitea_persistence_nfs_claim_name }}"
+        namespace: "{{ gitea_namespace }}"
+        size: "{{ gitea_persistence_size }}"
+        description: "Gitea repositories and config"
+        access_mode: "{{ gitea_persistence_access_mode }}"
+        reclaim_policy: "{{ gitea_persistence_nfs_reclaim_policy }}"
+        server: "{{ gitea_persistence_nfs_server }}"
+        # Let nfs_pvc calculate the path with its own defaults if path isn't explicitly set
+        path: "{{ gitea_persistence_nfs_path }}"
+  when: gitea_persistence_nfs_claim_name | length > 0
+
+- name: Set persistence claim name based on NFS claim if provided
+  ansible.builtin.set_fact:
+    gitea_persistence_claim_name: "{{ gitea_persistence_nfs_claim_name }}"
+  when: gitea_persistence_nfs_claim_name | length > 0
+
 - name: Create Gitea admin secret
   kubernetes.core.k8s:
     state: present
@@ -43,7 +74,7 @@
     chart_ref: gitea-charts/gitea
     chart_version: "{{ gitea_chart_version }}"
     release_namespace: "{{ gitea_namespace }}"
-    create_namespace: true
+    create_namespace: false
     update_repo_cache: true
     values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
     wait: true

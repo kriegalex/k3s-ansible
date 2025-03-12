@@ -29,9 +29,16 @@ gitea_ingress_tls_secret_name: "gitea-tls"
 gitea_persistence_enabled: true
 gitea_persistence_create: false # true if using storageClass
 gitea_persistence_mount: true
-gitea_persistence_claim_name: "nfs-gitea" # takes precedence over storage class
+gitea_persistence_claim_name: "" # takes precedence over storage class
+gitea_persistence_nfs_claim_name: "nfs-gitea" # if set, creates PV/PVC using NFS
 gitea_persistence_storage_class: "" # optional
-gitea_persistence_size: "" # optional, only for storage class
+gitea_persistence_size: "1Ti" # size for PVC/PV
+gitea_persistence_access_mode: "ReadWriteMany"
+# For NFS integration - these defaults will use the values from nfs_pvc role if not overridden
+gitea_persistence_nfs_server: "10.0.0.2"
+# Only construct path when claim name is provided to avoid errors
+gitea_persistence_nfs_path: "/mnt/user/gitea"
+gitea_persistence_nfs_reclaim_policy: "Retain"
 
 # Gitea admin configuration
 gitea_admin_secret_name: "gitea-admin-credentials"
@@ -67,6 +74,15 @@ gitea_postgresql_resources_requests_cpu: "150m"
 gitea_postgresql_resources_limits_memory: "500Mi"
 gitea_postgresql_resources_limits_cpu: "300m"
 
+# PostgreSQL backup configuration
+gitea_postgresql_backup_enabled: false
+gitea_postgresql_backup_destination_path: ""
+gitea_postgresql_backup_credentials_secret_name: "gitea-s3-backup-credentials"
+gitea_postgresql_backup_s3_endpoint: ""
+gitea_postgresql_backup_s3_bucket: "gitea-backups"
+gitea_postgresql_backup_s3_access_key: ""
+gitea_postgresql_backup_s3_secret_key: ""
+
 # Resources
 gitea_resources_limits_memory: "1Gi"
 gitea_resources_limits_cpu: "1000m"
@@ -81,3 +97,10 @@ gitea_affinity_weight: 60
 gitea_anti_affinity_enabled: true
 gitea_anti_affinity_weight: 50
 gitea_anti_affinity_target_name: plex-media-server
+
+# Database migration settings
+gitea_migrate_database: false
+gitea_migrate_source_namespace: "default"
+gitea_migrate_source_db_name: "gitea-db"
+gitea_migrate_postgresql_username: "{{ gitea_postgresql_username }}"
+gitea_migrate_postgresql_database: "{{ gitea_postgresql_database }}"

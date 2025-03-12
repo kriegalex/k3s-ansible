@@ -7,6 +7,27 @@
     - gitea
     - database
 
+- name: Set dynamic backup path
+  ansible.builtin.set_fact:
+    gitea_postgresql_backup_destination_path: >-
+      s3://{{ gitea_postgresql_backup_s3_bucket }}/
+  when:
+    - gitea_postgresql_backup_enabled | bool
+    - gitea_postgresql_backup_destination_path | length == 0
+  tags:
+    - gitea
+    - database
+
+- name: Create S3 backup credentials secret
+  kubernetes.core.k8s:
+    state: present
+    template: templates/s3-backup-credentials-secret.yml.j2
+  when:
+    - gitea_postgresql_backup_enabled | bool
+  tags:
+    - gitea
+    - database
+
 - name: Create PostgreSQL cluster
   kubernetes.core.k8s:
     state: present
@@ -22,7 +43,7 @@
     name: gitea-db
     namespace: "{{ gitea_namespace }}"
     wait: true
-    wait_timeout: 150
+    wait_timeout: 300
     wait_condition:
       type: Ready
       status: "True"
