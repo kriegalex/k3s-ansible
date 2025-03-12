@@ -159,6 +159,7 @@ affinity:
             operator: In
             values:
             - {{ paperless_anti_affinity_target_name }}
+        namespace: {{ paperless_anti_affinity_target_namespace }}
         topologyKey: kubernetes.io/hostname
 {% endif %}
 {% endif %}

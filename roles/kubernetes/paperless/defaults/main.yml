@@ -48,10 +48,6 @@ paperless_export_storage_class: ""
 paperless_consume_storage_class: ""
 paperless_media_storage_class: ""
 
-# NFS PVCs - REMOVED
-# paperless_nfs_media_mount_options: "nfsvers=4.2,hard,noatime"
-# paperless_nfs_consume_mount_options: "nfsvers=4.2,hard,noatime"
-
 # PostgreSQL migration settings
 paperless_migrate_database: false
 paperless_migrate_source_namespace: default
@@ -112,3 +108,4 @@ paperless_affinity_weight: 60
 paperless_anti_affinity_enabled: true
 paperless_anti_affinity_weight: 50
 paperless_anti_affinity_target_name: plex-media-server
+paperless_anti_affinity_target_namespace: default
