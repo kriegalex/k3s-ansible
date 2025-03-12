@@ -25,37 +25,31 @@ paperless_app_ocr_user_args: '{"invalidate_digital_signatures": true}'
 paperless_persistence_media_enabled: true
 paperless_media_claim_name: "" # takes precedence over storage class
 paperless_media_nfs_claim_name: "nfs-paperless-media" # if set, creates PV/PVC using NFS
+paperless_media_nfs_path: "/mnt/user/paperless/media"
 paperless_media_storage_size: "100Gi"
 
 paperless_persistence_consume_enabled: true
 paperless_consume_claim_name: "" # takes precedence over storage class
 paperless_consume_nfs_claim_name: "nfs-paperless-consume" # if set, creates PV/PVC using NFS
+paperless_consume_nfs_path: "/mnt/user/paperless/consume"
 paperless_consume_storage_size: "10Gi"
 
 paperless_persistence_export_enabled: true
 paperless_export_claim_name: "" # takes precedence over storage class
 paperless_export_nfs_claim_name: "nfs-paperless-export" # if set, creates PV/PVC using NFS
+paperless_export_nfs_path: "/mnt/user/paperless/export"
 paperless_export_storage_size: "10Gi"
+
+paperless_persistence_access_mode: "ReadWriteMany"
+paperless_nfs_server: 10.0.0.2
 
 # optional, instead of existingClaim
 paperless_export_storage_class: ""
-paperless_export_access_mode: ""
 paperless_consume_storage_class: ""
-paperless_consume_access_mode: ""
 paperless_media_storage_class: ""
-paperless_media_access_mode: ""
 
 # NFS PVCs - REMOVED
-# paperless_create_nfs_pvc: true
-# paperless_nfs_server: 10.0.0.2
-# paperless_nfs_base_path: /mnt/user/paperless
-# paperless_nfs_media_enabled: false
-# paperless_nfs_media_server: ""
-# paperless_nfs_media_path: "/mnt/paperless/media"
 # paperless_nfs_media_mount_options: "nfsvers=4.2,hard,noatime"
-# paperless_nfs_consume_enabled: false
-# paperless_nfs_consume_server: ""
-# paperless_nfs_consume_path: "/mnt/paperless/consume"
 # paperless_nfs_consume_mount_options: "nfsvers=4.2,hard,noatime"
 
 # PostgreSQL migration settings
@@ -79,6 +73,15 @@ paperless_postgresql_resources_requests_memory: "150Mi"
 paperless_postgresql_resources_requests_cpu: "150m"
 paperless_postgresql_resources_limits_memory: "500Mi"
 paperless_postgresql_resources_limits_cpu: "300m"
+
+# PostgreSQL backup configuration
+paperless_postgresql_backup_enabled: false
+paperless_postgresql_backup_destination_path: ""
+paperless_postgresql_backup_credentials_secret_name: "paperless-s3-backup-credentials"
+paperless_postgresql_backup_s3_endpoint: ""
+paperless_postgresql_backup_s3_bucket: "paperless-backups"
+paperless_postgresql_backup_s3_access_key: ""
+paperless_postgresql_backup_s3_secret_key: ""
 
 # Redis
 paperless_redis_architecture: "standalone"

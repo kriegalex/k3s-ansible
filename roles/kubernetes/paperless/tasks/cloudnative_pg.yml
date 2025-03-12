@@ -7,6 +7,27 @@
     - paperless
     - database
 
+- name: Set dynamic backup path
+  ansible.builtin.set_fact:
+    paperless_postgresql_backup_destination_path: >-
+      s3://{{ paperless_postgresql_backup_s3_bucket }}/
+  when:
+    - paperless_postgresql_backup_enabled | bool
+    - paperless_postgresql_backup_destination_path | length == 0
+  tags:
+    - paperless
+    - database
+
+- name: Create S3 backup credentials secret
+  kubernetes.core.k8s:
+    state: present
+    template: templates/s3-backup-credentials-secret.yml.j2
+  when:
+    - paperless_postgresql_backup_enabled | bool
+  tags:
+    - paperless
+    - database
+
 - name: Create PostgreSQL cluster
   kubernetes.core.k8s:
     state: present
@@ -22,7 +43,7 @@
     name: paperless-db
     namespace: "{{ paperless_namespace }}"
     wait: true
-    wait_timeout: 150
+    wait_timeout: 300
     wait_condition:
       type: Ready
       status: "True"

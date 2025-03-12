@@ -44,3 +44,17 @@ spec:
         name: paperless-db-credentials
         key: password
 {% endif %}
+
+{% if paperless_postgresql_backup_enabled %}
+  backup:
+    barmanObjectStore:
+      destinationPath: "{{ paperless_postgresql_backup_destination_path }}"
+      endpointURL: "{{ paperless_postgresql_backup_s3_endpoint }}"
+      s3Credentials:
+        accessKeyId:
+          name: {{ paperless_postgresql_backup_credentials_secret_name }}
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: {{ paperless_postgresql_backup_credentials_secret_name }}
+          key: ACCESS_SECRET_KEY
+{% endif %}

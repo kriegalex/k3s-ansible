@@ -45,26 +45,35 @@ persistence:
   media:
     enabled: {{ paperless_persistence_media_enabled }}
     retain: true
+{% if paperless_media_claim_name | length > 0 %}
     # Either use an existing claim
-    existingClaim: "{{ paperless_media_claim_name if paperless_media_claim_name | length > 0 else paperless_media_nfs_claim_name }}"
+    existingClaim: "{{ paperless_media_claim_name }}"
+{% else %}
     # Or use a storage class
     storageClass: "{{ paperless_media_storage_class }}"
     size: "{{ paperless_media_storage_size }}"
     accessMode: "{{ paperless_media_access_mode }}"
+{% endif %}
   consume:
     enabled: {{ paperless_persistence_consume_enabled }}
     retain: true
-    existingClaim: "{{ paperless_consume_claim_name if paperless_consume_claim_name | length > 0 else paperless_consume_nfs_claim_name }}"
+{% if paperless_consume_claim_name | length > 0 %}
+    existingClaim: "{{ paperless_consume_claim_name }}"
+{% else %}
     storageClass: "{{ paperless_consume_storage_class }}"
     size: "{{ paperless_consume_storage_size }}"
     accessMode: "{{ paperless_consume_access_mode }}"
+{% endif %}
   export:
     enabled: {{ paperless_persistence_export_enabled }}
     retain: true
-    existingClaim: "{{ paperless_export_claim_name if paperless_export_claim_name | length > 0 else paperless_export_nfs_claim_name }}"
+{% if paperless_export_claim_name | length > 0 %}
+    existingClaim: "{{ paperless_export_claim_name }}"
+{% else %}
     storageClass: "{{ paperless_export_storage_class }}"
     size: "{{ paperless_export_storage_size }}"
     accessMode: "{{ paperless_export_access_mode }}"
+{% endif %}
 
 postgresql:
   enabled: {{ paperless_postgresql_source == 'internal' }}
