@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "nfs-{{ item.name }}"
+  name: "{{ item.name }}"
   namespace: "{{ item.namespace | default('default') }}"
   annotations:
     description: "{{ item.description }}"

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: "nfs-{{ item.name }}"
+  name: "{{ item.name }}"
   labels:
     content: {{ item.name }}
   annotations:

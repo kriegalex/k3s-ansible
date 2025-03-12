@@ -1,15 +1,11 @@
 # roles/k3s-nfs/defaults/main.yml
 ---
-nfs_pvc_enabled: false
-# NFS server details
-nfs_version: 4.2
-nfs_pvc_server: "10.0.0.2"
-nfs_pvc_root_path: "/mnt/user"
-
-# Default reclaim policy for PVs (Retain is safer for homelab data)
+# NFS server configuration
+nfs_pvc_server: "{{ nfs_server | default('') }}"
+nfs_pvc_root_path: "{{ nfs_root_path | default('/exports') }}"
+nfs_version: "4"
+nfs_pvc_access_mode: "ReadWriteOnce"
 nfs_pvc_reclaim_policy: "Retain"
 
-# Default access mode (ReadWriteMany for shared access)
-nfs_pvc_access_mode: "ReadWriteMany"
-
-nfs_pvc_shares: []
+# Default empty list (should be overridden by calling roles)
+nfs_pvc_items: []

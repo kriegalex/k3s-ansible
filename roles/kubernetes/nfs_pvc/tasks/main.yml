@@ -1,29 +1,14 @@
 # roles/k3s-nfs/tasks/main.yml
 ---
-- name: Create NFS Static StorageClass
-  kubernetes.core.k8s:
-    state: present
-    template: "nfs-storageclass.yml.j2"
-  tags: [storage, storageclass]
+# This role has been refactored to be a utility role.
+# For backward compatibility, if nfs_pvc_items is defined, we'll create those PVCs.
+- name: Warning about role usage
+  ansible.builtin.debug:
+    msg: >
+      The nfs_pvc role is now a utility role. Please use include_role with tasks_from: create_pvc
+      instead of direct inclusion.
+  when: nfs_pvc_items is not defined
 
-- name: Create PersistentVolumes for NFS shares
-  kubernetes.core.k8s:
-    state: present
-    template: "persistentvolume.yml.j2"
-  vars:
-    item: "{{ share_item }}"
-  loop: "{{ nfs_pvc_shares }}"
-  loop_control:
-    loop_var: share_item
-  tags: [storage, pv]
-
-- name: Create PersistentVolumeClaims for NFS shares
-  kubernetes.core.k8s:
-    state: present
-    template: "persistentvolumeclaim.yml.j2"
-  vars:
-    item: "{{ share_item }}"
-  loop: "{{ nfs_pvc_shares }}"
-  loop_control:
-    loop_var: share_item
-  tags: [storage, pvc]
+- name: Include create_pvc task for backward compatibility
+  ansible.builtin.include_tasks: create_pvc.yml
+  when: nfs_pvc_items is defined

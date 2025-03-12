@@ -44,18 +44,13 @@
 - name: Include Helm install roles
   hosts: ansible_local
   connection: local
-  gather_facts: false
+  gather_facts: true
   roles:
     - role: nfs_client
       when: nfs_client_enabled
       tags:
         - nfs
         - nfs_client
-    - role: nfs_pvc
-      when: nfs_pvc_enabled
-      tags:
-        - nfs
-        - nfs_pvc
     - role: intel_gpu_plugin
       when: intel_gpu_plugin_enabled
       tags:
