@@ -14,6 +14,22 @@
     url: "https://nextcloud.github.io/helm/"
     state: present
 
+# Use nfs_pvc role for data storage
+- name: Create NFS PV and PVC for Nextcloud
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  vars:
+    nfs_pvc_items:
+      - name: "{{ nextcloud_persistence_data_nfs_claim_name }}"
+        namespace: "{{ nextcloud_namespace }}"
+        size: "{{ nextcloud_persistence_data_size | default('50Gi') }}"
+        description: "Nextcloud data storage"
+        access_mode: "ReadWriteMany"
+  when:
+    - nextcloud_persistence_data_enabled | bool
+    - nextcloud_persistence_data_nfs_claim_name | length > 0
+
 - name: Install CloudNativePG
   ansible.builtin.include_role:
     name: cloudnative_pg

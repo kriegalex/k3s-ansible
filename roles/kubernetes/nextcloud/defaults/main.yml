@@ -29,7 +29,9 @@ nextcloud_persistence_storage_class: "longhorn"
 nextcloud_persistence_size: 8Gi
 # separate storage for nextcloud data (not config)
 nextcloud_persistence_data_enabled: true
-nextcloud_persistence_data_existing_claim: "nfs-nextcloud"
+nextcloud_persistence_data_existing_claim: "" # takes precedence over storage class
+nextcloud_persistence_data_nfs_claim_name: "nfs-nextcloud" # if set, creates PV/PVC using NFS
+nextcloud_persistence_data_size: "50Gi"
 
 # Ingress
  # false if you use ingress-nginx (k3s ingress) or apache nextcloud image
@@ -60,6 +62,14 @@ nextcloud_postgresql_resources_requests_memory: "512Mi"
 nextcloud_postgresql_resources_requests_cpu: "150m"
 nextcloud_postgresql_resources_limits_memory: "1Gi"
 nextcloud_postgresql_resources_limits_cpu: "500m"
+
+# PostgreSQL migration settings
+nextcloud_migrate_database: false
+nextcloud_migrate_source_namespace: default
+nextcloud_migrate_source_db_name: nextcloud-db-old
+# If username/password/database are different in source
+nextcloud_migrate_postgresql_username: "{{ nextcloud_postgresql_username }}"
+nextcloud_migrate_postgresql_database: "{{ nextcloud_postgresql_database }}"
 
 # Redis
 nextcloud_redis_enabled: true

@@ -11,6 +11,14 @@ spec:
     storageClass: {{ nextcloud_postgresql_storage_class }}
   bootstrap:
     initdb:
+{% if nextcloud_migrate_database | bool %}
+      import:
+        type: microservice
+        databases:
+          - {{ nextcloud_postgresql_database }}
+        source:
+          externalCluster: nextcloud-db-source
+{% endif %}
       database: {{ nextcloud_postgresql_database }}
       owner: {{ nextcloud_postgresql_username }}
       secret:
@@ -23,4 +31,17 @@ spec:
     limits:
       memory: {{ nextcloud_postgresql_resources_limits_memory }}
       cpu: {{ nextcloud_postgresql_resources_limits_cpu }}
+{% endif %}
+
+{% if nextcloud_migrate_database | bool %}
+  externalClusters:
+    - name: nextcloud-db-source
+      connectionParameters:
+        # Use the correct IP or host name for the source database
+        host: {{ nextcloud_migrate_source_db_name }}-r.{{ nextcloud_migrate_source_namespace }}.svc
+        user: {{ nextcloud_migrate_postgresql_username }}
+        dbname: {{ nextcloud_migrate_postgresql_database }}
+      password:
+        name: nextcloud-db-credentials
+        key: password
 {% endif %}

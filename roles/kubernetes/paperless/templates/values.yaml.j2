@@ -45,36 +45,26 @@ persistence:
   media:
     enabled: {{ paperless_persistence_media_enabled }}
     retain: true
-    mountPath: "/usr/src/paperless/media"
-{% if paperless_media_existing_claim %}
-    existingClaim: "{{ paperless_media_existing_claim }}"
-{% elif paperless_media_storage_class %}
+    # Either use an existing claim
+    existingClaim: "{{ paperless_media_claim_name if paperless_media_claim_name | length > 0 else paperless_media_nfs_claim_name }}"
+    # Or use a storage class
     storageClass: "{{ paperless_media_storage_class }}"
     size: "{{ paperless_media_storage_size }}"
     accessMode: "{{ paperless_media_access_mode }}"
-{% endif %}
-
-  export:
-    enabled: {{ paperless_persistence_export_enabled }}
-    mountPath: "/usr/src/paperless/export"
-{% if paperless_export_existing_claim %}
-    existingClaim: "{{ paperless_export_existing_claim }}"
-{% elif paperless_export_storage_class %}
-    storageClass: "{{ paperless_export_storage_class }}"
-    size: "{{ paperless_export_storage_size }}"
-    accessMode: "{{ paperless_export_access_mode }}"
-{% endif %}
-
   consume:
     enabled: {{ paperless_persistence_consume_enabled }}
-    mountPath: "/usr/src/paperless/consume"
-{% if paperless_consume_existing_claim %}
-    existingClaim: "{{ paperless_consume_existing_claim }}"
-{% elif paperless_consume_storage_class %}
+    retain: true
+    existingClaim: "{{ paperless_consume_claim_name if paperless_consume_claim_name | length > 0 else paperless_consume_nfs_claim_name }}"
     storageClass: "{{ paperless_consume_storage_class }}"
     size: "{{ paperless_consume_storage_size }}"
     accessMode: "{{ paperless_consume_access_mode }}"
-{% endif %}
+  export:
+    enabled: {{ paperless_persistence_export_enabled }}
+    retain: true
+    existingClaim: "{{ paperless_export_claim_name if paperless_export_claim_name | length > 0 else paperless_export_nfs_claim_name }}"
+    storageClass: "{{ paperless_export_storage_class }}"
+    size: "{{ paperless_export_storage_size }}"
+    accessMode: "{{ paperless_export_access_mode }}"
 
 postgresql:
   enabled: {{ paperless_postgresql_source == 'internal' }}

@@ -11,6 +11,14 @@ spec:
     storageClass: {{ paperless_postgresql_storage_class }}
   bootstrap:
     initdb:
+{% if paperless_migrate_database | bool %}
+      import:
+        type: microservice
+        databases:
+          - {{ paperless_postgresql_name }}
+        source:
+          externalCluster: paperless-db-source
+{% endif %}
       database: {{ paperless_postgresql_name }}
       owner: {{ paperless_postgresql_user }}
       secret:
@@ -23,4 +31,16 @@ spec:
     limits:
       memory: {{ paperless_postgresql_resources_limits_memory }}
       cpu: {{ paperless_postgresql_resources_limits_cpu }}
+{% endif %}
+
+{% if paperless_migrate_database | bool %}
+  externalClusters:
+    - name: paperless-db-source
+      connectionParameters:
+        host: {{ paperless_migrate_source_db_name }}-r.{{ paperless_migrate_source_namespace }}.svc
+        user: {{ paperless_migrate_postgresql_user }}
+        dbname: {{ paperless_migrate_postgresql_name }}
+      password:
+        name: paperless-db-credentials
+        key: password
 {% endif %}

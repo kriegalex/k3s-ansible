@@ -13,6 +13,36 @@
     name: gabe565
     repo_url: https://charts.gabe565.com
 
+# Use nfs_pvc role for all three volume types
+- name: Create NFS PV and PVC for Paperless
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  vars:
+    nfs_pvc_items:
+      - name: "{{ paperless_media_nfs_claim_name }}"
+        namespace: "{{ paperless_namespace }}"
+        size: "{{ paperless_media_storage_size | default('100Gi') }}"
+        description: "Paperless media storage"
+        access_mode: "ReadWriteMany"
+        when: paperless_persistence_media_enabled and paperless_media_nfs_claim_name | length > 0
+      - name: "{{ paperless_consume_nfs_claim_name }}"
+        namespace: "{{ paperless_namespace }}"
+        size: "{{ paperless_consume_storage_size | default('10Gi') }}"
+        description: "Paperless consume directory"
+        access_mode: "ReadWriteMany"
+        when: paperless_persistence_consume_enabled and paperless_consume_nfs_claim_name | length > 0
+      - name: "{{ paperless_export_nfs_claim_name }}"
+        namespace: "{{ paperless_namespace }}"
+        size: "{{ paperless_export_storage_size | default('10Gi') }}"
+        description: "Paperless export directory"
+        access_mode: "ReadWriteMany"
+        when: paperless_persistence_export_enabled and paperless_export_nfs_claim_name | length > 0
+  when: >
+    (paperless_persistence_media_enabled and paperless_media_nfs_claim_name | length > 0) or
+    (paperless_persistence_consume_enabled and paperless_consume_nfs_claim_name | length > 0) or
+    (paperless_persistence_export_enabled and paperless_export_nfs_claim_name | length > 0)
+
 - name: Install CloudNativePG
   ansible.builtin.include_role:
     name: cloudnative_pg
@@ -26,11 +56,7 @@
     - paperless_postgresql_source == "cloudnativepg"
     - paperless_postgresql_create_cluster
 
-- name: Create NFS PV and PVC resources
-  kubernetes.core.k8s:
-    state: present
-    definition: "{{ lookup('template', 'nfs-resources.yaml.j2') | from_yaml_all | list }}"
-  when: paperless_create_nfs_pvc
+# Remove the legacy NFS resources task since we're using nfs_pvc consistently now
 
 # - name: Generate debug YAML file
 #   ansible.builtin.template:

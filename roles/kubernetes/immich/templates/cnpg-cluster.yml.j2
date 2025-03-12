@@ -17,6 +17,14 @@ spec:
   # Database configuration
   bootstrap:
     initdb:
+{% if immich_migrate_database | bool %}
+      import:
+        type: microservice
+        databases:
+          - immich
+        source:
+          externalCluster: immich-db-source
+{% endif %}
       database: immich
       owner: immich
       secret:
@@ -42,4 +50,16 @@ spec:
     limits:
       memory: {{ immich_postgresql_resources_limits_memory }}
       cpu: {{ immich_postgresql_resources_limits_cpu }}
+{% endif %}
+
+{% if immich_migrate_database | bool %}
+  externalClusters:
+    - name: immich-db-source
+      connectionParameters:
+        host: {{ immich_migrate_source_db_name }}-r.{{ immich_migrate_source_namespace }}.svc
+        user: {{ immich_migrate_postgresql_user }}
+        dbname: {{ immich_migrate_postgresql_database }}
+      password:
+        name: immich-db-credentials
+        key: password
 {% endif %}

@@ -17,6 +17,30 @@
     url: "https://immich-app.github.io/immich-charts"
     state: present
 
+# Use nfs_pvc role for main and external storage
+- name: Create NFS PV and PVC for Immich
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  vars:
+    nfs_pvc_items:
+      - name: "{{ immich_persistence_nfs_claim_name }}"
+        namespace: "{{ immich_namespace }}"
+        size: "{{ immich_persistence_storage_size | default('100Gi') }}"
+        description: "Immich main storage"
+        access_mode: "ReadWriteMany"
+        when: immich_persistence_type == 'pvc' and immich_persistence_nfs_claim_name | length > 0
+      - name: "{{ immich_persistence_external_nfs_claim_name }}"
+        namespace: "{{ immich_namespace }}"
+        size: "{{ immich_persistence_external_storage_size | default('100Gi') }}"
+        description: "Immich external library"
+        access_mode: "ReadWriteMany"
+        readonly: "{{ immich_persistence_external_readonly | default(true) }}"
+        when: immich_persistence_external_enabled and immich_persistence_external_nfs_claim_name | length > 0
+  when: >
+    (immich_persistence_type == 'pvc' and immich_persistence_nfs_claim_name | length > 0) or
+    (immich_persistence_external_enabled and immich_persistence_external_nfs_claim_name | length > 0)
+
 - name: Create Immich PVC for Longhorn
   kubernetes.core.k8s:
     state: present

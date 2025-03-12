@@ -23,35 +23,48 @@ paperless_app_ocr_user_args: '{"invalidate_digital_signatures": true}'
 # Persistence
 # Use existingClaims or storageClasses
 paperless_persistence_media_enabled: true
-paperless_media_existing_claim: "paperless-media-pvc"
+paperless_media_claim_name: "" # takes precedence over storage class
+paperless_media_nfs_claim_name: "nfs-paperless-media" # if set, creates PV/PVC using NFS
+paperless_media_storage_size: "100Gi"
+
 paperless_persistence_consume_enabled: true
-paperless_consume_existing_claim: "paperless-consume-pvc"
+paperless_consume_claim_name: "" # takes precedence over storage class
+paperless_consume_nfs_claim_name: "nfs-paperless-consume" # if set, creates PV/PVC using NFS
+paperless_consume_storage_size: "10Gi"
+
 paperless_persistence_export_enabled: true
-paperless_export_existing_claim: "paperless-export-pvc"
+paperless_export_claim_name: "" # takes precedence over storage class
+paperless_export_nfs_claim_name: "nfs-paperless-export" # if set, creates PV/PVC using NFS
+paperless_export_storage_size: "10Gi"
+
 # optional, instead of existingClaim
 paperless_export_storage_class: ""
-paperless_export_storage_size: ""
-paperless_export_access_mode: ""  # ReadWriteOnce
+paperless_export_access_mode: ""
 paperless_consume_storage_class: ""
-paperless_consume_storage_size: ""
-paperless_consume_access_mode: ""  # ReadWriteOnce
-paperless_media_storage_size: ""
+paperless_consume_access_mode: ""
 paperless_media_storage_class: ""
-paperless_media_access_mode: ""  # ReadWriteOnce
+paperless_media_access_mode: ""
 
-# NFS PVCs
-paperless_create_nfs_pvc: true
-paperless_nfs_server: 10.0.0.2
-paperless_nfs_base_path: /mnt/user/paperless
-paperless_nfs_export_storage_size: 100Gi
-# final value is paperless_nfs_base_path/paperless_export_nfs_path
-paperless_nfs_export_path: export
-paperless_nfs_consume_storage_size: 10Gi
-# final value is paperless_nfs_base_path/paperless_consume_nfs_path
-paperless_nfs_consume_path: consume
-paperless_nfs_media_storage_size: 100Gi
-# final value is paperless_nfs_base_path/paperless_nfs_media_path
-paperless_nfs_media_path: media
+# NFS PVCs - REMOVED
+# paperless_create_nfs_pvc: true
+# paperless_nfs_server: 10.0.0.2
+# paperless_nfs_base_path: /mnt/user/paperless
+# paperless_nfs_media_enabled: false
+# paperless_nfs_media_server: ""
+# paperless_nfs_media_path: "/mnt/paperless/media"
+# paperless_nfs_media_mount_options: "nfsvers=4.2,hard,noatime"
+# paperless_nfs_consume_enabled: false
+# paperless_nfs_consume_server: ""
+# paperless_nfs_consume_path: "/mnt/paperless/consume"
+# paperless_nfs_consume_mount_options: "nfsvers=4.2,hard,noatime"
+
+# PostgreSQL migration settings
+paperless_migrate_database: false
+paperless_migrate_source_namespace: default
+paperless_migrate_source_db_name: paperless-db-old
+# If username/password/database are different in source
+paperless_migrate_postgresql_user: "{{ paperless_postgresql_user }}"
+paperless_migrate_postgresql_name: "{{ paperless_postgresql_name }}"
 
 # Postgresql
 paperless_postgresql_storage_class: "longhorn-single-replica"
