@@ -31,8 +31,18 @@ The following PVs and PVCs will be created in the 'storage' namespace:
 - nfs-backup (2Ti)
 - nfs-immich (1Ti)
 
+## Access Modes
+
+The following access modes are supported:
+- ReadWriteOnce (default) - Volume can be mounted as read-write by a single node
+- ReadWriteMany - Volume can be mounted as read-write by many nodes
+- ReadOnlyMany - Volume can be mounted as read-only by many nodes
+
+To create a read-only PVC, specify `access_mode: "ReadOnlyMany"` in your PVC definition.
+
 ## Example Usage in Deployments
 
+### Standard PVC:
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -49,4 +59,24 @@ spec:
   - name: movies-volume
     persistentVolumeClaim:
       claimName: nfs-movies
+```
+
+### Read-only PVC:
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: read-only-media-pod
+spec:
+  containers:
+  - name: media-viewer
+    image: your-image
+    volumeMounts:
+    - mountPath: /archive
+      name: archive-volume
+      readOnly: true  # Explicitly set to readOnly for extra security
+  volumes:
+  - name: archive-volume
+    persistentVolumeClaim:
+      claimName: read_only_share  # PVC with ReadOnlyMany access mode
 ```

@@ -38,3 +38,9 @@ nfs_pvc_shares:
     path: "/mnt/user/paperless"
     description: "Paperless consume export"
     access_mode: "ReadWriteMany"
+
+  - name: read_only_share
+    size: 500Gi
+    path: "/mnt/user/media_archive"
+    description: "Read-only media archive"
+    access_mode: "ReadOnlyMany"  # Creates a read-only PVC
