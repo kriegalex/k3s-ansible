@@ -1,8 +1,8 @@
 ---
-- name: Create PostgreSQL credentials secret
+- name: Create PostgreSQL user credentials secret
   kubernetes.core.k8s:
     state: present
-    template: templates/cnpg-db-secret.yml.j2
+    template: templates/cnpg-db-user-secret.yml.j2
   tags:
     - immich
     - database

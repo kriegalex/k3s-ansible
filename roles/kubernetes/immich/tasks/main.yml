@@ -55,6 +55,16 @@
     immich_persistence_nfs_claim_name | length > 0 or
     immich_persistence_external_nfs_claim_name | length > 0
 
+- name: Set persistence claim name based on NFS claim if provided
+  ansible.builtin.set_fact:
+    immich_persistence_claim_name: "{{ immich_persistence_nfs_claim_name }}"
+  when: immich_persistence_nfs_claim_name | length > 0
+
+- name: Set external persistence claim name based on NFS claim if provided
+  ansible.builtin.set_fact:
+    immich_persistence_external_claim_name: "{{ immich_persistence_external_nfs_claim_name }}"
+  when: immich_persistence_external_nfs_claim_name | length > 0
+
 - name: Create Immich PVC for Longhorn
   kubernetes.core.k8s:
     state: present

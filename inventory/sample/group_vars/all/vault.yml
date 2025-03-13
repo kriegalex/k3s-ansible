@@ -18,7 +18,7 @@ vault_nextcloud_redis_password: "CHANGEME-REDIS"
 vault_nextcloud_collabora_password: "CHANGEME-COLLABORA"
 
 # Immich PostgreSQL database password
-vault_immich_db_password: "CHANGEME-IMMICH"
+vault_immich_user_password: "CHANGEME-IMMICH"
 
 # Paperless PostgreSQL database password
 vault_paperless_db_password: "CHANGEME-PAPERLESS_DB"

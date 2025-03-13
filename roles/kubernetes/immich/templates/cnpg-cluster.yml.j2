@@ -28,14 +28,9 @@ spec:
       database: {{ immich_postgresql_database }}
       owner: {{ immich_postgresql_username }}
       secret:
-        name: immich-db-credentials
+        name: immich-pg-user
       postInitSQL:
         - ALTER USER immich WITH SUPERUSER;
-      postInitApplicationSQL:
-        - ALTER SYSTEM SET search_path TO "$user", public, vectors;
-        - CREATE EXTENSION IF NOT EXISTS "vectors";
-        - CREATE EXTENSION IF NOT EXISTS "cube" CASCADE;
-        - CREATE EXTENSION IF NOT EXISTS "earthdistance" CASCADE;
 
   # Storage configuration
   storage:

@@ -98,7 +98,7 @@
         run_as_user: 0  # root
         database_name: "immich"
         database_user: "immich"
-        database_password: "{{ vault_immich_db_password }}"
+        database_password: "{{ vault_immich_user_password }}"
         cnpg_cluster_name: "immich-db"
         cnpg_instances: 1  # bug in pgvector <0.4
         cnpg_storage_size: "10Gi"

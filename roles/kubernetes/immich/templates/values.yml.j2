@@ -9,7 +9,7 @@ env:
   DB_HOSTNAME: "immich-db-rw"
   DB_USERNAME: "immich"
   DB_DATABASE_NAME: "immich"
-  DB_PASSWORD: "{{ vault_immich_db_password }}"
+  DB_PASSWORD: "{{ vault_immich_user_password }}"
   IMMICH_MACHINE_LEARNING_URL: "http://immich-machine-learning:3003" # change if modifying the helm chart install
 {% if immich_db_skip_migrations %}
   DB_SKIP_MIGRATIONS: true
@@ -60,7 +60,7 @@ postgresql:
       auth:
         username: immich
         database: immich
-        password: {{ vault_immich_db_password }}
+        password: {{ vault_immich_user_password }}
   primary:
     containerSecurityContext:
       readOnlyRootFilesystem: false

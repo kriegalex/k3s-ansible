@@ -2,7 +2,7 @@
 immich_enabled: false
 immich_namespace: default
 immich_release_name: immich
-immich_chart_version: "0.9.0"
+immich_chart_version: "0.9.1"
 immich_image_tag: "release"
 immich_replica_count: 1
 
@@ -25,11 +25,12 @@ immich_postgresql_resources_limits_cpu: "500m"
 
 # PostgreSQL migration settings
 immich_migrate_database: false
-immich_migrate_source_namespace: default
-immich_migrate_source_db_name: immich-db
-# If username/password/database are different in source
-immich_migrate_postgresql_user: "{{ immich_postgresql_username }}"
-immich_migrate_postgresql_database: "{{ immich_postgresql_database }}"
+# DOES NOT WORK FOR NOW, SEE README
+# immich_migrate_source_namespace: default
+# immich_migrate_source_db_name: immich-db
+# # If username/password/database are different in source
+# immich_migrate_postgresql_user: "{{ immich_postgresql_username }}"
+# immich_migrate_postgresql_database: "{{ immich_postgresql_database }}"
 
 # PostgreSQL backup configuration
 immich_postgresql_backup_enabled: false
