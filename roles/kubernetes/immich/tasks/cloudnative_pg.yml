@@ -7,6 +7,27 @@
     - immich
     - database
 
+- name: Set dynamic backup path
+  ansible.builtin.set_fact:
+    immich_postgresql_backup_destination_path: >-
+      s3://{{ immich_postgresql_backup_s3_bucket }}/
+  when:
+    - immich_postgresql_backup_enabled | bool
+    - immich_postgresql_backup_destination_path | length == 0
+  tags:
+    - immich
+    - database
+
+- name: Create S3 backup credentials secret
+  kubernetes.core.k8s:
+    state: present
+    template: templates/s3-backup-credentials-secret.yml.j2
+  when:
+    - immich_postgresql_backup_enabled | bool
+  tags:
+    - immich
+    - database
+
 - name: Create PostgreSQL cluster
   kubernetes.core.k8s:
     state: present

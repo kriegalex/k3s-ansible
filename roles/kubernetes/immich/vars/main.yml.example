@@ -18,3 +18,10 @@ immich_persistence_type: "pvc"
 immich_persistence_pvc_existing_claim: nfs-immich # enable with pvc
 immich_persistence_external_enabled: true
 immich_persistence_external_existing_claim: "nfs-nextcloud-ro"
+
+# Machine learning
+immich_machine_learning_enabled: true
+immich_machine_learning_persistence_type: pvc
+
+# Resources
+immich_replica_count: 1
