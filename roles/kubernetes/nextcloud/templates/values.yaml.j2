@@ -186,9 +186,13 @@ service:
 
 persistence:
   enabled: {{ nextcloud_persistence_enabled }}
+{% if nextcloud_persistence_existing_claim | default('') | length > 0 %}
+  existingClaim: {{ nextcloud_persistence_existing_claim }}
+{% else %}
   storageClass: {{ nextcloud_persistence_storage_class }}
   accessMode: ReadWriteOnce
   size: {{ nextcloud_persistence_size }}
+{% endif %}
 
   nextcloudData:
     enabled: {{ nextcloud_persistence_data_enabled }}

@@ -34,7 +34,7 @@ storageClass:
   allowVolumeExpansion: true
 
   # Method used to reclaim an obsoleted volume
-  reclaimPolicy: Delete
+  reclaimPolicy: Retain
 
   # When set to false your PVs will not be archived by the provisioner upon deletion of the PVC.
   archiveOnDelete: true
@@ -49,7 +49,7 @@ storageClass:
   pathPattern:
 
   # Set access mode - ReadWriteOnce, ReadOnlyMany or ReadWriteMany
-  accessModes: ReadWriteOnce
+  accessModes: ReadWriteMany
 
   # Set volume bindinng mode - Immediate or WaitForFirstConsumer
   volumeBindingMode: Immediate

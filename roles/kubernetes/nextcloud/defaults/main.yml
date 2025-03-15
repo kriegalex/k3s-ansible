@@ -25,13 +25,21 @@ nextcloud_php_client_fix: true
 
 # Persistence
 nextcloud_persistence_enabled: true
+# You must specify either storage_class or existing_claim, not both
 nextcloud_persistence_storage_class: "longhorn"
+nextcloud_persistence_existing_claim: "" # takes precedence over storage class
 nextcloud_persistence_size: 8Gi
 # separate storage for nextcloud data (not config)
 nextcloud_persistence_data_enabled: true
 nextcloud_persistence_data_existing_claim: "" # takes precedence over storage class
 nextcloud_persistence_data_nfs_claim_name: "nfs-nextcloud" # if set, creates PV/PVC using NFS
-nextcloud_persistence_data_size: "50Gi"
+nextcloud_persistence_data_size: "1Ti"
+nextcloud_persistence_data_access_mode: "ReadWriteMany"
+# For NFS integration - these defaults will use the values from nfs_pvc role if not overridden
+nextcloud_persistence_data_nfs_server: "10.0.0.2"
+# Only construct path when claim name is provided to avoid errors
+nextcloud_persistence_data_nfs_path: "/mnt/user/nextcloud"
+nextcloud_persistence_data_nfs_reclaim_policy: "Retain"
 
 # Ingress
  # false if you use ingress-nginx (k3s ingress) or apache nextcloud image
@@ -50,6 +58,7 @@ nextcloud_ingress_tls_secret_name: nextcloud-tls
 nextcloud_postgresql_source: cloudnativepg
 # useful when restoring a DB
 nextcloud_postgresql_create_cluster: false
+nextcloud_postgresql_version: 16.8
 nextcloud_postgresql_storage_class: "longhorn-single-replica"
 nextcloud_postgresql_username: nextcloud # password comes from the vault
 nextcloud_postgresql_database: nextcloud
@@ -70,6 +79,15 @@ nextcloud_migrate_source_db_name: nextcloud-db-old
 # If username/password/database are different in source
 nextcloud_migrate_postgresql_username: "{{ nextcloud_postgresql_username }}"
 nextcloud_migrate_postgresql_database: "{{ nextcloud_postgresql_database }}"
+
+# PostgreSQL backup configuration
+nextcloud_postgresql_backup_enabled: false
+nextcloud_postgresql_backup_destination_path: ""
+nextcloud_postgresql_backup_credentials_secret_name: "nextcloud-s3-backup-credentials"
+nextcloud_postgresql_backup_s3_endpoint: ""
+nextcloud_postgresql_backup_s3_bucket: "nextcloud-backups"
+nextcloud_postgresql_backup_s3_access_key: ""
+nextcloud_postgresql_backup_s3_secret_key: ""
 
 # Redis
 nextcloud_redis_enabled: true

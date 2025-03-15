@@ -5,6 +5,8 @@ metadata:
   namespace: {{ nextcloud_namespace }}
 spec:
   instances: {{ nextcloud_postgresql_replicas }}
+  # psql > 12 && psql <= 16
+  imageName: ghcr.io/cloudnative-pg/postgresql:{{ nextcloud_postgresql_version }}
   primaryUpdateStrategy: unsupervised
   storage:
     size: {{ nextcloud_postgresql_size }}
@@ -44,4 +46,17 @@ spec:
       password:
         name: nextcloud-db-credentials
         key: password
+{% endif %}
+{% if nextcloud_postgresql_backup_enabled %}
+  backup:
+    barmanObjectStore:
+      destinationPath: "{{ nextcloud_postgresql_backup_destination_path }}"
+      endpointURL: "{{ nextcloud_postgresql_backup_s3_endpoint }}"
+      s3Credentials:
+        accessKeyId:
+          name: {{ nextcloud_postgresql_backup_credentials_secret_name }}
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: {{ nextcloud_postgresql_backup_credentials_secret_name }}
+          key: ACCESS_SECRET_KEY
 {% endif %}
