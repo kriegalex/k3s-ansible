@@ -76,6 +76,11 @@
       tags:
         - database
         - cloudnativepg
+    - role: bitcoin
+      when: bitcoin_enabled
+      tags:
+        - cryptocurrency
+        - bitcoin
     - role: immich
       when: immich_enabled
       tags:

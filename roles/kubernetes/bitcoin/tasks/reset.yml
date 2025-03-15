@@ -1,0 +1,10 @@
+---
+- name: Uninstall bitcoin (helm)
+  kubernetes.core.helm:
+    name: "{{ bitcoin_release_name }}"
+    release_namespace: "{{ bitcoin_namespace }}"
+    state: absent
+    wait: true
+  tags:
+    - reset
+    - bitcoin

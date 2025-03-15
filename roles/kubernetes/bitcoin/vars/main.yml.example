@@ -1,0 +1,30 @@
+---
+bitcoin_enabled: true
+
+# Network selection
+bitcoin_network: "mainnet"  # Options: mainnet, testnet, regtest
+
+# RPC configuration - secure these values!
+bitcoin_rpc_enabled: true
+bitcoin_rpc_username: "secure_username"
+bitcoin_rpc_password: "secure_password"
+
+# Memory configuration
+bitcoin_dbcache_mb: 75       # Database cache size in MB
+bitcoin_maxmempool_mb: 150   # Maximum mempool size in MB
+bitcoin_maxorphantx: 10      # Maximum orphan transactions to keep in memory
+
+# Persistence - NFS configuration
+bitcoin_persistence_enabled: true
+bitcoin_persistence_nfs_claim_name: "nfs-bitcoin"
+bitcoin_persistence_nfs_server: "10.0.0.2"
+bitcoin_persistence_nfs_path: "/mnt/user/bitcoin"
+bitcoin_persistence_size: "500Gi"  # Blockchain is large! (~500GB for full node)
+
+# For lower disk usage, enable pruning
+bitcoin_prune_mode: false
+bitcoin_prune_size_gb: 10    # Set higher if needed
+
+# Ingress configuration
+bitcoin_ingress_enabled: true
+bitcoin_subdomain: "bitcoin"

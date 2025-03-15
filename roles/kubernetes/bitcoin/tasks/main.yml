@@ -1,0 +1,60 @@
+---
+- name: Add Bitcoin Core Helm repository
+  kubernetes.core.helm_repository:
+    name: "hirosystems"
+    url: "https://charts.hiro.so/hirosystems"
+    state: present
+
+- name: Create bitcoin namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ bitcoin_namespace }}"
+
+# Use nfs_pvc role to create persistent storage
+- name: Create NFS PV and PVC for Bitcoin Core
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  vars:
+    nfs_pvc_items:
+      - name: "{{ bitcoin_persistence_nfs_claim_name }}"
+        namespace: "{{ bitcoin_namespace }}"
+        size: "{{ bitcoin_persistence_size }}"
+        description: "Bitcoin Core blockchain data"
+        access_mode: "{{ bitcoin_persistence_access_mode }}"
+        reclaim_policy: "{{ bitcoin_persistence_nfs_reclaim_policy }}"
+        server: "{{ bitcoin_persistence_nfs_server }}"
+        path: "{{ bitcoin_persistence_nfs_path }}"
+  when:
+    - bitcoin_persistence_enabled | bool
+    - bitcoin_persistence_nfs_claim_name | length > 0
+
+- name: Set persistence claim name based on NFS claim if provided
+  ansible.builtin.set_fact:
+    bitcoin_persistence_existing_claim: "{{ bitcoin_persistence_nfs_claim_name }}"
+  when:
+    - bitcoin_persistence_enabled | bool
+    - bitcoin_persistence_nfs_claim_name | length > 0
+
+# Uncomment for debugging
+# - name: Generate debug YAML file
+#   ansible.builtin.template:
+#     src: templates/values.yaml.j2
+#     dest: /tmp/bitcoin_values_debug.yaml
+#     mode: '0644'
+#   diff: true
+
+- name: Deploy Bitcoin Core using Helm
+  kubernetes.core.helm:
+    name: "{{ bitcoin_release_name }}"
+    chart_ref: hirosystems/bitcoin-core
+    chart_version: "{{ bitcoin_chart_version }}"
+    release_namespace: "{{ bitcoin_namespace }}"
+    create_namespace: true
+    update_repo_cache: true
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
+    wait: true

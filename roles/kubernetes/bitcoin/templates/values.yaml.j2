@@ -1,0 +1,198 @@
+# Bitcoin Core Helm Chart values
+
+## Global parameters
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+## Common parameters
+kubeVersion: ""
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+extraDeploy: []
+
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## Bitcoin Core configuration
+dataArchiveUrl: ""
+existingSecretForConfig: ""
+config: |
+  server=1
+  txindex=1
+  
+  chain={{ bitcoin_network }}
+  
+{% if bitcoin_rpc_enabled | lower == "true" %}
+  rpcserialversion=0
+  rpcuser={{ bitcoin_rpc_username }}
+  rpcpassword={{ bitcoin_rpc_password }}
+  
+  rpcallowip=192.168.0.0/20
+  rpcallowip=10.0.0.0/16
+  whitelist=192.168.0.0/20
+  whitelist=10.0.0.0/16
+  rpcbind=0.0.0.0
+{% endif %}
+  
+{% if bitcoin_prune_mode | lower == "true" %}
+  prune={{ bitcoin_prune_size_gb * 1024 }}
+{% endif %}
+  
+  dbcache={{ bitcoin_dbcache_mb }}
+  maxorphantx={{ bitcoin_maxorphantx }}
+  maxmempool={{ bitcoin_maxmempool_mb }}
+  nodebuglogfile=1
+
+## Image configuration
+image:
+  registry: docker.io
+  repository: dobtc/bitcoin
+  tag: "25.1"
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+  debug: true
+
+## Pod resources
+resources:
+  requests:
+    memory: {{ bitcoin_resources_requests_memory }}
+    cpu: {{ bitcoin_resources_requests_cpu }}
+  limits:
+    memory: {{ bitcoin_resources_limits_memory }}
+    cpu: {{ bitcoin_resources_limits_cpu }}
+
+## Container ports
+containerPorts:
+  rpc: {{ bitcoin_container_port_rpc | default(8332) }}
+  p2p: {{ bitcoin_container_port_p2p | default(8333) }}
+
+## Liveness and readiness probes
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: false
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+## Security contexts
+podSecurityContext:
+  enabled: false
+  fsGroup: 1001
+
+containerSecurityContext:
+  enabled: false
+  runAsUser: 1001
+  runAsNonRoot: true
+  readOnlyRootFilesystem: false
+
+## Pod management
+podManagementPolicy: OrderedReady
+priorityClassName: ""
+updateStrategy:
+  type: RollingUpdate
+
+## Persistence settings for Bitcoin blockchain data
+persistence:
+  enabled: {{ bitcoin_persistence_enabled | lower }}
+{% if bitcoin_persistence_existing_claim | length > 0 %}
+  existingClaim: {{ bitcoin_persistence_existing_claim }}
+{% else %}
+  storageClass: {{ bitcoin_persistence_storage_class }}
+  size: {{ bitcoin_persistence_size }}
+  accessMode: {{ bitcoin_persistence_access_mode }}
+{% endif %}
+  mountPath: /hirosystems/data
+  subPath: ""
+  annotations: {}
+  labels: {}
+  selector: {}
+  dataSource: {}
+
+## Service configuration
+singleService: true
+uniqueServices: false
+service:
+  type: LoadBalancer
+  ports:
+    rpc: {{ bitcoin_service_port_rpc | default(8332) }}
+    p2p: {{ bitcoin_service_port_p2p | default(8333) }}
+  nodePorts:
+    rpc: ""
+    p2p: ""
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Cluster
+  annotations: {}
+  extraPorts: []
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+
+## Ingress configuration
+ingress:
+  enabled: {{ bitcoin_ingress_enabled | lower }}
+{% if bitcoin_ingress_enabled %}
+  annotations:
+{% for key, value in bitcoin_ingress_annotations.items() %}
+    {{ key }}: {{ value | to_json }}
+{% endfor %}
+  ingressClassName: "{{ global_nginx_class | default('nginx') }}"
+  hostname: {{ bitcoin_ingress_host }}
+  tls: true
+{% endif %}
+
+## Volume permissions init container
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/os-shell
+    tag: 11-debian-11-r110
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 0
+
+## RBAC configuration
+rbac:
+  create: false
+  rules: []
+
+## ServiceAccount configuration
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: true

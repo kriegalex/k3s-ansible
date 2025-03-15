@@ -1,0 +1,54 @@
+---
+# Base settings
+bitcoin_enabled: false
+bitcoin_namespace: "bitcoin"
+bitcoin_release_name: bitcoin-core
+bitcoin_chart_version: "2.1.6"
+
+# Bitcoin Core Configuration
+bitcoin_network: "main"  # Options: main, test, regtest, signet
+bitcoin_rpc_enabled: true
+bitcoin_rpc_username: "bitcoinrpc"  # Change this in vars or vault
+bitcoin_rpc_password: "changeme"    # Change this in vars or vault
+bitcoin_prune_mode: false          # Set to true to enable pruning
+bitcoin_prune_size_gb: 10          # Pruning size in GB when enabled
+
+# Bitcoin memory configuration
+bitcoin_dbcache_mb: 450             # Database cache size in MB
+bitcoin_maxmempool_mb: 300          # Maximum mempool size in MB
+bitcoin_maxorphantx: 100            # Maximum number of orphan transactions to keep in memory
+
+# Resources
+bitcoin_resources_requests_memory: "2Gi"
+bitcoin_resources_requests_cpu: "500m"
+bitcoin_resources_limits_memory: "8Gi"
+bitcoin_resources_limits_cpu: "2000m"
+
+# Persistence configuration
+bitcoin_persistence_enabled: true
+bitcoin_persistence_existing_claim: ""  # Takes precedence over storage class
+bitcoin_persistence_storage_class: "longhorn"  # Used if existing_claim not specified
+bitcoin_persistence_size: "500Gi"       # Bitcoin blockchain is large!
+
+# NFS-specific configuration
+bitcoin_persistence_nfs_claim_name: "nfs-bitcoin"  # If set, creates PV/PVC using NFS
+bitcoin_persistence_access_mode: "ReadWriteMany"
+bitcoin_persistence_nfs_server: "10.0.0.2"
+bitcoin_persistence_nfs_path: "/mnt/user/bitcoin"
+bitcoin_persistence_nfs_reclaim_policy: "Retain"
+
+# Ingress configuration
+bitcoin_ingress_enabled: false
+bitcoin_ingress_annotations:
+  cert-manager.io/cluster-issuer: "{{ global_cluster_issuer | default('letsencrypt-prod') }}"
+  nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+
+bitcoin_subdomain: "bitcoin"
+bitcoin_ingress_host: "{{ bitcoin_subdomain }}.{{ global_domain_name | default('example.com') }}"
+
+# Bitcoin container and service port configuration
+bitcoin_container_port_rpc: 8332
+bitcoin_container_port_p2p: 8333
+bitcoin_service_port_rpc: 8332
+bitcoin_service_port_p2p: 8333
