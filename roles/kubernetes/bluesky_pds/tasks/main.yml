@@ -1,0 +1,34 @@
+---
+- name: Check if Bluesky PDS is enabled
+  ansible.builtin.meta: end_play
+  when: not (bluesky_pds_enabled | default(false))
+
+- name: Create namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ bluesky_pds_namespace }}"
+
+# Generate any missing required secrets
+- name: Generate required secrets if not provided
+  ansible.builtin.include_tasks: generate_secrets.yml
+
+# Create Kubernetes Secret with sensitive values
+- name: Create Bluesky PDS secrets
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('ansible.builtin.template', 'bluesky-pds-secrets.yml.j2') | from_yaml }}"
+
+# Install Bluesky PDS using Helm
+- name: Install Bluesky PDS using Helm
+  kubernetes.core.helm:
+    name: "{{ bluesky_pds_release_name }}"
+    chart_ref: "{{ bluesky_pds_chart_name }}"
+    chart_version: "{{ bluesky_pds_chart_version }}"
+    release_namespace: "{{ bluesky_pds_namespace }}"
+    create_namespace: true
+    values: "{{ lookup('ansible.builtin.template', 'values.yaml.j2') | from_yaml | to_yaml }}"
+    update_repo_cache: true

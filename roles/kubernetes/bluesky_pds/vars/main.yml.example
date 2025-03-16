@@ -1,0 +1,21 @@
+---
+# Example variable overrides for bluesky_pds role
+bluesky_pds_enabled: true
+bluesky_pds_admin_password: "{{ vault_bluesky_pds_admin_password }}"
+bluesky_pds_jwt_secret: "{{ vault_bluesky_pds_jwt_secret }}"
+bluesky_pds_plc_rotation_key_secret: "{{ vault_bluesky_pds_plc_rotation_key_secret }}"
+bluesky_pds_service_handle_domains: ["mydomain.com"]
+bluesky_pds_server_did: "did:plc:myserverdid123456789"
+bluesky_pds_persistence_size: "20Gi"
+bluesky_pds_moderator_enabled: true
+bluesky_pds_moderator_handle: "admin.mydomain.com"
+bluesky_pds_moderator_password: "{{ vault_bluesky_pds_moderator_password }}"
+bluesky_pds_invite_required: true
+
+# Optional SMTP configuration
+bluesky_pds_smtp_enabled: true
+bluesky_pds_smtp_host: "smtp.example.com"
+bluesky_pds_smtp_port: 587
+bluesky_pds_smtp_user: "notifications@example.com"
+bluesky_pds_smtp_password: "{{ vault_bluesky_pds_smtp_password }}"
+bluesky_pds_smtp_from_address: "notifications@example.com"

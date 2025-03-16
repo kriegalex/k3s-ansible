@@ -1,0 +1,60 @@
+---
+# Core settings
+bluesky_pds_enabled: false
+bluesky_pds_namespace: "bluesky-pds"
+bluesky_pds_release_name: "bluesky-pds"
+bluesky_pds_chart_name: "oci://ghcr.io/nerkho/charts/bluesky-pds"
+bluesky_pds_chart_version: "0.2.2"
+bluesky_pds_server_did: "did:plc:temporary"
+bluesky_pds_subdomain: "pds"
+bluesky_pds_secret_name: "bluesky-pds-secrets"
+# If global_domain_name is not defined, a placeholder is used
+bluesky_pds_fqdn: "{{ bluesky_pds_subdomain }}.{{ global_domain_name | default('example.com') }}"
+bluesky_pds_service_handle_domains: "{{ [global_domain_name] if global_domain_name is defined else [] }}"
+
+# Security settings
+# bluesky_pds_jwt_secret: ""  # Will be auto-generated if not provided
+# bluesky_pds_plc_rotation_key_secret: ""  # Will be auto-generated if not provided
+# bluesky_pds_admin_password: ""  # Will be auto-generated if not provided
+bluesky_pds_invite_required: true
+
+# Moderator settings
+# bluesky_pds_moderator_handle: ""  # Format: user.domain.com
+# bluesky_pds_moderator_password: ""  # Will be auto-generated if not provided
+bluesky_pds_moderator_enabled: true
+
+# Storage settings
+bluesky_pds_persistence_enabled: true
+bluesky_pds_persistence_storage_class: ""  # Use default storageClass if not specified
+bluesky_pds_persistence_size: "10Gi"
+
+# Resource settings
+# bluesky_pds_resources_limits_memory: "1Gi"
+# bluesky_pds_resources_limits_cpu: "1000m"
+# bluesky_pds_resources_requests_memory: "512Mi"
+# bluesky_pds_resources_requests_cpu: "200m"
+
+# SMTP settings
+bluesky_pds_smtp_enabled: false
+# bluesky_pds_smtp_host: ""
+# bluesky_pds_smtp_port: 587
+# bluesky_pds_smtp_user: ""
+# bluesky_pds_smtp_password: ""
+# bluesky_pds_smtp_from_address: ""
+bluesky_pds_smtp_secure: true
+
+# Crawler settings
+bluesky_pds_crawler_enabled: false
+bluesky_pds_crawler_service_did: "did:web:bsky.network"
+
+# Backup settings
+bluesky_pds_backups_enabled: false
+bluesky_pds_backups_schedule: "0 2 * * *"
+bluesky_pds_backups_retention: 7
+# bluesky_pds_backups_storage_class: ""  # Will default to bluesky_pds_persistence_storage_class
+bluesky_pds_backups_size: "5Gi"
+
+# Domain verification
+bluesky_pds_domain_verification_enabled: true
+bluesky_pds_verification_record_name: "_atproto"
+bluesky_pds_verification_record_text: "did={{ bluesky_pds_server_did }}"
