@@ -3,6 +3,12 @@
   ansible.builtin.meta: end_play
   when: not (bluesky_pds_enabled | default(false))
 
+- name: Add Bluesky Helm repository
+  kubernetes.core.helm_repository:
+    name: "nerkho"
+    url: "https://charts.nerkho.ch"
+    state: present
+
 - name: Create namespace
   kubernetes.core.k8s:
     state: present
@@ -29,6 +35,13 @@
     chart_ref: "{{ bluesky_pds_chart_name }}"
     chart_version: "{{ bluesky_pds_chart_version }}"
     release_namespace: "{{ bluesky_pds_namespace }}"
-    create_namespace: true
-    values: "{{ lookup('ansible.builtin.template', 'values.yaml.j2') | from_yaml | to_yaml }}"
+    create_namespace: false
     update_repo_cache: true
+    values: "{{ lookup('ansible.builtin.template', 'values.yaml.j2') | from_yaml }}"
+    wait: true
+
+- name: Update pdsadmin script locally
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/bluesky-social/pds/main/pdsadmin.sh
+    dest: "../roles/kubernetes/bluesky_pds/pdsadmin/pdsadmin.sh"
+    mode: '0755'

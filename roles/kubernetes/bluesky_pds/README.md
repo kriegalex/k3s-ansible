@@ -27,7 +27,6 @@ Enable the role in your playbook and set the essential variables:
     bluesky_pds_enabled: true
     bluesky_pds_subdomain: "pds"  # Your PDS will be available at pds.example.com
     bluesky_pds_admin_password: "{{ vault_bluesky_pds_admin_password }}"
-    bluesky_pds_service_handle_domains: ["example.com"]  # Allowed handle domains
   roles:
     - role: kubernetes/bluesky_pds
 ```
@@ -37,12 +36,15 @@ Enable the role in your playbook and set the essential variables:
 Every Bluesky PDS needs a Decentralized Identifier (DID). You have two options:
 
 ```yaml
-# Option 1: Use a placeholder DID for initial setup (you'll need to update later)
+# Option 1: Use a placeholder DID for initial setup
+# The role will automatically handle DID registration during the initial deployment
 bluesky_pds_server_did: "did:plc:temporary"
 
 # Option 2: If you already have a DID from a previous setup
 bluesky_pds_server_did: "did:plc:your-existing-did"
 ```
+
+The DID is important for identity verification within the AT Protocol network. If using a temporary DID, the role will handle the registration process, and you'll need to perform domain verification afterward.
 
 ### 3. JWT and Security Configuration
 
@@ -52,6 +54,8 @@ For production environments, make sure to set secure values for JWT and other se
 bluesky_pds_jwt_secret: "{{ vault_bluesky_pds_jwt_secret }}"
 bluesky_pds_plc_rotation_key_secret: "{{ vault_bluesky_pds_plc_rotation_key_secret }}"
 ```
+
+If you don't provide these values, the role will automatically generate secure random values for you. In production environments, it's recommended to explicitly set and store these values in your Ansible Vault.
 
 ### 4. Storage Configuration
 
@@ -63,12 +67,15 @@ bluesky_pds_persistence_storage_class: "longhorn"  # Use your preferred storage 
 bluesky_pds_persistence_size: "10Gi"
 ```
 
-### 5. Invite Codes
+### 5. Resource Allocation
 
-Control who can create accounts on your PDS:
+You can control resource allocation for your PDS deployment:
 
 ```yaml
-bluesky_pds_invite_required: true  # Require invite codes for registration
+bluesky_pds_resources_limits_memory: "2Gi"
+bluesky_pds_resources_limits_cpu: "1000m"
+bluesky_pds_resources_requests_memory: "512Mi"
+bluesky_pds_resources_requests_cpu: "200m"
 ```
 
 ### 6. SMTP Configuration
@@ -85,35 +92,15 @@ bluesky_pds_smtp_from_address: "notifications@example.com"
 bluesky_pds_smtp_secure: true  # Use TLS
 ```
 
-### 7. PDS Crawler Configuration
+### 7. Ingress Configuration
 
-Configure the BlueSky crawler for improved federation:
-
-```yaml
-bluesky_pds_crawler_enabled: true
-bluesky_pds_crawler_service_did: "did:web:bsky.network"
-```
-
-### 8. Backup Configuration
-
-Setup automatic backups of your PDS data:
+Enable and configure ingress for your PDS:
 
 ```yaml
-bluesky_pds_backups_enabled: true
-bluesky_pds_backups_schedule: "0 2 * * *"  # Daily at 2am
-bluesky_pds_backups_retention: 7  # Keep 7 days of backups
-bluesky_pds_backups_storage_class: "{{ bluesky_pds_persistence_storage_class }}"
-bluesky_pds_backups_size: "5Gi"
-```
-
-### 9. Domain Verification
-
-Configure domain verification to prevent handle spoofing:
-
-```yaml
-bluesky_pds_domain_verification_enabled: true
-bluesky_pds_verification_record_name: "_atproto"
-bluesky_pds_verification_record_text: "did={{ bluesky_pds_server_did }}"
+bluesky_pds_ingress_enabled: true
+bluesky_pds_ingress_class_name: "nginx"
+bluesky_pds_tls_enabled: true
+bluesky_pds_tls_secret_name: "bluesky-pds-tls"
 ```
 
 ## Post-Installation Steps

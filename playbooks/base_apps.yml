@@ -71,11 +71,6 @@
       tags:
         - database
         - cloudnativepg
-    - role: bitcoin
-      when: bitcoin_enabled
-      tags:
-        - cryptocurrency
-        - bitcoin
     - role: immich
       when: immich_enabled
       tags:
@@ -135,3 +130,13 @@
       when: home_assistant_enabled
       tags:
         - home_assistant
+    - role: bitcoin
+      when: bitcoin_enabled
+      tags:
+        - cryptocurrency
+        - bitcoin
+    - role: bluesky_pds
+      when: bluesky_pds_enabled
+      tags:
+        - social
+        - bluesky
