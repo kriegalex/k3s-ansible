@@ -134,6 +134,27 @@ ansible-playbook -i inventory playbook.yml --vault-password-file ~/.vault_pass
 ansible-playbook -i inventory playbook.yml --ask-vault-pass
 ```
 
+## Backup & Restore
+
+### Manual backup
+
+```bash
+kubectl -n nextcloud exec nextcloud-db-1 -c postgres -- sh -c 'PGPASSWORD="YOUR-PWD" pg_dump -U nextcloud -d nextcloud -h localhost | gzip > "/var/lib/postgresql/data/dump.sql.gz"'
+# change the namespace to suit your needs
+kubectl -n nextcloud cp -c postgres nextcloud-db-1:/var/lib/postgresql/data/dump.sql.gz ./dump.sql.gz 
+```
+
+### Manual restore
+
+```bash
+gunzip < "./dump.sql.gz" > dump.sql
+# change the namespace to suit your needs
+kubectl -n nextcloud cp -c postgres ./dump.sql nextcloud-db-1:/var/lib/postgresql/data/dump.sql
+# avoid passwords with "$" if possible
+kubectl -n nextcloud exec nextcloud-db-1 -c postgres -- sh -c 'PGPASSWORD="YOUR_PASSWORD" psql -d nextcloud -U nextcloud -h localhost -f /var/lib/postgresql/data/dump.sql'
+kubectl -n nextcloud exec nextcloud-db-1 -c postgres -- rm /var/lib/postgresql/data/dump.sql
+```
+
 ## Vault Password Management
 
 ### Creating a vault password file
