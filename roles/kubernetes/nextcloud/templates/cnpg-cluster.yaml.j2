@@ -59,4 +59,9 @@ spec:
         secretAccessKey:
           name: {{ nextcloud_postgresql_backup_credentials_secret_name }}
           key: ACCESS_SECRET_KEY
+      wal:
+        compression: bzip2
+      data:
+        compression: bzip2
+    retentionPolicy: "30d"
 {% endif %}

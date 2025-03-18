@@ -59,6 +59,11 @@ spec:
         secretAccessKey:
           name: {{ gitea_postgresql_backup_credentials_secret_name }}
           key: ACCESS_SECRET_KEY
+      wal:
+        compression: bzip2
+      data:
+        compression: bzip2
+    retentionPolicy: "30d"
 {% endif %}
 {% if gitea_postgresql_override_resources %}
   resources:
