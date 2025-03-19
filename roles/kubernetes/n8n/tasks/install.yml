@@ -1,0 +1,23 @@
+---
+- name: Add n8n Helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ n8n_helm_repo_name }}"
+    repo_url: "{{ n8n_helm_repo_url }}"
+
+- name: Get list of n8n releases in namespace
+  kubernetes.core.helm_info:
+    release_name: "{{ n8n_helm_release_name }}"
+    namespace: "{{ n8n_namespace }}"
+  register: helm_release_info
+
+- name: Install or upgrade n8n Helm chart
+  kubernetes.core.helm:
+    name: "{{ n8n_helm_release_name }}"
+    chart_ref: "{{ n8n_helm_repo_name }}/{{ n8n_helm_chart_name }}"
+    chart_version: "{{ n8n_helm_chart_version }}"
+    release_namespace: "{{ n8n_namespace }}"
+    create_namespace: "{{ n8n_create_namespace }}"
+    values: "{{ lookup('ansible.builtin.template', 'values.yaml.j2') | from_yaml }}"
+    wait: true
+    wait_timeout: "600s"
+  register: helm_result

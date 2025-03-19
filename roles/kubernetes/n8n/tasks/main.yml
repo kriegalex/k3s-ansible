@@ -1,0 +1,9 @@
+---
+- name: Include pre-installation checks
+  ansible.builtin.import_tasks: pre_checks.yml
+
+- name: Include installation tasks
+  ansible.builtin.import_tasks: install.yml
+
+- name: Include post-installation tasks
+  ansible.builtin.import_tasks: post_install.yml
