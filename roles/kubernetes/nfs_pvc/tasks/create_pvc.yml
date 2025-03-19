@@ -22,6 +22,7 @@
     state: present
     definition: "{{ lookup('template', 'persistentvolume.yml.j2') | from_yaml }}"
   with_items: "{{ nfs_pvc_items }}"
+  when: item.name | length > 0
   loop_control:
     loop_var: item
 
@@ -30,5 +31,6 @@
     state: present
     definition: "{{ lookup('template', 'persistentvolumeclaim.yml.j2') | from_yaml }}"
   with_items: "{{ nfs_pvc_items }}"
+  when: item.name | length > 0
   loop_control:
     loop_var: item

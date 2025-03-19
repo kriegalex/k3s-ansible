@@ -36,7 +36,6 @@
         access_mode: "{{ paperless_persistence_access_mode }}"
         server: "{{ paperless_nfs_server }}"
         path: "{{ paperless_media_nfs_path }}"
-        when: paperless_persistence_media_enabled and paperless_media_nfs_claim_name | length > 0
       - name: "{{ paperless_consume_nfs_claim_name }}"
         namespace: "{{ paperless_namespace }}"
         size: "{{ paperless_consume_storage_size | default('10Gi') }}"
@@ -44,7 +43,6 @@
         access_mode: "{{ paperless_persistence_access_mode }}"
         server: "{{ paperless_nfs_server }}"
         path: "{{ paperless_consume_nfs_path }}"
-        when: paperless_persistence_consume_enabled and paperless_consume_nfs_claim_name | length > 0
       - name: "{{ paperless_export_nfs_claim_name }}"
         namespace: "{{ paperless_namespace }}"
         size: "{{ paperless_export_storage_size | default('10Gi') }}"
@@ -52,7 +50,6 @@
         access_mode: "{{ paperless_persistence_access_mode }}"
         server: "{{ paperless_nfs_server }}"
         path: "{{ paperless_export_nfs_path }}"
-        when: paperless_persistence_export_enabled and paperless_export_nfs_claim_name | length > 0
   when: >
     (paperless_persistence_media_enabled and paperless_media_nfs_claim_name | length > 0) or
     (paperless_persistence_consume_enabled and paperless_consume_nfs_claim_name | length > 0) or
@@ -104,4 +101,5 @@
     values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
     create_namespace: true
     update_repo_cache: true
+    force: false
     wait: true

@@ -15,6 +15,8 @@ paperless_app_domain: "{{ paperless_subdomain }}.{{ global_domain_name }}"
 paperless_app_timezone: "UTC"
 paperless_app_trusted_proxies: "10.42.0.0/16"
 paperless_app_filename_format: "{created_year}/{correspondent}/{title}"
+# enabled by default because using nfs by default, see persistence
+paperless_app_consumer_polling_enabled: true
 paperless_app_consumer_polling: "60"
 paperless_app_consumer_recursive: true
 paperless_app_consumer_subdirs_as_tags: true
@@ -27,26 +29,30 @@ paperless_media_claim_name: "" # takes precedence over storage class
 paperless_media_nfs_claim_name: "nfs-paperless-media" # if set, creates PV/PVC using NFS
 paperless_media_nfs_path: "/mnt/user/paperless/media"
 paperless_media_storage_size: "100Gi"
+# optional, instead of existingClaim
+paperless_media_storage_class: ""
+paperless_media_access_mode: ""
 
 paperless_persistence_consume_enabled: true
 paperless_consume_claim_name: "" # takes precedence over storage class
 paperless_consume_nfs_claim_name: "nfs-paperless-consume" # if set, creates PV/PVC using NFS
 paperless_consume_nfs_path: "/mnt/user/paperless/consume"
 paperless_consume_storage_size: "10Gi"
+# optional, instead of existingClaim
+paperless_consume_storage_class: ""
+paperless_consume_access_mode: ""
 
 paperless_persistence_export_enabled: true
 paperless_export_claim_name: "" # takes precedence over storage class
 paperless_export_nfs_claim_name: "nfs-paperless-export" # if set, creates PV/PVC using NFS
 paperless_export_nfs_path: "/mnt/user/paperless/export"
 paperless_export_storage_size: "10Gi"
+# optional, instead of existingClaim
+paperless_export_storage_class: ""
+paperless_export_access_mode: ""
 
 paperless_persistence_access_mode: "ReadWriteMany"
 paperless_nfs_server: 10.0.0.2
-
-# optional, instead of existingClaim
-paperless_export_storage_class: ""
-paperless_consume_storage_class: ""
-paperless_media_storage_class: ""
 
 # PostgreSQL migration settings
 paperless_migrate_database: false

@@ -7,20 +7,22 @@ env:
   PAPERLESS_TRUSTED_PROXIES: "{{ paperless_app_trusted_proxies }}"
   PAPERLESS_DATA_DIR: "/usr/src/paperless/media"
   PAPERLESS_FILENAME_FORMAT: "{{ paperless_app_filename_format }}"
+{% if paperless_app_consumer_polling_enabled %}
   PAPERLESS_CONSUMER_POLLING: "{{ paperless_app_consumer_polling }}"
+{% endif %}
   PAPERLESS_CONSUMER_RECURSIVE: {{ paperless_app_consumer_recursive | lower }}
   PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: {{ paperless_app_consumer_subdirs_as_tags | lower }}
   PAPERLESS_OCR_USER_ARGS: '{{ paperless_app_ocr_user_args }}'
   PAPERLESS_ADMIN_USER: "{{ paperless_admin_user }}"
   PAPERLESS_ADMIN_MAIL: "{{ paperless_admin_mail }}"
   PAPERLESS_ADMIN_PASSWORD: "{{ vault_paperless_admin_password }}"
-  {% if paperless_postgresql_source == 'cloudnativepg' -%}
+{% if paperless_postgresql_source == 'cloudnativepg' %}
   PAPERLESS_DBENGINE: postgresql
   PAPERLESS_DBHOST: paperless-db-rw
   PAPERLESS_DBNAME: {{ paperless_postgresql_name }}
   PAPERLESS_DBUSER: {{ paperless_postgresql_user }}
   PAPERLESS_DBPASS: {{ vault_paperless_db_password }}
-  {% endif %}
+{% endif %}
 
 ingress:
   main:
