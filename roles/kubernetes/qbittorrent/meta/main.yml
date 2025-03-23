@@ -1,0 +1,5 @@
+---
+dependencies:
+  # This doesn't execute the role, just ensures it's available
+  - role: nfs_pvc
+    when: false

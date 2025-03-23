@@ -2,6 +2,36 @@
 - name: Include validation tasks
   ansible.builtin.import_tasks: validation.yml
 
+- name: Create Qbittorrent namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ qbittorrent_namespace }}"
+
+- name: Create NFS PV and PVC for qBittorrent data
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  vars:
+    nfs_pvc_items:
+      - name: "{{ qbittorrent_data_nfs_claim_name }}"
+        namespace: "{{ qbittorrent_namespace }}"
+        size: "{{ qbittorrent_data_size }}"
+        description: "qBittorrent download data"
+        access_mode: "{{ qbittorrent_data_access_mode }}"
+        reclaim_policy: "{{ qbittorrent_nfs_reclaim_policy }}"
+        server: "{{ qbittorrent_nfs_server }}"
+        path: "{{ qbittorrent_nfs_path }}"
+  when: qbittorrent_data_nfs_claim_name | length > 0
+
+- name: Set data persistence claim name based on NFS claim if provided
+  ansible.builtin.set_fact:
+    qbittorrent_data_existing_claim: "{{ qbittorrent_data_nfs_claim_name }}"
+  when: qbittorrent_data_nfs_claim_name | length > 0
+
 - name: Add Qbittorrent helm repository
   kubernetes.core.helm_repository:
     name: "{{ qbittorrent_repository_name }}"
@@ -27,7 +57,7 @@
     chart_ref: "{{ qbittorrent_repository_name }}/{{ qbittorrent_chart_name }}"
     release_namespace: "{{ qbittorrent_namespace }}"
     chart_version: "{{ qbittorrent_chart_version }}"
-    create_namespace: true
+    create_namespace: false
     update_repo_cache: true
     values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
     wait: true

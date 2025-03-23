@@ -73,10 +73,17 @@ qbittorrent_config_size: "5Gi"
 qbittorrent_config_existing_claim: ""
 
 qbittorrent_data_persistence_enabled: true
-qbittorrent_data_existing_claim: "nfs-torrent"
+qbittorrent_data_existing_claim: ""
+qbittorrent_data_nfs_claim_name: "" # if set, creates PV/PVC using NFS
 # Use NFS subdir provisioner
 qbittorrent_data_storage_class: ""
-qbittorrent_data_size: ""
+qbittorrent_data_size: "1Ti"
+qbittorrent_data_access_mode: "ReadWriteMany"
+
+# For NFS integration - these defaults will use the values from nfs_pvc role if not overridden
+qbittorrent_nfs_server: "10.0.0.7"
+qbittorrent_nfs_path: "/torrent"
+qbittorrent_nfs_reclaim_policy: "Retain"
 
 # Resource limits (empty by default)
 qbittorrent_resources_limits_cpu: "1"
@@ -89,6 +96,7 @@ qbittorrent_resources_requests_memory: "2Gi"
 qbittorrent_anti_affinity_enabled: true
 qbittorrent_anti_affinity_weight: 90
 qbittorrent_anti_affinity_target_name: plex-media-server
+qbittorrent_anti_affinity_target_namespace: plex
 
 # Extra
 qbittorrent_extra_env: []

@@ -25,13 +25,16 @@ qbittorrent_wg_endpoint: "changeme"
 qbittorrent_privoxy_enabled: false
 qbittorrent_unbound_enabled: false
 
-# Storage configuration overrides default storage classes
+# Storage configuration
 qbittorrent_config_storage_class: "longhorn"
 qbittorrent_config_size: "5Gi"
 # qbittorrent_config_existing_claim: ""
 
 qbittorrent_data_persistence_enabled: true
 # qbittorrent_data_existing_claim: "nfs-torrent"
-# Use NFS subdir provisioner
-# qbittorrent_data_storage_class: "nfs-client"
-# qbittorrent_data_size: "100Gi"
+# qbittorrent_data_nfs_claim_name: "nfs-qbittorrent-data"  # If set, creates PV/PVC using NFS
+
+# For NFS integration
+# qbittorrent_nfs_server: "10.0.0.7"
+# qbittorrent_nfs_path: "/torrent"
+# qbittorrent_nfs_reclaim_policy: "Retain"

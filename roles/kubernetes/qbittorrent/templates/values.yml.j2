@@ -125,5 +125,6 @@ affinity:
             operator: In
             values:
             - {{ qbittorrent_anti_affinity_target_name }}
+        namespace: {{ qbittorrent_anti_affinity_target_namespace }}
         topologyKey: kubernetes.io/hostname
 {% endif %}
