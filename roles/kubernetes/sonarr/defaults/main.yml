@@ -30,6 +30,19 @@ sonarr_storage_size: "5Gi"
 # sonarr_existing_claim: "existing-claim-name"
 sonarr_access_mode: "ReadWriteOnce"
 
+# Additional volumes (for media files, etc)
+# Format:
+# - name: media
+#   mount_path: /media
+#   claim_name: nfs-media
+#   # Optional: Use NFS
+#   nfs:
+#     enabled: false
+#     server: ""
+#     path: "/mnt/user/media"
+#     size: "500Gi"
+#     access_mode: "ReadWriteMany"
+#     reclaim_policy: "Retain"
 sonarr_additional_volumes: []
 
 # Pod configuration
@@ -45,5 +58,5 @@ sonarr_service_port: 80
 # Ingress configuration
 sonarr_ingress_enabled: true
 sonarr_ingress_class_name: "{{ global_nginx_class }}"
-sonarr_ingress_tls_enabled: true
+sonarr_ingress_tls_enabled: false
 sonarr_cluster_issuer: "{{ global_cluster_issuer }}"

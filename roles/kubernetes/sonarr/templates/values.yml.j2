@@ -29,8 +29,8 @@ persistence:
     - name: {{ volume.name }}
       persistentVolumeClaim:
         claimName: {{ volume.claim_name }}
-  # -- if you need any additional volume mounts, you can define them here
 {% endfor %}
+  # -- if you need any additional volume mounts, you can define them here
   additionalMounts:
 {% for volume in sonarr_additional_volumes %}
     - name: {{ volume.name }}

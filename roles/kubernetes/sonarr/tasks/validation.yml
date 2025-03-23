@@ -23,3 +23,17 @@
         sonarr_existing_claim is defined or
         sonarr_storage_size | regex_search('^[0-9]+[MGT]i$')
     fail_msg: "Invalid storage size format. Must be in format: 1Gi, 100Mi, 2Ti, etc."
+
+- name: Verify NFS configuration for additional volumes
+  ansible.builtin.assert:
+    that:
+      - >-
+        item.nfs is not defined or
+        not item.nfs.enabled or
+        (item.nfs.server is defined and item.nfs.server | length > 0 and
+         item.nfs.path is defined and item.nfs.path | length > 0)
+    fail_msg: >-
+      For additional volume "{{ item.name }}":
+      - When using NFS (nfs.enabled: true), you must specify nfs.server and nfs.path
+    quiet: true
+  loop: "{{ sonarr_additional_volumes }}"
