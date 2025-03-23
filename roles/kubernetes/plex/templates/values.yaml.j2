@@ -21,6 +21,7 @@ ingress:
 pms:
   storageClassName: {{ plex_storage_class }}
   configStorage: {{ plex_config_size }}
+  configExistingClaim: {{ plex_config_claim_name }}
   gpu:
     nvidia:
       enabled: {{ plex_nvidia_gpu_enabled | bool | lower }}

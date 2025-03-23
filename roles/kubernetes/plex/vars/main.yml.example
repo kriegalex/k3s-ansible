@@ -10,12 +10,22 @@ plex_ingress_subdomain: "plex"
 plex_config_size: "200Gi"
 # adapt media volumes to your needs
 plex_media_volumes:
+  # Example using existing PVC
   - name: movies
     claim_name: nfs-movies  # existingClaim
     mount_path: /movies
+  
+  # Example creating required NFS PVC
   - name: tv
-    claim_name: nfs-tv      # existingClaim
+    claim_name: nfs-tv
     mount_path: /tv
+    nfs:
+      enabled: true
+      server: "10.0.0.2"
+      path: "/mnt/user/tv"
+      size: "4Ti"
+      access_mode: "ReadWriteMany"
+      reclaim_policy: "Retain"
 
 plex_intel_hw_accel: true
 plex_intel_hw_affinity: "gpu.intel.com/device-id.0300-7d55.count"

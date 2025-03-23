@@ -30,6 +30,7 @@ plex_service_type: ClusterIP
 plex_service_port: 32400
 
 # Persistence
+plex_config_claim_name: ""
 plex_config_size: "50Gi"
 plex_storage_class: "longhorn"
 
@@ -41,3 +42,18 @@ plex_resources_requests_memory: "4Gi"
 
 plex_affinity: {}
 plex_extra_env: []
+
+# Media volumes (for movies, TV shows, etc)
+# Format:
+# - name: movies
+#   mount_path: /movies
+#   claim_name: nfs-movies
+#   # Optional: Create NFS PVC
+#   nfs:
+#     enabled: false
+#     server: ""
+#     path: "/mnt/user/movies"
+#     size: "4Ti"
+#     access_mode: "ReadWriteMany"
+#     reclaim_policy: "Retain"
+plex_media_volumes: []
