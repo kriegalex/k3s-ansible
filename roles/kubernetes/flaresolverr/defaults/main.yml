@@ -16,9 +16,9 @@ flaresolverr_image_tag: ""
 flaresolverr_image_pull_policy: "IfNotPresent"
 
 # Resources
-flaresolverr_resources_limits_memory: "2Gi"
-flaresolverr_resources_limits_cpu: "1000m"
-flaresolverr_resources_requests_memory: "256Mi"
+flaresolverr_resources_limits_memory: "1Gi"
+flaresolverr_resources_limits_cpu: "250m"
+flaresolverr_resources_requests_memory: "512Mi"
 flaresolverr_resources_requests_cpu: "100m"
 
 # Storage configuration
