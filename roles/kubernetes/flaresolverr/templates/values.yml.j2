@@ -59,3 +59,20 @@ resources:
   requests:
     cpu: {{ flaresolverr_resources_requests_cpu }}
     memory: {{ flaresolverr_resources_requests_memory }}
+
+{% if flaresolverr_anti_affinity_enabled %}
+# Add affinity rules for flaresolverr to avoid other pods
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ flaresolverr_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ flaresolverr_anti_affinity_target_name }}
+        namespace: {{ flaresolverr_anti_affinity_target_namespace }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}
