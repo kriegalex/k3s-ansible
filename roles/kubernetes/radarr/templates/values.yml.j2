@@ -60,3 +60,20 @@ ingress:
       hosts:
         - {{ radarr_host }}
 {% endif %}
+
+{% if radarr_anti_affinity_enabled %}
+# Add affinity rules for Radarr to avoid other pods
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ radarr_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ radarr_anti_affinity_target_name }}
+        namespace: {{ radarr_anti_affinity_target_namespace }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}

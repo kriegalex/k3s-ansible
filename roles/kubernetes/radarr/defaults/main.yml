@@ -59,3 +59,9 @@ radarr_ingress_enabled: true
 radarr_ingress_class_name: "{{ global_nginx_class }}"
 radarr_ingress_tls_enabled: false
 radarr_cluster_issuer: "{{ global_cluster_issuer }}"
+
+# This settings tries to help radarr avoid plex
+radarr_anti_affinity_enabled: true
+radarr_anti_affinity_weight: 80
+radarr_anti_affinity_target_name: plex-media-server
+radarr_anti_affinity_target_namespace: plex
