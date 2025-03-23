@@ -3,8 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: "{{ item.name }}"
   namespace: "{{ item.namespace | default('default') }}"
-  annotations:
-    description: "{{ item.description }}"
 spec:
   accessModes:
     - "{{ item.access_mode | default(nfs_pvc_access_mode) }}"

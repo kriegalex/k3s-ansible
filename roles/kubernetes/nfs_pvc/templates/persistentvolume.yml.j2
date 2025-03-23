@@ -4,8 +4,6 @@ metadata:
   name: "{{ item.name }}"
   labels:
     content: {{ item.name }}
-  annotations:
-    description: "{{ item.description }}"
 spec:
   capacity:
     storage: "{{ item.size }}"
