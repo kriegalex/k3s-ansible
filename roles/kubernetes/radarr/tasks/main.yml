@@ -1,27 +1,53 @@
 ---
-- name: Include validation tasks
+- name: Input validation
   ansible.builtin.import_tasks: validation.yml
 
-- name: Add radarr helm repository
+- name: Add radarr Helm repository
   kubernetes.core.helm_repository:
     name: "{{ radarr_repository_name }}"
-    repo_url: "{{ radarr_repository_url }}"
+    url: "{{ radarr_repository_url }}"
+    state: present
 
-# - name: Create temporary values file for debug
-#   ansible.builtin.template:
-#     src: templates/values.yml.j2
-#     dest: "/tmp/radarr-values.yaml"
-#     mode: "644"
-#   diff: true  # This will show the difference in the output
+- name: Create Radarr namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ radarr_namespace }}"
 
-- name: Deploy radarr helm chart
+- name: Create NFS PV and PVC for additional volumes
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  when: nfs_pvc_items | length > 0
+  vars:
+    nfs_pvc_items: >-
+      {{ radarr_additional_volumes |
+        selectattr('nfs.enabled', 'defined') |
+        selectattr('nfs.enabled') |
+        map('combine', {'__tmp_namespace': radarr_namespace}) |
+        map('json_query', '{
+          name: claim_name,
+          namespace: __tmp_namespace,
+          server: nfs.server,
+          path: nfs.path,
+          size: nfs.size,
+          access_mode: nfs.access_mode,
+          reclaim_policy: nfs.reclaim_policy
+          }') |
+        list }}
+
+- name: Deploy Radarr Helm Chart
   kubernetes.core.helm:
     name: radarr
     chart_ref: "{{ radarr_repository_name }}/{{ radarr_chart_name }}"
-    release_namespace: "{{ radarr_namespace }}"
     chart_version: "{{ radarr_chart_version }}"
-    create_namespace: true
+    release_namespace: "{{ radarr_namespace }}"
+    create_namespace: false
     update_repo_cache: true
+    force: false
     values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
     wait: true
-    state: present
+  when: radarr_enabled

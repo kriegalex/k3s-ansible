@@ -28,6 +28,20 @@ radarr_storage_class: "longhorn"
 radarr_storage_size: "10Gi"
 # radarr_existing_claim: "existing-claim-name"
 radarr_access_mode: "ReadWriteOnce"
+
+# Additional volumes (for media files, etc)
+# Format:
+# - name: media
+#   mount_path: /media
+#   claim_name: nfs-media
+#   # Optional: Use NFS
+#   nfs:
+#     enabled: false
+#     server: ""
+#     path: "/mnt/user/media"
+#     size: "500Gi"
+#     access_mode: "ReadWriteMany"
+#     reclaim_policy: "Retain"
 radarr_additional_volumes: []
 
 # Pod configuration
