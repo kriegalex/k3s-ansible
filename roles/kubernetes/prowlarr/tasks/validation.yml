@@ -4,11 +4,11 @@
     that:
       - >-
         not prowlarr_persistence_enabled or
-        (prowlarr_existing_claim is defined) or
-        (prowlarr_storage_class is defined and prowlarr_storage_size is defined)
+        (prowlarr_existing_claim) or
+        (prowlarr_storage_class and prowlarr_storage_size)
       - >-
         not prowlarr_persistence_enabled or
-        not (prowlarr_existing_claim is defined and prowlarr_storage_class is defined)
+        not (prowlarr_existing_claim and prowlarr_storage_class)
     fail_msg: >-
       When persistence is enabled, either:
       - Define an existing claim using prowlarr_existing_claim
