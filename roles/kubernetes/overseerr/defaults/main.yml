@@ -39,3 +39,9 @@ overseerr_resources_limits_memory: "1Gi"
 overseerr_resources_limits_cpu: "1000m"
 overseerr_resources_requests_memory: "512Mi"
 overseerr_resources_requests_cpu: "100m"
+
+# This settings tries to help overseerr avoid plex
+overseerr_anti_affinity_enabled: true
+overseerr_anti_affinity_weight: 80
+overseerr_anti_affinity_target_name: plex-media-server
+overseerr_anti_affinity_target_namespace: plex

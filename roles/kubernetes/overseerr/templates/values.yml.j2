@@ -49,3 +49,21 @@ resources:
   requests:
     memory: {{ overseerr_resources_requests_memory }}
     cpu: {{ overseerr_resources_requests_cpu }}
+
+{% if overseerr_anti_affinity_enabled %}
+# Add affinity rules for overseerr to avoid other pods
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ overseerr_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ overseerr_anti_affinity_target_name }}
+        namespaces: 
+          - {{ overseerr_anti_affinity_target_namespace }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}
