@@ -76,5 +76,6 @@
     release_namespace: "{{ gitea_namespace }}"
     create_namespace: false
     update_repo_cache: true
+    force: false
     values: "{{ lookup('template', 'values.yml.j2') | from_yaml }}"
     wait: true
