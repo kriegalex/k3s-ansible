@@ -74,6 +74,7 @@ affinity:
             operator: In
             values:
             - {{ sonarr_anti_affinity_target_name }}
-        namespace: {{ sonarr_anti_affinity_target_namespace }}
+        namespaces: 
+          - {{ sonarr_anti_affinity_target_namespace }}
         topologyKey: kubernetes.io/hostname
 {% endif %}

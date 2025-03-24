@@ -113,6 +113,7 @@ nextcloud_affinity_weight: 80
 nextcloud_anti_affinity_enabled: true
 nextcloud_anti_affinity_weight: 80
 nextcloud_anti_affinity_target_name: plex-media-server
+nextcloud_anti_affinity_target_namespace: plex
 
 # Monitoring
 nextcloud_liveness_probe_enabled: true

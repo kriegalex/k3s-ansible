@@ -214,6 +214,8 @@ affinity:
             operator: In
             values:
             - {{ immich_anti_affinity_target_name }}
+        namespaces:
+          - {{ immich_anti_affinity_target_namespace }}
         topologyKey: kubernetes.io/hostname
 {% endif %}
 {% endif %}

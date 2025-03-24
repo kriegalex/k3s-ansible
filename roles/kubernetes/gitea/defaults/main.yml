@@ -97,6 +97,7 @@ gitea_affinity_weight: 60
 gitea_anti_affinity_enabled: true
 gitea_anti_affinity_weight: 50
 gitea_anti_affinity_target_name: plex-media-server
+gitea_anti_affinity_target_namespace: plex
 
 # Database migration settings
 gitea_migrate_database: false

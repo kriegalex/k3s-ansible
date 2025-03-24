@@ -150,6 +150,8 @@ affinity:
             operator: In
             values:
             - {{ gitea_anti_affinity_target_name }}
+        namespaces:
+          - {{ gitea_anti_affinity_target_namespace }}
         topologyKey: kubernetes.io/hostname
 {% endif %}
 {% endif %}

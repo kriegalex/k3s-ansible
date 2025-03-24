@@ -44,3 +44,9 @@ prowlarr_ingress_enabled: true
 prowlarr_ingress_tls_enabled: false
 prowlarr_ingress_class_name: "{{ global_nginx_class }}"
 prowlarr_cluster_issuer: "{{ global_cluster_issuer }}"
+
+# This settings tries to help prowlarr avoid plex
+prowlarr_anti_affinity_enabled: true
+prowlarr_anti_affinity_weight: 80
+prowlarr_anti_affinity_target_name: plex-media-server
+prowlarr_anti_affinity_target_namespace: plex

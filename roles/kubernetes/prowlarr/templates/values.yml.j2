@@ -45,3 +45,21 @@ ingress:
       hosts:
         - {{ prowlarr_host }}
 {% endif %}
+
+{% if prowlarr_anti_affinity_enabled %}
+# Add affinity rules for prowlarr to avoid other pods
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: {{ prowlarr_anti_affinity_weight | int }}
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - {{ prowlarr_anti_affinity_target_name }}
+        namespaces: 
+          - {{ prowlarr_anti_affinity_target_namespace }}
+        topologyKey: kubernetes.io/hostname
+{% endif %}

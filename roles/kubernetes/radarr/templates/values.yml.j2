@@ -74,6 +74,7 @@ affinity:
             operator: In
             values:
             - {{ radarr_anti_affinity_target_name }}
-        namespace: {{ radarr_anti_affinity_target_namespace }}
+        namespaces: 
+          - {{ radarr_anti_affinity_target_namespace }}
         topologyKey: kubernetes.io/hostname
 {% endif %}

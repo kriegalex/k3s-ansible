@@ -225,6 +225,8 @@ affinity:
             operator: In
             values:
             - {{ nextcloud_anti_affinity_target_name }}
+        namespaces: 
+          - {{ nextcloud_anti_affinity_target_namespace }}
         topologyKey: kubernetes.io/hostname
 {% endif %}
 {% endif %}

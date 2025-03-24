@@ -101,3 +101,4 @@ immich_affinity_weight: 80
 immich_anti_affinity_enabled: true
 immich_anti_affinity_weight: 80
 immich_anti_affinity_target_name: plex-media-server
+immich_anti_affinity_target_namespace: plex

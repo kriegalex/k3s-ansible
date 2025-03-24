@@ -114,4 +114,4 @@ paperless_affinity_weight: 60
 paperless_anti_affinity_enabled: true
 paperless_anti_affinity_weight: 50
 paperless_anti_affinity_target_name: plex-media-server
-paperless_anti_affinity_target_namespace: default
+paperless_anti_affinity_target_namespace: plex
