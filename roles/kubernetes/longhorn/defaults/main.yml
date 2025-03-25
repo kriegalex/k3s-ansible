@@ -5,6 +5,9 @@ longhorn_namespace: longhorn-system
 longhorn_chart_version: 1.8.1-rc2
 longhorn_image_tag: ""  # v1.8.1-rc2
 
+# Options
+longhorn_reclaim_policy: "Delete"
+
 # Dashboard
 longhorn_dashboard_enabled: true
 longhorn_dashboard_subdomain: "longhorn"
