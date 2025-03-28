@@ -2,8 +2,18 @@
 # Base settings
 bitcoin_enabled: false
 bitcoin_namespace: "bitcoin"
-bitcoin_release_name: bitcoin-core
-bitcoin_chart_version: "2.1.6"
+bitcoin_release_name: bitcoin-stack
+bitcoin_chart_version: "1.0.0"
+
+# Image configuration
+bitcoin_image_repository: "blockstream/bitcoind"
+bitcoin_image_tag: ""  # Empty will use chart default
+bitcoin_image_pull_policy: "IfNotPresent"
+bitcoin_image_pull_secrets: []
+
+# Naming overrides (optional)
+bitcoin_name_override: ""
+bitcoin_fullname_override: ""
 
 # Bitcoin Core Configuration
 bitcoin_network: "main"  # Options: main, test, regtest, signet
@@ -37,18 +47,153 @@ bitcoin_persistence_nfs_server: "10.0.0.2"
 bitcoin_persistence_nfs_path: "/mnt/user/bitcoin"
 bitcoin_persistence_nfs_reclaim_policy: "Retain"
 
+# Bitcoin container and service port configuration
+bitcoin_container_port_rpc: 8332
+bitcoin_container_port_p2p: 8333
+bitcoin_service_port_rpc: 8332
+bitcoin_service_port_p2p: 8333
+
+# Service configuration
+bitcoin_service_type: "ClusterIP"  # Options: ClusterIP, LoadBalancer, NodePort
+
 # Ingress configuration
 bitcoin_ingress_enabled: false
 bitcoin_ingress_annotations:
   cert-manager.io/cluster-issuer: "{{ global_cluster_issuer | default('letsencrypt-prod') }}"
   nginx.ingress.kubernetes.io/ssl-redirect: "true"
   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-
+bitcoin_ingress_tls_secret_name: "bitcoin-tls-secret"
 bitcoin_subdomain: "bitcoin"
 bitcoin_ingress_host: "{{ bitcoin_subdomain }}.{{ global_domain_name | default('example.com') }}"
 
-# Bitcoin container and service port configuration
-bitcoin_container_port_rpc: 8332
-bitcoin_container_port_p2p: 8333
-bitcoin_service_port_rpc: 8332
-bitcoin_service_port_p2p: 8333
+# ServiceAccount configuration
+bitcoin_service_account_create: true
+bitcoin_service_account_annotations: {}
+bitcoin_service_account_name: ""
+
+# Security Contexts
+bitcoin_pod_security_context_enabled: false
+bitcoin_pod_security_context_fsgroup: 1000
+bitcoin_container_security_context_enabled: false
+bitcoin_container_security_context_run_as_non_root: true
+bitcoin_container_security_context_run_as_user: 1000
+bitcoin_container_security_context_read_only_root_filesystem: false
+
+# Pod Probe configuration
+bitcoin_startup_probe_enabled: false
+bitcoin_startup_probe_initial_delay: 30
+bitcoin_startup_probe_period: 10
+bitcoin_startup_probe_timeout: 5
+bitcoin_startup_probe_failure_threshold: 30
+
+bitcoin_liveness_probe_enabled: false
+bitcoin_liveness_probe_initial_delay: 60
+bitcoin_liveness_probe_period: 30
+bitcoin_liveness_probe_timeout: 5
+bitcoin_liveness_probe_failure_threshold: 3
+
+bitcoin_readiness_probe_enabled: false
+bitcoin_readiness_probe_initial_delay: 30
+bitcoin_readiness_probe_period: 10
+bitcoin_readiness_probe_timeout: 5
+bitcoin_readiness_probe_success_threshold: 1
+bitcoin_readiness_probe_failure_threshold: 3
+
+# Network policy settings
+bitcoin_network_policy_enabled: false
+bitcoin_network_policy_rpc_allow_from: []
+bitcoin_network_policy_p2p_allow_from: []
+bitcoin_network_policy_allow_ingress_controller: false
+
+# High availability settings
+bitcoin_pod_disruption_budget_enabled: false
+bitcoin_pod_disruption_budget_min_available: 1
+
+# Scheduling settings
+bitcoin_node_selector: {}
+bitcoin_tolerations: []
+bitcoin_affinity: {}
+
+# Electrs configuration (optional Electrum Server)
+electrs_enabled: false
+electrs_image_repository: "mempool/electrs"
+electrs_image_tag: "latest"
+electrs_image_pull_policy: "IfNotPresent"
+
+# Electrs resources
+electrs_resources_requests_cpu: "500m"
+electrs_resources_requests_memory: "4Gi"
+electrs_resources_limits_cpu: "2000m"
+electrs_resources_limits_memory: "8Gi"
+
+# Electrs custom arguments
+electrs_extra_args: []  # e.g. ["--lightmode"]
+
+# Electrs persistence configuration
+electrs_persistence_enabled: true
+electrs_persistence_existing_claim: ""  # Takes precedence over storage class
+electrs_persistence_storage_class: "longhorn"  # Used if existing_claim not specified
+electrs_persistence_size: "1200Gi"       # Electrs index is large!
+electrs_persistence_access_mode: "ReadWriteMany"
+
+# Electrs NFS-specific configuration
+electrs_persistence_nfs_claim_name: "nfs-electrs" 
+electrs_persistence_nfs_server: "10.0.0.7"
+electrs_persistence_nfs_path: "/electrs"
+electrs_persistence_nfs_reclaim_policy: "Retain"
+
+# Electrs service configuration
+electrs_service_type: "ClusterIP"
+electrs_service_port_rpc: 50001
+electrs_service_port_http: 3000
+electrs_service_port_monitoring: 4224
+
+# Mempool Explorer configuration (optional)
+mempool_enabled: false
+
+# Mempool frontend configuration
+mempool_frontend_image_repository: "mempool/frontend"
+mempool_frontend_image_tag: "v2.5.1"
+mempool_frontend_image_pull_policy: "IfNotPresent"
+mempool_frontend_resources_requests_cpu: "100m"
+mempool_frontend_resources_requests_memory: "128Mi"
+mempool_frontend_resources_limits_cpu: "500m"
+mempool_frontend_resources_limits_memory: "512Mi"
+
+# Mempool backend configuration
+mempool_backend_image_repository: "mempool/backend"
+mempool_backend_image_tag: "v2.5.1"
+mempool_backend_image_pull_policy: "IfNotPresent"
+mempool_backend_resources_requests_cpu: "200m"
+mempool_backend_resources_requests_memory: "256Mi"
+mempool_backend_resources_limits_cpu: "1000m"
+mempool_backend_resources_limits_memory: "1Gi"
+mempool_backend_type: "esplora"  # Options: electrum, esplora
+
+# Mempool database configuration
+mempool_db_image_repository: "mariadb"
+mempool_db_image_tag: "10.5.21"
+mempool_db_image_pull_policy: "IfNotPresent"
+mempool_db_resources_requests_cpu: "200m"
+mempool_db_resources_requests_memory: "256Mi"
+mempool_db_resources_limits_cpu: "1000m"
+mempool_db_resources_limits_memory: "1Gi"
+mempool_db_database: "mempool"
+mempool_db_username: "mempool"
+mempool_db_password: "mempool"  # Change this in vars or vault
+mempool_db_root_password: "mempool"  # Change this in vars or vault
+
+# Mempool database persistence
+mempool_db_persistence_enabled: false
+mempool_db_persistence_size: "10Gi"
+mempool_db_persistence_storage_class: ""
+mempool_db_persistence_access_mode: "ReadWriteOnce"
+
+# Mempool service and ingress
+mempool_service_type: "ClusterIP"
+mempool_service_port: 80
+mempool_ingress_enabled: false
+mempool_ingress_class_name: "{{ global_nginx_class | default('nginx') }}"
+mempool_ingress_annotations: {}
+mempool_ingress_host: "mempool.{{ global_domain_name | default('example.com') }}"
+mempool_ingress_tls_secret_name: "mempool-tls-secret"

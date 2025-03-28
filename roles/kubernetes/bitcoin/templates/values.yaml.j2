@@ -1,69 +1,220 @@
-# Bitcoin Core Helm Chart values
+# Bitcoin Stack Helm Chart values
 
-## Global parameters
-global:
-  imageRegistry: ""
-  imagePullSecrets: []
-  storageClass: ""
-
-## Common parameters
-kubeVersion: ""
-nameOverride: ""
-fullnameOverride: ""
-namespaceOverride: ""
-commonLabels: {}
-commonAnnotations: {}
-clusterDomain: cluster.local
-extraDeploy: []
-
-diagnosticMode:
-  enabled: false
-  command:
-    - sleep
-  args:
-    - infinity
-
-## Bitcoin Core configuration
-dataArchiveUrl: ""
-existingSecretForConfig: ""
-config: |
-  server=1
-  txindex=1
-  
-  chain={{ bitcoin_network }}
-  
-{% if bitcoin_rpc_enabled | lower == "true" %}
-  rpcserialversion=0
-  rpcuser={{ bitcoin_rpc_username }}
-  rpcpassword={{ bitcoin_rpc_password }}
-  
-  rpcallowip=192.168.0.0/20
-  rpcallowip=10.0.0.0/16
-  whitelist=192.168.0.0/20
-  whitelist=10.0.0.0/16
-  rpcbind=0.0.0.0
-{% endif %}
-  
-{% if bitcoin_prune_mode | lower == "true" %}
-  prune={{ bitcoin_prune_size_gb * 1024 }}
-{% endif %}
-  
-  dbcache={{ bitcoin_dbcache_mb }}
-  maxorphantx={{ bitcoin_maxorphantx }}
-  maxmempool={{ bitcoin_maxmempool_mb }}
-  nodebuglogfile=1
-
-## Image configuration
 image:
-  registry: docker.io
-  repository: dobtc/bitcoin
-  tag: "25.1"
-  digest: ""
-  pullPolicy: IfNotPresent
-  pullSecrets: []
-  debug: true
+  repository: {{ bitcoin_image_repository | default('blockstream/bitcoind') }}
+  pullPolicy: {{ bitcoin_image_pull_policy | default('IfNotPresent') }}
+  tag: "{{ bitcoin_image_tag | default('') }}"
 
-## Pod resources
+imagePullSecrets: {{ bitcoin_image_pull_secrets | default([]) }}
+nameOverride: "{{ bitcoin_name_override | default('') }}"
+fullnameOverride: "{{ bitcoin_fullname_override | default('') }}"
+
+# Bitcoin Core configuration
+bitcoind:
+  dataDir: "/root/.bitcoin"
+  configFile: "/root/.bitcoin/bitcoin.conf"
+  cookieFile: "/root/.bitcoin/.cookie"
+
+  # Enable testnet or regtest based on network selection
+  testnet: {{ '1' if bitcoin_network == 'testnet' else '0' }}
+  regtest: {{ '1' if bitcoin_network == 'regtest' else '0' }}
+
+  # bitcoin.conf file content
+  config: |
+    server=1
+    txindex=1
+    
+    chain={{ bitcoin_network | default('main') }}
+    
+{% if bitcoin_rpc_enabled | lower == "true" %}
+    rpcserialversion=0
+    rpcuser={{ bitcoin_rpc_username }}
+    rpcpassword={{ bitcoin_rpc_password }}
+    
+    rpcallowip=10.0.0.0/8
+    whitelist=10.0.0.0/8
+    rpcbind=0.0.0.0
+{% endif %}
+    
+{% if bitcoin_prune_mode | lower == "true" %}
+    prune={{ bitcoin_prune_size_gb * 1024 }}
+{% endif %}
+    
+    dbcache={{ bitcoin_dbcache_mb }}
+    maxorphantx={{ bitcoin_maxorphantx }}
+    maxmempool={{ bitcoin_maxmempool_mb }}
+    nodebuglogfile=1
+
+  # RPC settings
+  rpc:
+    rpcPort: {{ bitcoin_container_port_rpc | default(8332) }}
+    port: {{ bitcoin_container_port_p2p | default(8333) }}
+
+  # Persistent storage configuration for blockchain data
+  persistence:
+    enabled: {{ bitcoin_persistence_enabled | lower }}
+{% if bitcoin_persistence_existing_claim | length > 0 %}
+    existingClaim: "{{ bitcoin_persistence_existing_claim }}"
+{% else %}
+    storageClass: "{{ bitcoin_persistence_storage_class }}"
+    size: {{ bitcoin_persistence_size }}
+    accessModes:
+      - {{ bitcoin_persistence_access_mode }}
+{% endif %}
+    annotations: {}
+
+# Electrs configuration
+electrs:
+  enabled: {{ electrs_enabled | default(false) | lower }}
+{% if electrs_enabled | default(false) | bool %}
+  image:
+    repository: {{ electrs_image_repository | default('mempool/electrs') }}
+    tag: {{ electrs_image_tag | default('latest') }}
+    pullPolicy: {{ electrs_image_pull_policy | default('IfNotPresent') }}
+  
+  resources:
+    requests:
+      cpu: {{ electrs_resources_requests_cpu | default('500m') }}
+      memory: {{ electrs_resources_requests_memory | default('4Gi') }}
+    limits:
+      cpu: {{ electrs_resources_limits_cpu | default('2000m') }}
+      memory: {{ electrs_resources_limits_memory | default('8Gi') }}
+  
+  config:
+    dbDir: "/electrs"
+    bitcoinRpcAddr: "{{ bitcoin_release_name }}-bitcoind:{{ bitcoin_container_port_rpc }}"
+    electrumRpcAddr: "0.0.0.0:50001"
+    httpAddr: "0.0.0.0:3000"
+    monitoringAddr: "0.0.0.0:4224"
+    extraArgs: {{ electrs_extra_args | default([]) }}
+
+  bitcoindDataClaimName: "{{ bitcoin_persistence_existing_claim if bitcoin_persistence_existing_claim | length > 0 else bitcoin_persistence_nfs_claim_name }}"
+  
+  persistence:
+    enabled: {{ electrs_persistence_enabled | lower }}
+{% if electrs_persistence_existing_claim | length > 0 %}
+    existingClaim: "{{ electrs_persistence_existing_claim }}"
+{% else %}
+    size: {{ electrs_persistence_size }}
+    storageClass: "{{ electrs_persistence_storage_class }}"
+    accessModes:
+      - {{ electrs_persistence_access_mode }}
+{% endif %}
+  
+  service:
+    type: {{ electrs_service_type | default('ClusterIP') }}
+    rpcPort: {{ electrs_service_port_rpc | default(50001) }}
+    httpPort: {{ electrs_service_port_http | default(3000) }}
+    monitoringPort: {{ electrs_service_port_monitoring | default(4224) }}
+{% endif %}
+
+# Mempool configuration
+mempool:
+  enabled: {{ mempool_enabled | default(false) | lower }}
+{% if mempool_enabled | default(false) | bool %}
+  # Configure mempool settings here
+  frontend:
+    image:
+      repository: {{ mempool_frontend_image_repository | default('mempool/frontend') }}
+      tag: {{ mempool_frontend_image_tag | default('v2.5.1') }}
+      pullPolicy: {{ mempool_frontend_image_pull_policy | default('IfNotPresent') }}
+    resources:
+      requests:
+        cpu: {{ mempool_frontend_resources_requests_cpu | default('100m') }}
+        memory: {{ mempool_frontend_resources_requests_memory | default('128Mi') }}
+      limits:
+        cpu: {{ mempool_frontend_resources_limits_cpu | default('500m') }}
+        memory: {{ mempool_frontend_resources_limits_memory | default('512Mi') }}
+  
+  backend:
+    image:
+      repository: {{ mempool_backend_image_repository | default('mempool/backend') }}
+      tag: {{ mempool_backend_image_tag | default('v2.5.1') }}
+      pullPolicy: {{ mempool_backend_image_pull_policy | default('IfNotPresent') }}
+    resources:
+      requests:
+        cpu: {{ mempool_backend_resources_requests_cpu | default('200m') }}
+        memory: {{ mempool_backend_resources_requests_memory | default('256Mi') }}
+      limits:
+        cpu: {{ mempool_backend_resources_limits_cpu | default('1000m') }}
+        memory: {{ mempool_backend_resources_limits_memory | default('1Gi') }}
+    config:
+      backend: "{{ mempool_backend_type | default('esplora') }}"
+      network: "{{ bitcoin_network | default('mainnet') }}"
+  
+  db:
+    image:
+      repository: {{ mempool_db_image_repository | default('mariadb') }}
+      tag: {{ mempool_db_image_tag | default('10.5.21') }}
+      pullPolicy: {{ mempool_db_image_pull_policy | default('IfNotPresent') }}
+    resources:
+      requests:
+        cpu: {{ mempool_db_resources_requests_cpu | default('200m') }}
+        memory: {{ mempool_db_resources_requests_memory | default('256Mi') }}
+      limits:
+        cpu: {{ mempool_db_resources_limits_cpu | default('1000m') }}
+        memory: {{ mempool_db_resources_limits_memory | default('1Gi') }}
+    auth:
+      database: "{{ mempool_db_database | default('mempool') }}"
+      username: "{{ mempool_db_username | default('mempool') }}"
+      password: "{{ mempool_db_password | default('mempool') }}"
+      rootPassword: "{{ mempool_db_root_password | default('mempool') }}"
+    persistence:
+      enabled: {{ mempool_db_persistence_enabled | default(false) | lower }}
+      size: {{ mempool_db_persistence_size | default('10Gi') }}
+      storageClass: "{{ mempool_db_persistence_storage_class | default('') }}"
+      accessModes:
+        - {{ mempool_db_persistence_access_mode | default('ReadWriteOnce') }}
+  
+  service:
+    type: {{ mempool_service_type | default('ClusterIP') }}
+    port: {{ mempool_service_port | default(80) }}
+  
+  ingress:
+    enabled: {{ mempool_ingress_enabled | default(false) | lower }}
+{% if mempool_ingress_enabled | default(false) | bool %}
+    className: "{{ mempool_ingress_class_name | default(global_nginx_class) | default('nginx') }}"
+    annotations:
+{% for key, value in mempool_ingress_annotations | default(bitcoin_ingress_annotations) | default({}) | items() %}
+      {{ key }}: {{ value | to_json }}
+{% endfor %}
+    hosts:
+      - host: {{ mempool_ingress_host | default('mempool.' + global_domain_name | default('example.com')) }}
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: 
+      - secretName: {{ mempool_ingress_tls_secret_name | default('mempool-tls-secret') }}
+        hosts:
+          - {{ mempool_ingress_host | default('mempool.' + global_domain_name | default('example.com')) }}
+{% endif %}
+{% endif %}
+
+# Ingress configuration for Bitcoin RPC
+ingress:
+  enabled: {{ bitcoin_ingress_enabled | lower }}
+{% if bitcoin_ingress_enabled | bool %}
+  className: "{{ global_nginx_class | default('nginx') }}"
+  annotations:
+{% for key, value in bitcoin_ingress_annotations.items() %}
+    {{ key }}: {{ value | to_json }}
+{% endfor %}
+  hosts:
+    - host: {{ bitcoin_ingress_host }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: {{ bitcoin_ingress_tls_secret_name | default('bitcoin-tls-secret') }}
+      hosts:
+        - {{ bitcoin_ingress_host }}
+{% endif %}
+
+# Service configuration
+service:
+  type: {{ bitcoin_service_type | default('ClusterIP') }}
+
+# Resource configuration
 resources:
   requests:
     memory: {{ bitcoin_resources_requests_memory }}
@@ -72,127 +223,60 @@ resources:
     memory: {{ bitcoin_resources_limits_memory }}
     cpu: {{ bitcoin_resources_limits_cpu }}
 
-## Container ports
-containerPorts:
-  rpc: {{ bitcoin_container_port_rpc | default(8332) }}
-  p2p: {{ bitcoin_container_port_p2p | default(8333) }}
+# Node selector, tolerations, and affinity
+nodeSelector: {{ bitcoin_node_selector | default({}) }}
+tolerations: {{ bitcoin_tolerations | default([]) }}
+affinity: {{ bitcoin_affinity | default({}) }}
 
-## Liveness and readiness probes
-livenessProbe:
-  enabled: false
-  initialDelaySeconds: 60
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
-  successThreshold: 1
-
-readinessProbe:
-  enabled: false
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
-  successThreshold: 1
-
-startupProbe:
-  enabled: false
-  initialDelaySeconds: 60
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
-  successThreshold: 1
-
-## Security contexts
-podSecurityContext:
-  enabled: false
-  fsGroup: 1001
-
-containerSecurityContext:
-  enabled: false
-  runAsUser: 1001
-  runAsNonRoot: true
-  readOnlyRootFilesystem: false
-
-## Pod management
-podManagementPolicy: OrderedReady
-priorityClassName: ""
-updateStrategy:
-  type: RollingUpdate
-
-## Persistence settings for Bitcoin blockchain data
-persistence:
-  enabled: {{ bitcoin_persistence_enabled | lower }}
-{% if bitcoin_persistence_existing_claim | length > 0 %}
-  existingClaim: {{ bitcoin_persistence_existing_claim }}
-{% else %}
-  storageClass: {{ bitcoin_persistence_storage_class }}
-  size: {{ bitcoin_persistence_size }}
-  accessMode: {{ bitcoin_persistence_access_mode }}
-{% endif %}
-  mountPath: /hirosystems/data
-  subPath: ""
-  annotations: {}
-  labels: {}
-  selector: {}
-  dataSource: {}
-
-## Service configuration
-singleService: true
-uniqueServices: false
-service:
-  type: LoadBalancer
-  ports:
-    rpc: {{ bitcoin_service_port_rpc | default(8332) }}
-    p2p: {{ bitcoin_service_port_p2p | default(8333) }}
-  nodePorts:
-    rpc: ""
-    p2p: ""
-  clusterIP: ""
-  loadBalancerIP: ""
-  loadBalancerSourceRanges: []
-  externalTrafficPolicy: Cluster
-  annotations: {}
-  extraPorts: []
-  sessionAffinity: None
-  sessionAffinityConfig: {}
-
-## Ingress configuration
-ingress:
-  enabled: {{ bitcoin_ingress_enabled | lower }}
-{% if bitcoin_ingress_enabled %}
-  annotations:
-{% for key, value in bitcoin_ingress_annotations.items() %}
-    {{ key }}: {{ value | to_json }}
-{% endfor %}
-  ingressClassName: "{{ global_nginx_class | default('nginx') }}"
-  hostname: {{ bitcoin_ingress_host }}
-  tls: true
-{% endif %}
-
-## Volume permissions init container
-volumePermissions:
-  enabled: false
-  image:
-    registry: docker.io
-    repository: bitnami/os-shell
-    tag: 11-debian-11-r110
-    pullPolicy: IfNotPresent
-    pullSecrets: []
-  resources:
-    limits: {}
-    requests: {}
-  containerSecurityContext:
-    enabled: true
-    runAsUser: 0
-
-## RBAC configuration
-rbac:
-  create: false
-  rules: []
-
-## ServiceAccount configuration
+# Service account configuration
 serviceAccount:
-  create: true
-  name: ""
-  annotations: {}
-  automountServiceAccountToken: true
+  create: {{ bitcoin_service_account_create | default(true) | lower }}
+  annotations: {{ bitcoin_service_account_annotations | default({}) }}
+  name: "{{ bitcoin_service_account_name | default('') }}"
+
+# Security contexts
+podSecurityContext:
+  enabled: {{ bitcoin_pod_security_context_enabled | default(false) | lower }}
+  fsGroup: {{ bitcoin_pod_security_context_fsgroup | default(1000) }}
+
+securityContext:
+  enabled: {{ bitcoin_container_security_context_enabled | default(false) | lower }}
+  runAsNonRoot: {{ bitcoin_container_security_context_run_as_non_root | default(true) | lower }}
+  runAsUser: {{ bitcoin_container_security_context_run_as_user | default(1000) }}
+  readOnlyRootFilesystem: {{ bitcoin_container_security_context_read_only_root_filesystem | default(false) | lower }}
+
+# Pod probes configuration
+probes:
+  startup:
+    enabled: {{ bitcoin_startup_probe_enabled | default(false) | lower }}
+    initialDelaySeconds: {{ bitcoin_startup_probe_initial_delay | default(30) }}
+    periodSeconds: {{ bitcoin_startup_probe_period | default(10) }}
+    timeoutSeconds: {{ bitcoin_startup_probe_timeout | default(5) }}
+    failureThreshold: {{ bitcoin_startup_probe_failure_threshold | default(30) }}
+  
+  liveness:
+    enabled: {{ bitcoin_liveness_probe_enabled | default(false) | lower }}
+    initialDelaySeconds: {{ bitcoin_liveness_probe_initial_delay | default(60) }}
+    periodSeconds: {{ bitcoin_liveness_probe_period | default(30) }}
+    timeoutSeconds: {{ bitcoin_liveness_probe_timeout | default(5) }}
+    failureThreshold: {{ bitcoin_liveness_probe_failure_threshold | default(3) }}
+  
+  readiness:
+    enabled: {{ bitcoin_readiness_probe_enabled | default(false) | lower }}
+    initialDelaySeconds: {{ bitcoin_readiness_probe_initial_delay | default(30) }}
+    periodSeconds: {{ bitcoin_readiness_probe_period | default(10) }}
+    timeoutSeconds: {{ bitcoin_readiness_probe_timeout | default(5) }}
+    successThreshold: {{ bitcoin_readiness_probe_success_threshold | default(1) }}
+    failureThreshold: {{ bitcoin_readiness_probe_failure_threshold | default(3) }}
+
+# Network policy configuration
+networkPolicy:
+  enabled: {{ bitcoin_network_policy_enabled | default(false) | lower }}
+  rpcAllowFrom: {{ bitcoin_network_policy_rpc_allow_from | default([]) }}
+  p2pAllowFrom: {{ bitcoin_network_policy_p2p_allow_from | default([]) }}
+  allowIngressController: {{ bitcoin_network_policy_allow_ingress_controller | default(false) | lower }}
+
+# High availability
+podDisruptionBudget:
+  enabled: {{ bitcoin_pod_disruption_budget_enabled | default(false) | lower }}
+  minAvailable: {{ bitcoin_pod_disruption_budget_min_available | default(1) }}

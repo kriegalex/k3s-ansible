@@ -1,8 +1,9 @@
 ---
+# Basic configuration
 bitcoin_enabled: true
 
 # Network selection
-bitcoin_network: "mainnet"  # Options: mainnet, testnet, regtest
+bitcoin_network: "main"  # Options: main, testnet, regtest, signet
 
 # RPC configuration - secure these values!
 bitcoin_rpc_enabled: true
@@ -10,9 +11,15 @@ bitcoin_rpc_username: "secure_username"
 bitcoin_rpc_password: "secure_password"
 
 # Memory configuration
-bitcoin_dbcache_mb: 75       # Database cache size in MB
-bitcoin_maxmempool_mb: 150   # Maximum mempool size in MB
-bitcoin_maxorphantx: 10      # Maximum orphan transactions to keep in memory
+bitcoin_dbcache_mb: 450       # Database cache size in MB
+bitcoin_maxmempool_mb: 300    # Maximum mempool size in MB
+bitcoin_maxorphantx: 100      # Maximum orphan transactions to keep in memory
+
+# Resources
+bitcoin_resources_requests_memory: "2Gi"
+bitcoin_resources_requests_cpu: "500m"
+bitcoin_resources_limits_memory: "8Gi"
+bitcoin_resources_limits_cpu: "2000m"
 
 # Persistence - NFS configuration
 bitcoin_persistence_enabled: true
@@ -20,11 +27,30 @@ bitcoin_persistence_nfs_claim_name: "nfs-bitcoin"
 bitcoin_persistence_nfs_server: "10.0.0.2"
 bitcoin_persistence_nfs_path: "/mnt/user/bitcoin"
 bitcoin_persistence_size: "500Gi"  # Blockchain is large! (~500GB for full node)
+bitcoin_persistence_access_mode: "ReadWriteMany"
 
 # For lower disk usage, enable pruning
 bitcoin_prune_mode: false
 bitcoin_prune_size_gb: 10    # Set higher if needed
 
+# Service configuration
+bitcoin_service_type: "ClusterIP"  # Options: ClusterIP, LoadBalancer, NodePort
+
 # Ingress configuration
 bitcoin_ingress_enabled: true
 bitcoin_subdomain: "bitcoin"
+bitcoin_ingress_annotations:
+  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+# Electrum server configuration (optional)
+electrs_enabled: false
+electrs_persistence_enabled: true
+electrs_persistence_nfs_claim_name: "nfs-electrs"
+electrs_persistence_nfs_server: "10.0.0.2"
+electrs_persistence_nfs_path: "/mnt/user/electrs"
+electrs_persistence_size: "1200Gi"
+electrs_persistence_access_mode: "ReadWriteMany"
+
+# Mempool configuration (optional)
+mempool_enabled: false

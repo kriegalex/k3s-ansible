@@ -1,8 +1,8 @@
 ---
 - name: Add Bitcoin Core Helm repository
   kubernetes.core.helm_repository:
-    name: "hirosystems"
-    url: "https://charts.hiro.so/hirosystems"
+    name: "k8s-charts"
+    url: "https://kriegalex.github.io/k8s-charts/"
     state: present
 
 - name: Create bitcoin namespace
@@ -33,12 +33,40 @@
     - bitcoin_persistence_enabled | bool
     - bitcoin_persistence_nfs_claim_name | length > 0
 
+# Use nfs_pvc role to create persistent storage
+- name: Create NFS PV and PVC for Electrum server
+  ansible.builtin.include_role:
+    name: nfs_pvc
+    tasks_from: create_pvc
+  vars:
+    nfs_pvc_items:
+      - name: "{{ electrs_persistence_nfs_claim_name }}"
+        namespace: "{{ bitcoin_namespace }}"
+        size: "{{ electrs_persistence_size }}"
+        description: "Electrum Rust Server blockchain data"
+        access_mode: "{{ electrs_persistence_access_mode }}"
+        reclaim_policy: "{{ electrs_persistence_nfs_reclaim_policy }}"
+        server: "{{ electrs_persistence_nfs_server }}"
+        path: "{{ electrs_persistence_nfs_path }}"
+  when:
+    - electrs_enabled | bool
+    - electrs_persistence_enabled | bool
+    - electrs_persistence_nfs_claim_name | length > 0
+
 - name: Set persistence claim name based on NFS claim if provided
   ansible.builtin.set_fact:
     bitcoin_persistence_existing_claim: "{{ bitcoin_persistence_nfs_claim_name }}"
   when:
     - bitcoin_persistence_enabled | bool
     - bitcoin_persistence_nfs_claim_name | length > 0
+
+- name: Set persistence claim name based on NFS claim if provided
+  ansible.builtin.set_fact:
+    electrs_persistence_existing_claim: "{{ electrs_persistence_nfs_claim_name }}"
+  when:
+    - electrs_enabled | bool
+    - electrs_persistence_enabled | bool
+    - electrs_persistence_nfs_claim_name | length > 0
 
 # Uncomment for debugging
 # - name: Generate debug YAML file
@@ -51,10 +79,11 @@
 - name: Deploy Bitcoin Core using Helm
   kubernetes.core.helm:
     name: "{{ bitcoin_release_name }}"
-    chart_ref: hirosystems/bitcoin-core
+    chart_ref: "k8s-charts/bitcoin-stack"
     chart_version: "{{ bitcoin_chart_version }}"
     release_namespace: "{{ bitcoin_namespace }}"
     create_namespace: true
     update_repo_cache: true
     values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
     wait: true
+  when: bitcoin_enabled | bool
