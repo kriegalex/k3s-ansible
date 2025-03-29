@@ -41,8 +41,13 @@ persistence:
 gitea:
   admin:
     existingSecret: "{{ gitea_admin_secret_name }}"
-{% if gitea_postgresql_source == 'cloudnativepg' %}
   config:
+    server:
+{% if gitea_image_rootless %}
+      SSH_LISTEN_PORT: {{ gitea_service_ssh_port }}
+      SSH_PORT: {{ gitea_service_ssh_port }}
+{% endif %}
+{% if gitea_postgresql_source == 'cloudnativepg' %}
     database:
       DB_TYPE: postgres
       HOST: gitea-db-rw
