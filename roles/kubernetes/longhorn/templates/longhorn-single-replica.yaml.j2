@@ -10,6 +10,6 @@ parameters:
   staleReplicaTimeout: "30"
   fromBackup: ""
   fsType: "ext4"
-  dataLocality: "disabled"
-reclaimPolicy: Delete
+  dataLocality: "best-effort"
+reclaimPolicy: Retain
 volumeBindingMode: Immediate
