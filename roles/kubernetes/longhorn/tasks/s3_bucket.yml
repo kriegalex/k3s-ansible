@@ -1,5 +1,0 @@
----
-- name: Deploy S3 bucket secret for longhorn
-  kubernetes.core.k8s:
-    state: present
-    template: 's3-bucket-secret.yaml.j2'

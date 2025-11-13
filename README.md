@@ -15,7 +15,7 @@ If you want more context on how this works, see:
 ## ⚠️ Main changes on this fork
 
 - Reorganize roles and playbooks into folders
-- Add some kubernetes roles for longhorn and other useful utilities/apps
+- Focused on k3s cluster setup only
 
 ## 📖 k3s Ansible Playbook
 

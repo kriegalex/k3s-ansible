@@ -1,3 +1,0 @@
-# vars/cloudnative_pg/main.yml
----
-cloudnative_pg_enabled: true
