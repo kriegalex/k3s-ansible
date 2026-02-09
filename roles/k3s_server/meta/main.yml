@@ -24,7 +24,7 @@ argument_specs:
 
       group_name_master:
         description: Name of the master group
-        default: master
+        default: k3s_servers
 
       k3s_create_kubectl_symlink:
         description: Create the kubectl -> k3s symlink

@@ -5,29 +5,30 @@
     state: directory
     owner: "{{ ansible_user_id }}"
     mode: "0755"
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  loop: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
-- name: Delete outdated metallb replicas
+- name: Check for outdated metallb controller replicasets
   ansible.builtin.shell: |-
     set -o pipefail
-
-    REPLICAS=$({{ k3s_kubectl_binary | default('k3s kubectl') }} --namespace='metallb-system' get replicasets \
+    {{ k3s_kubectl_binary | default('k3s kubectl') }} --namespace='metallb-system' get replicasets \
       -l 'component=controller,app=metallb' \
-      -o jsonpath='{.items[0].spec.template.spec.containers[0].image}, {.items[0].metadata.name}' 2>/dev/null || true)
-    REPLICAS_SETS=$(echo ${REPLICAS} | grep -v '{{ metal_lb_controller_tag_version }}' | sed -e "s/^.*\s//g")
-    if [ -n "${REPLICAS_SETS}" ] ; then
-      for REPLICAS in "${REPLICAS_SETS}"
-      do
-        {{ k3s_kubectl_binary | default('k3s kubectl') }} --namespace='metallb-system' \
-          delete rs "${REPLICAS}"
-      done
-    fi
+      -o jsonpath='{range .items[*]}{.spec.template.spec.containers[0].image}{" "}{.metadata.name}{"\n"}{end}' 2>/dev/null || true
   args:
     executable: /bin/bash
+  register: metallb_replicasets
   changed_when: false
   run_once: true
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  failed_when: false
+
+- name: Delete outdated metallb controller replicasets
+  ansible.builtin.command: >-
+    {{ k3s_kubectl_binary | default('k3s kubectl') }} --namespace='metallb-system'
+    delete rs {{ item.split()[1] }}
+  loop: "{{ metallb_replicasets.stdout_lines | select('search', 'metallb/controller') | reject('search', metal_lb_controller_tag_version) | list }}"
+  when: metallb_replicasets.stdout_lines | select('search', 'metallb/controller') | reject('search', metal_lb_controller_tag_version) | list | length > 0
+  run_once: true
+  changed_when: true
 
 - name: Copy metallb CRs manifest to first master
   ansible.builtin.template:
@@ -35,14 +36,14 @@
     dest: /tmp/k3s/metallb-crs.yaml
     owner: "{{ ansible_user_id }}"
     mode: "0755"
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  loop: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
 - name: Test metallb-system namespace
   ansible.builtin.command: >-
     {{ k3s_kubectl_binary | default('k3s kubectl') }} -n metallb-system
   changed_when: false
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  loop: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
 - name: Wait for MetalLB resources
@@ -55,7 +56,7 @@
     --timeout='{{ metal_lb_available_timeout }}'
   changed_when: false
   run_once: true
-  with_items:
+  loop:
     - description: controller
       resource: deployment
       name: controller
@@ -101,7 +102,7 @@
   ansible.builtin.command: >-
     {{ k3s_kubectl_binary | default('k3s kubectl') }} -n metallb-system get endpoints {{ metallb_webhook_service_name }}
   changed_when: false
-  with_items: "{{ groups[group_name_master | default('master')] }}"
+  loop: "{{ groups[group_name_master | default('k3s_servers')] }}"
   run_once: true
 
 - name: Apply metallb CRs
@@ -109,7 +110,7 @@
     {{ k3s_kubectl_binary | default('k3s kubectl') }} apply -f /tmp/k3s/metallb-crs.yaml
     --timeout='{{ metal_lb_available_timeout }}'
   register: this
-  changed_when: false
+  changed_when: "'configured' in this.stdout or 'created' in this.stdout"
   run_once: true
   until: this.rc == 0
   retries: 5
@@ -120,7 +121,7 @@
   changed_when: false
   run_once: true
   when: metal_lb_mode == "layer2"
-  with_items:
+  loop:
     - IPAddressPool
     - L2Advertisement
 
@@ -130,7 +131,7 @@
   changed_when: false
   run_once: true
   when: metal_lb_mode == "bgp"
-  with_items:
+  loop:
     - IPAddressPool
     - BGPPeer
     - BGPAdvertisement

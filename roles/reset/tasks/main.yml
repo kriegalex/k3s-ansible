@@ -5,7 +5,7 @@
     state: stopped
     enabled: false
   failed_when: false
-  with_items:
+  loop:
     - k3s
     - k3s-node
     - k3s-init
@@ -18,7 +18,7 @@
 
 - name: Umount k3s filesystems
   ansible.builtin.include_tasks: umount_with_children.yml
-  with_items:
+  loop:
     - /run/k3s
     - /var/lib/kubelet
     - /run/netns
@@ -33,7 +33,7 @@
   ansible.builtin.file:
     name: "{{ item }}"
     state: absent
-  with_items:
+  loop:
     - /usr/local/bin/k3s
     - "{{ systemd_dir }}/k3s.service"
     - "{{ systemd_dir }}/k3s-node.service"
@@ -51,7 +51,7 @@
   ansible.builtin.file:
     name: "{{ item }}"
     state: absent
-  with_items:
+  loop:
     - "{{ systemd_dir }}/k3s.service.d/http_proxy.conf"
     - "{{ systemd_dir }}/k3s.service.d"
     - "{{ systemd_dir }}/k3s-node.service.d/http_proxy.conf"

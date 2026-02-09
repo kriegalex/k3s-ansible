@@ -1,6 +1,6 @@
 ---
 - name: Deploy Calico to cluster
-  when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
+  when: ansible_hostname == hostvars[groups[group_name_master | default('k3s_servers')][0]]['ansible_hostname']
   run_once: true
   block:
     - name: Create manifests directory on first master
@@ -54,7 +54,7 @@
       until: tigera_result is succeeded
       retries: 7
       delay: 7
-      with_items:
+      loop:
         - { name: tigera-operator, type: deployment }
       loop_control:
         label: "{{ item.type }}/{{ item.name }}"
@@ -93,7 +93,7 @@
       until: cr_result is succeeded
       retries: 30
       delay: 7
-      with_items:
+      loop:
         - { name: calico-typha, type: deployment, namespace: calico-system }
         - { name: calico-kube-controllers, type: deployment, namespace: calico-system }
         - name: csi-node-driver

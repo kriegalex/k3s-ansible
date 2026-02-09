@@ -24,7 +24,7 @@ cilium_mode: native
 cluster_cidr: 10.52.0.0/16
 enable_bpf_masquerade: true
 kube_proxy_replacement: true
-group_name_master: master
+group_name_master: k3s_servers
 
 metal_lb_mode: layer2
 metal_lb_available_timeout: 240s

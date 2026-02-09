@@ -1,20 +1,29 @@
 ---
-- name: Test for raspberry pi /proc/cpuinfo
-  ansible.builtin.command: grep -E "Raspberry Pi|BCM2708|BCM2709|BCM2835|BCM2836" /proc/cpuinfo
-  register: grep_cpuinfo_raspberrypi
+- name: Read /proc/cpuinfo
+  ansible.builtin.slurp:
+    src: /proc/cpuinfo
+  register: cpuinfo_content
   failed_when: false
-  changed_when: false
 
-- name: Test for raspberry pi /proc/device-tree/model
-  ansible.builtin.command: grep -E "Raspberry Pi" /proc/device-tree/model
-  register: grep_device_tree_model_raspberrypi
+- name: Read /proc/device-tree/model
+  ansible.builtin.slurp:
+    src: /proc/device-tree/model
+  register: device_tree_model_content
   failed_when: false
-  changed_when: false
+
+- name: Detect Raspberry Pi from hardware info
+  ansible.builtin.set_fact:
+    is_raspberrypi_cpuinfo: >-
+      {{ (cpuinfo_content.content | b64decode)
+         is regex('Raspberry Pi|BCM2708|BCM2709|BCM2835|BCM2836') }}
+    is_raspberrypi_model: >-
+      {{ (device_tree_model_content.content | b64decode) is regex('Raspberry Pi')
+         if device_tree_model_content.content is defined else false }}
 
 - name: Set raspberry_pi fact to true
   ansible.builtin.set_fact:
     raspberry_pi: true
-  when: grep_cpuinfo_raspberrypi.rc == 0 or grep_device_tree_model_raspberrypi.rc == 0
+  when: is_raspberrypi_cpuinfo or is_raspberrypi_model
 
 - name: Set detected_distribution to Raspbian (ARM64 on Raspbian, Debian Buster/Bullseye/Bookworm)
   ansible.builtin.set_fact:
@@ -49,8 +58,8 @@
   with_first_found:
     - "{{ action_ }}/{{ detected_distribution }}-{{ detected_distribution_major_version }}.yml"
     - "{{ action_ }}/{{ detected_distribution }}.yml"
-    - "{{ action_ }}/{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
-    - "{{ action_ }}/{{ ansible_distribution }}.yml"
+    - "{{ action_ }}/{{ ansible_facts['distribution'] }}-{{ ansible_facts['distribution_major_version'] }}.yml"
+    - "{{ action_ }}/{{ ansible_facts['distribution'] }}.yml"
     - "{{ action_ }}/default.yml"
   vars:
     action_: >-

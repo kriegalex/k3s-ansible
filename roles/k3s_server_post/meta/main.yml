@@ -110,7 +110,7 @@ argument_specs:
 
       group_name_master:
         description: Name of the master group
-        default: master
+        default: k3s_servers
 
       kube_proxy_replacement:
         description: Replace the native kube-proxy with Cilium
