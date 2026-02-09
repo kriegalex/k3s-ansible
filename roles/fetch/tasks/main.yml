@@ -1,0 +1,64 @@
+---
+- name: Check whether kubectl is installed on control node
+  ansible.builtin.command: 'kubectl'
+  register: kubectl_installed
+  ignore_errors: true
+  delegate_to: localhost
+  connection: local
+  become: false
+  changed_when: false
+
+# Copy the k3s config to a second file to detect changes.
+# If no changes are found, we can skip copying the kubeconfig to the control node.
+- name: Copy k3s.yaml to second file
+  ansible.builtin.copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /etc/rancher/k3s/k3s-copy.yaml
+    mode: "0600"
+    remote_src: true
+  register: copy_k3s_yaml_file
+
+- name: Apply K3S kubeconfig to control node
+  when:
+    - kubectl_installed.rc == 0
+    - copy_k3s_yaml_file.changed
+  block:
+    - name: Copy kubeconfig to control node
+      ansible.builtin.fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ kubeconfig }}"
+        flat: true
+
+    - name: Change server address in kubeconfig on control node
+      ansible.builtin.shell: |
+        KUBECONFIG={{ kubeconfig }} kubectl config set-cluster default --server=https://{{ apiserver_endpoint }}:6443
+      delegate_to: localhost
+      connection: local
+      become: false
+      register: csa_result
+      changed_when:
+        - csa_result.rc == 0
+
+    - name: Setup kubeconfig context on control node - {{ cluster_name }}
+      when: kubeconfig == "~/.kube/config.new"
+      ansible.builtin.replace:
+        path: "{{ kubeconfig }}"
+        regexp: 'default'
+        replace: '{{ cluster_name }}'
+      delegate_to: localhost
+      connection: local
+      become: false
+
+    - name: Merge with any existing kubeconfig on control node
+      when: kubeconfig == "~/.kube/config.new"
+      ansible.builtin.shell: |
+        TFILE=$(mktemp)
+        KUBECONFIG={{ kubeconfig }}:~/.kube/config kubectl config set-context {{ cluster_name }} --user={{ cluster_name }} --cluster={{ cluster_name }}
+        KUBECONFIG={{ kubeconfig }}:~/.kube/config kubectl config view --flatten > ${TFILE}
+        mv ${TFILE} ~/.kube/config
+      delegate_to: localhost
+      connection: local
+      become: false
+      register: mv_result
+      changed_when:
+        - mv_result.rc == 0

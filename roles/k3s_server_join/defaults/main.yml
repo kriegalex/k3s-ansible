@@ -1,0 +1,12 @@
+---
+extra_server_args: ""
+
+k3s_kubectl_binary: k3s kubectl
+
+systemd_dir: /etc/systemd/system
+
+retry_count: 20
+
+# These variables must be provided by the playbook or inventory
+# existing_cluster_apiserver: "192.168.1.100"
+# existing_cluster_token: "K1234567890abcdef::server:abcdef1234567890"
