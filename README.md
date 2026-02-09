@@ -12,6 +12,63 @@ If you want more context on how this works, see:
 
 📺 [Watch the Video](https://www.youtube.com/watch?v=CbkEWcUZ7zM)
 
+## ⚠️ Main changes on this fork
+
+This fork is a **pure k3s cluster provisioning tool**. Infrastructure and application deployment has been migrated to [k8s-homelab](https://github.com/kriegalex/k8s-homelab).
+
+**Key Features:**
+- ✅ **New:** Join existing cluster feature (`join_cluster.yml` playbook + `k3s_server_join` role)
+- ✅ HA k3s cluster setup with etcd, kube-vip, and MetalLB
+- ✅ CNI flexibility (Flannel, Calico, Cilium with BGP support)
+- ✅ Multi-architecture support (x64, arm64, armhf)
+- ✅ YAML inventory format for better readability
+
+**What's Included:**
+- Core k3s cluster provisioning only
+
+**What's NOT Included:**
+- Infrastructure components (ingress, storage, monitoring) → Use [k8s-homelab](https://github.com/kriegalex/k8s-homelab)
+- Applications (Nextcloud, Plex, etc.) → Use [k8s-homelab](https://github.com/kriegalex/k8s-homelab)
+
+**Migration Guide:** See project documentation for migration details
+
+## 🔀 Fork vs Upstream
+
+### When to Use This Fork
+
+**Use this fork if you want:**
+- **Join existing clusters**: Add nodes to running clusters without re-initialization
+- **YAML inventory**: More readable than INI format with better structure
+- **Quality improvements**: Modern Ansible syntax, idempotent playbooks, comprehensive validation
+- **Additional roles**: `k3s_server_join` for joining existing clusters, plus enhanced validation
+
+**Use [upstream](https://github.com/timothystewart6/k3s-ansible) if you want:**
+- Official supported version with active community
+- INI inventory format (`hosts.ini` with `[master]` and `[node]` groups)
+- Minimal differences in role structure
+
+### Fork-Specific Features
+
+| Feature | This Fork | Upstream |
+|---------|-----------|----------|
+| **Join Existing Cluster** | ✅ `join_cluster.yml` playbook | ❌ Not available |
+| **Inventory Format** | YAML (`k3s_servers`/`k3s_workers`) | INI (`[master]`/`[node]`) |
+| **Role Structure** | Flat `roles/*` + `k3s_server_join` | Flat `roles/*` |
+| **Vault Integration** | `ansible.cfg` + `.vault_pass` | Manual setup |
+| **Validation Tasks** | Pre-flight checks with clear errors | Minimal |
+| **Idempotency** | Fully idempotent (safe re-runs) | Mostly idempotent |
+| **Loop Syntax** | Modern `loop:` | Mixed (some `with_items:`) |
+
+### Maintained Compatibility
+
+This fork maintains **core compatibility** with upstream:
+- ✅ Same k3s versions supported
+- ✅ Same CNI options (Flannel, Calico, Cilium)
+- ✅ Same OS support (Debian, Ubuntu, Rocky)
+- ✅ Regular upstream syncs for security updates
+
+**Sync Schedule:** Quarterly syncs with upstream for security and bug fixes
+
 ## 📖 k3s Ansible Playbook
 
 Build a Kubernetes cluster using Ansible with k3s. The goal is easily install a HA Kubernetes cluster on machines running:
@@ -25,6 +82,41 @@ on processor architecture:
 - [X] x64
 - [X] arm64
 - [X] armhf
+
+## 🎯 Deployment Modes
+
+This playbook supports two deployment modes:
+
+### 1. **New Cluster**
+Provisions a fresh k3s cluster.
+- Minimal setup: k3s + kube-vip/MetalLB + CNI of choice
+- Perfect for: Production, testing, development
+- Command: `ansible-playbook site.yml -i inventory/hosts.yml`
+
+### 2. **Join Existing Cluster**
+Adds new nodes (servers or workers) to an **existing k3s cluster**.
+- Use case: Scaling existing cluster, replacing failed nodes, multi-site clusters
+- Required: `existing_cluster_apiserver` and `existing_cluster_token` variables
+- Command: `ansible-playbook join_cluster.yml -i inventory/hosts.yml --limit new_node`
+
+## 🧰 Next Steps: Deploy Infrastructure
+
+After cluster provisioning, deploy infrastructure with [k8s-homelab](https://github.com/kriegalex/k8s-homelab):
+
+**Infrastructure Components:**
+- **Ingress:** NGINX, Traefik, cert-manager
+- **Storage:** Longhorn, NFS, Ceph
+- **Database:** CloudNativePG, MySQL operators
+- **Monitoring:** Prometheus, Grafana, Loki
+- **Backup:** Velero, k8up
+- **Applications:** Nextcloud, Plex, Gitea, Immich, and more
+
+**Why separate?**
+- k3s-ansible: Specialized for cluster provisioning
+- k8s-homelab: Flexible infrastructure and application management
+- Clear separation of concerns and maintenance
+
+See [k8s-homelab](https://github.com/kriegalex/k8s-homelab) repository for migration guide.
 
 ## ✅ System requirements
 
@@ -43,26 +135,43 @@ on processor architecture:
 First create a new directory based on the `sample` directory within the `inventory` directory:
 
 ```bash
-cp -R inventory/sample inventory/my-cluster
+cp -R inventory/sample/group_vars inventory/group_vars
+# For YAML format (recommended):
+cp inventory/sample/hosts.yml.alternative inventory/hosts.yml
+# OR for INI format:
+# cp inventory/sample/hosts.ini inventory/hosts.ini
 ```
 
-Second, edit `inventory/my-cluster/hosts.ini` to match the system information gathered above
+Second, edit `inventory/hosts.yml` to match the system information gathered above
 
 For example:
 
-```ini
-[master]
-192.168.30.38
-192.168.30.39
-192.168.30.40
+```yaml
+k3s_servers:
+  hosts:
+    k3s-server1:
+      ansible_host: 192.168.30.38
+    k3s-server2:
+      ansible_host: 192.168.30.39
+    k3s-server3:
+      ansible_host: 192.168.30.40
 
-[node]
-192.168.30.41
-192.168.30.42
+k3s_workers:
+  hosts:
+    k3s-worker1:
+      ansible_host: 192.168.30.41
+    k3s-worker2:
+      ansible_host: 192.168.30.42
 
-[k3s_cluster:children]
-master
-node
+k3s_cluster:
+  children:
+    k3s_servers:
+    k3s_workers:
+
+ansible_local:
+  hosts:
+    localhost:
+      ansible_connection: local
 ```
 
 If multiple hosts are in the master group, the playbook will automatically set up k3s in [HA mode with etcd](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
@@ -71,22 +180,86 @@ Finally, copy `ansible.example.cfg` to `ansible.cfg` and adapt the inventory pat
 
 This requires at least k3s version `1.19.1` however the version is configurable by using the `k3s_version` variable.
 
-If needed, you can also edit `inventory/my-cluster/group_vars/all.yml` to match your environment.
+If needed, you can also edit `group_vars/all/vars.yml` to match your environment.
+
+### 🔒 Required Vault Secrets
+
+This Ansible project requires secure values to be stored in an Ansible vault.
+
+**Minimum Required:**
+- `k3s_token`: Cluster authentication token (32+ alphanumeric characters)
+
+**Optional (infrastructure-dependent):**
+- `existing_cluster_token`: When joining existing cluster
+- `vault_cnpg_backup_s3_*`: When using CloudNativePG + k8up for backups
+- `vault_grafana_admin_password`: When using Prometheus
+
+Follow these steps to manage the vault:
+
+1. Modify `inventory/group_vars/all/vault.yml` with your passwords.
+
+2. Setup a vault password (path already defined in ansible.cfg)
+```bash
+echo "my-password" > .vault_pass
+```
+
+2. Encrypt vault file:
+```bash
+ansible-vault encrypt --vault-password-file .vault_pass --encrypt-vault-id default group_vars/all/vault.yml --output group_vars/all/vault.yml
+```
+
+3. Check result:
+```bash
+ansible-vault view group_vars/all/vault.yml
+```
+
+If `ansible.cfg` and `.vault_pass` are all correctly defined and setup, this should output the variables inside the vault.
+
+#### Generating Secure Passwords
+
+You can generate secure passwords using these commands:
+
+```bash
+# Generate random 32-character password
+openssl rand -base64 24
+
+# Alternative using /dev/urandom
+< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo;
+```
 
 ### ☸️ Create Cluster
 
-Start provisioning of the cluster using the following command:
-
+**Deploy k3s cluster:**
 ```bash
-ansible-playbook site.yml -i inventory/my-cluster/hosts.ini
+ansible-playbook site.yml -i inventory/hosts.yml
 ```
 
-After deployment control plane will be accessible via virtual ip-address which is defined in inventory/group_vars/all.yml as `apiserver_endpoint`
+This deploys a bare k3s cluster with kube-vip, MetalLB, and your chosen CNI.
+
+**Join Nodes to Existing Cluster:**
+
+Configure in `inventory/group_vars/all/vars.yml`:
+```yaml
+join_existing_cluster: true
+existing_cluster_apiserver: "192.168.1.100"  # VIP of existing cluster
+```
+
+Add token to `inventory/group_vars/all/vault.yml`:
+```yaml
+existing_cluster_token: "K1234567890abcdef::server:abcdef1234567890"
+```
+
+Then run (limit to new nodes only):
+```bash
+ansible-playbook join_cluster.yml -i inventory/hosts.yml --limit new_server_hostname
+```
+
+After deployment, the control plane will be accessible via the virtual IP address defined in `inventory/group_vars/all/vars.yml` as `apiserver_endpoint`
 
 ### 🔥 Remove k3s cluster
 
 ```bash
-ansible-playbook reset.yml -i inventory/my-cluster/hosts.ini
+ansible-playbook reset.yml -i inventory/hosts.yml
 ```
 
 >You should also reboot these nodes due to the VIP not being destroyed
@@ -185,7 +358,6 @@ See the commands [here](https://technotim.com/posts/k3s-etcd-ansible/#testing-yo
 | `k3s_server_post` | `metal_lb_bgp_peer_address` | string | `~` | Not required | BGP peer address |
 | `lxc` | `custom_reboot_command` | string | `~` | Not required | Command to run on reboot |
 | `prereq` | `system_timezone` | string | `null` | Not required | Timezone to be set on all nodes |
-| `proxmox_lxc`, `reset_proxmox_lxc` | `proxmox_lxc_ct_ids` | list | ❌ | Required | Proxmox container ID list |
 | `raspberrypi` | `state` | string | `present` | Not required | Indicates whether the k3s prerequisites for Raspberry Pi should be set up (possible values are `present` and `absent`) |
 
 
