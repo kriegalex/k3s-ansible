@@ -1,4 +1,5 @@
 ---
+
 - name: Pre tasks
   hosts: all
   pre_tasks:
@@ -36,33 +37,32 @@
       when: custom_registries
 
 - name: Setup k3s servers
-  hosts: master
+  hosts: k3s_servers
   environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: k3s_server
       become: true
 
 - name: Setup k3s agents
-  hosts: node
+  hosts: k3s_workers
   environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: k3s_agent
       become: true
 
 - name: Configure k3s cluster
-  hosts: master
+  hosts: k3s_servers
   environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: k3s_server_post
       become: true
 
-- name: Storing kubeconfig in the playbook directory
-  hosts: master
+- name: Copying kubeconfig file
+  hosts: k3s_servers
   environment: "{{ proxy_env | default({}) }}"
-  tasks:
-    - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname'] }}
-      ansible.builtin.fetch:
-        src: "{{ ansible_user_dir }}/.kube/config"
-        dest: ./kubeconfig
-        flat: true
-      when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
+  roles:
+    - role: fetch
+      become: true
+
+# Infrastructure deployment removed - use k8s-homelab for infrastructure components
+# See: https://github.com/kriegalex/k8s-homelab

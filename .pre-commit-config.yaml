@@ -33,3 +33,11 @@ repos:
     rev: 0.6.4
     hooks:
       - id: fix-smartquotes
+  - repo: local
+    hooks:
+      - id: check-deprecated-loop-syntax
+        name: Check for deprecated with_items syntax
+        entry: bash -c 'if grep -r "with_items:" roles/ playbooks/ --include="*.yml" 2>/dev/null; then echo "ERROR: Found deprecated with_items syntax. Use loop: instead."; exit 1; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
