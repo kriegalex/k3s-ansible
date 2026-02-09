@@ -17,7 +17,7 @@
         state: present
         wait: true
         kubeconfig: "{{ kubecfg_path }}"
-      with_items:
+      loop:
         - deployment.yml
         - service.yml
 

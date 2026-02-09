@@ -17,7 +17,7 @@
       ansible.posix.sysctl:
         name: net.ipv6.conf.{{ item }}.disable_ipv6
         value: "0"
-      with_items:
+      loop:
         - all
         - default
         - lo
@@ -29,7 +29,7 @@
       ansible.posix.sysctl:
         name: net.ipv6.conf.{{ item }}.accept_dad
         value: "0"
-      with_items:
+      loop:
         - "{{ flannel_iface }}"
 
     - name: Write IPv4 configuration

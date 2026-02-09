@@ -48,7 +48,7 @@ platforms:
     cpus: 2
     groups:
       - k3s_cluster
-      - node
+      - k3s_workers
     interfaces:
       - network_name: private_network
         ip: 192.168.30.41
@@ -64,7 +64,7 @@ platforms:
     cpus: 2
     groups:
       - k3s_cluster
-      - node
+      - k3s_workers
     interfaces:
       - network_name: private_network
         ip: 192.168.30.42

@@ -32,6 +32,9 @@
         # manually below.
         k3s_node_ip: "{{ node_ipv4 }},{{ node_ipv6 }}"
 
+        # Test bare cluster deployment (no infrastructure)
+        deploy_infrastructure: false
+
     - name: Override host variables (2/2)
       # Since "extra_args" depends on "k3s_node_ip" and "flannel_iface" we have
       # to set this AFTER overriding the both of them.
