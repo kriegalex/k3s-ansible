@@ -113,8 +113,12 @@ Timothy-style victim cluster).
    - Confirm `/usr/local/bin/k3s` exists on all nodes (install script then
      skips the download; version is unchanged).
    - Backup units for rollback — server:
-     `sudo cp /etc/systemd/system/k3s.service{,.bak}`; each agent:
-     `sudo cp /etc/systemd/system/k3s-agent.service{,.bak}`.
+     `sudo cp /etc/systemd/system/k3s.service{,.bak}`; each worker:
+     `sudo cp /etc/systemd/system/k3s-node.service{,.bak}`.
+     (Unit naming: the old playbook used `k3s.service` on the server — same
+     name as the official one, overwritten in place — but `k3s-node.service`
+     on workers, while the official install creates `k3s-agent.service`.
+     The old worker unit must therefore be retired during cutover, step 5.)
    - Record LB services: `kubectl get svc -A | grep LoadBalancer`
      (expect 10.0.0.20–.27).
    - `ansible-inventory --graph` and `ansible-playbook site.yml --syntax-check`.
@@ -132,14 +136,27 @@ Timothy-style victim cluster).
    blip; MetalLB data plane and workloads unaffected; etcd data untouched).
 4. **Verify**: nodes Ready, LB IPs unchanged, `kubectl -n metallb-system get
    pods`, `kubectl get ipaddresspool -n metallb-system first-pool`.
-5. **Agent cutover**: `ansible-playbook site.yml --limit agent --forks 1`
-   (kubelet restart does not kill running containers).
+5. **Agent cutover** — one worker at a time; the old `k3s-node.service` must
+   be stopped *before* the new `k3s-agent.service` starts, or two agents race
+   for the kubelet port. Per worker:
+   ```bash
+   # on the worker:
+   sudo systemctl disable --now k3s-node.service   # containers keep running (containerd survives)
+   # from the control node:
+   ansible-playbook site.yml --limit <worker>
+   kubectl get nodes                               # wait for Ready
+   # once verified, on the worker (the .bak from pre-flight remains):
+   sudo rm /etc/systemd/system/k3s-node.service && sudo systemctl daemon-reload
+   ```
 6. **Post**: run the `--check --diff` baseline; diff each node's
    `/etc/rancher/k3s/config.yaml` and the `k3s.io/node-args` annotation
    against pre-migration values.
 
-**Rollback**: restore the `.bak` unit files, `sudo systemctl daemon-reload`,
-restart `k3s` / `k3s-agent`. Data and binary are untouched.
+**Rollback**: server — restore `k3s.service` from `.bak`, `sudo systemctl
+daemon-reload && sudo systemctl restart k3s`. Worker — `sudo systemctl
+disable --now k3s-agent.service`, restore `k3s-node.service` from `.bak`,
+`sudo systemctl daemon-reload && sudo systemctl enable --now k3s-node`.
+Data and binary are untouched either way.
 
 Once the new setup has survived a re-run and a reboot cycle, the legacy
 untracked `inventory/` directory can be deleted.
