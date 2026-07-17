@@ -1,407 +1,145 @@
-# Automated build of HA k3s Cluster with `kube-vip` and MetalLB
+# k3s cluster provisioning (official k3s-io/k3s-ansible + homelab config)
 
-![Fully Automated K3S etcd High Availability Install](https://img.youtube.com/vi/CbkEWcUZ7zM/0.jpg)
+This repo provisions the homelab k3s cluster using the **official
+[k3s-io/k3s-ansible](https://github.com/k3s-io/k3s-ansible)** playbook,
+consumed read-only as a pinned git submodule (`k3s-io-ansible/`). Everything
+homelab-specific is expressed as inventory variables plus one static manifest —
+**no upstream file is ever modified**, so updating upstream can never produce a
+merge conflict.
 
-This playbook will build an HA Kubernetes cluster with `k3s`, `kube-vip` and MetalLB via `ansible`.
+The previous techno-tim–based playbook is preserved on the
+[`archive/timothy-fork`](../../tree/archive/timothy-fork) branch.
 
-This is based on the work from [this fork](https://github.com/212850a/k3s-ansible) which is based on the work from [k3s-io/k3s-ansible](https://github.com/k3s-io/k3s-ansible). It uses [kube-vip](https://kube-vip.io/) to create a load balancer for control plane, and [metal-lb](https://metallb.universe.tf/installation/) for its service `LoadBalancer`.
+## Layout
 
-If you want more context on how this works, see:
+| Path | Purpose |
+|---|---|
+| `site.yml` | Thin wrapper: `import_playbook` of the upstream site playbook |
+| `k3s-io-ansible/` | Pinned upstream submodule (never edited) |
+| `inventory.yml` | Hosts; groups `server` / `agent` / `k3s_cluster` (names required by upstream) |
+| `group_vars/all/vars.yml` | k3s version, api endpoint, kubeconfig context |
+| `group_vars/all/vault.yml` | `token:` — ansible-vault encrypted, **not** committed (see below) |
+| `group_vars/server.yml` | `server_config_yaml` (all server flags) + `extra_manifests` (MetalLB) |
+| `group_vars/agent.yml` | `agent_config_yaml` |
+| `manifests/metallb-crds.yaml` | Pinned MetalLB v0.14.8 + `first-pool` (10.0.0.20-49) + L2Advertisement |
 
-📄 [Documentation](https://technotim.com/posts/k3s-etcd-ansible/) (including example commands)
+Design notes:
 
-📺 [Watch the Video](https://www.youtube.com/watch?v=CbkEWcUZ7zM)
+- All k3s flags live in `/etc/rancher/k3s/config.yaml` (written by the upstream
+  role from `server_config_yaml` / `agent_config_yaml`). `token` and
+  `tls-san: {{ api_endpoint }}` are auto-injected by the role — never duplicate
+  them in the config vars.
+- MetalLB is deployed via upstream's `extra_manifests` mechanism: the file is
+  copied to `/var/lib/rancher/k3s/server/manifests/` and k3s's AddOn controller
+  applies it. The filename `metallb-crds.yaml` deliberately matches the AddOn
+  created by the old playbook, so the running MetalLB is adopted in place.
+- kube-vip was removed (single control-plane node; the "VIP" was the server's
+  own IP).
 
-## ⚠️ Main changes on this fork
+## Usage
 
-This fork is a **pure k3s cluster provisioning tool**. Infrastructure and application deployment has been migrated to [k8s-homelab](https://github.com/kriegalex/k8s-homelab).
-
-**Key Features:**
-- ✅ **New:** Join existing cluster feature (`join_cluster.yml` playbook + `k3s_server_join` role)
-- ✅ HA k3s cluster setup with etcd, kube-vip, and MetalLB
-- ✅ CNI flexibility (Flannel, Calico, Cilium with BGP support)
-- ✅ Multi-architecture support (x64, arm64, armhf)
-- ✅ YAML inventory format for better readability
-
-**What's Included:**
-- Core k3s cluster provisioning only
-
-**What's NOT Included:**
-- Infrastructure components (ingress, storage, monitoring) → Use [k8s-homelab](https://github.com/kriegalex/k8s-homelab)
-- Applications (Nextcloud, Plex, etc.) → Use [k8s-homelab](https://github.com/kriegalex/k8s-homelab)
-
-**Migration Guide:** See project documentation for migration details
-
-## 🔀 Fork vs Upstream
-
-### When to Use This Fork
-
-**Use this fork if you want:**
-- **Join existing clusters**: Add nodes to running clusters without re-initialization
-- **YAML inventory**: More readable than INI format with better structure
-- **Quality improvements**: Modern Ansible syntax, idempotent playbooks, comprehensive validation
-- **Additional roles**: `k3s_server_join` for joining existing clusters, plus enhanced validation
-
-**Use [upstream](https://github.com/timothystewart6/k3s-ansible) if you want:**
-- Official supported version with active community
-- INI inventory format (`hosts.ini` with `[master]` and `[node]` groups)
-- Minimal differences in role structure
-
-### Fork-Specific Features
-
-| Feature | This Fork | Upstream |
-|---------|-----------|----------|
-| **Join Existing Cluster** | ✅ `join_cluster.yml` playbook | ❌ Not available |
-| **Inventory Format** | YAML (`k3s_servers`/`k3s_workers`) | INI (`[master]`/`[node]`) |
-| **Role Structure** | Flat `roles/*` + `k3s_server_join` | Flat `roles/*` |
-| **Vault Integration** | `ansible.cfg` + `.vault_pass` | Manual setup |
-| **Validation Tasks** | Pre-flight checks with clear errors | Minimal |
-| **Idempotency** | Fully idempotent (safe re-runs) | Mostly idempotent |
-| **Loop Syntax** | Modern `loop:` | Mixed (some `with_items:`) |
-
-### Maintained Compatibility
-
-This fork maintains **core compatibility** with upstream:
-- ✅ Same k3s versions supported
-- ✅ Same CNI options (Flannel, Calico, Cilium)
-- ✅ Same OS support (Debian, Ubuntu, Rocky)
-- ✅ Regular upstream syncs for security updates
-
-**Sync Schedule:** Quarterly syncs with upstream for security and bug fixes
-
-## 📖 k3s Ansible Playbook
-
-Build a Kubernetes cluster using Ansible with k3s. The goal is easily install a HA Kubernetes cluster on machines running:
-
-- [x] Debian (tested on version 11)
-- [x] Ubuntu (tested on version 22.04)
-- [x] Rocky (tested on version 9)
-
-on processor architecture:
-
-- [X] x64
-- [X] arm64
-- [X] armhf
-
-## 🎯 Deployment Modes
-
-This playbook supports two deployment modes:
-
-### 1. **New Cluster**
-Provisions a fresh k3s cluster.
-- Minimal setup: k3s + kube-vip/MetalLB + CNI of choice
-- Perfect for: Production, testing, development
-- Command: `ansible-playbook site.yml -i inventory/hosts.yml`
-
-### 2. **Join Existing Cluster**
-Adds new nodes (servers or workers) to an **existing k3s cluster**.
-- Use case: Scaling existing cluster, replacing failed nodes, multi-site clusters
-- Required: `existing_cluster_apiserver` and `existing_cluster_token` variables
-- Command: `ansible-playbook join_cluster.yml -i inventory/hosts.yml --limit new_node`
-
-## 🧰 Next Steps: Deploy Infrastructure
-
-After cluster provisioning, deploy infrastructure with [k8s-homelab](https://github.com/kriegalex/k8s-homelab):
-
-**Infrastructure Components:**
-- **Ingress:** NGINX, Traefik, cert-manager
-- **Storage:** Longhorn, NFS, Ceph
-- **Database:** CloudNativePG, MySQL operators
-- **Monitoring:** Prometheus, Grafana, Loki
-- **Backup:** Velero, k8up
-- **Applications:** Nextcloud, Plex, Gitea, Immich, and more
-
-**Why separate?**
-- k3s-ansible: Specialized for cluster provisioning
-- k8s-homelab: Flexible infrastructure and application management
-- Clear separation of concerns and maintenance
-
-See [k8s-homelab](https://github.com/kriegalex/k8s-homelab) repository for migration guide.
-
-## ✅ System requirements
-
-- Control Node (the machine you are running `ansible` commands) must have Ansible 2.11+ If you need a quick primer on Ansible [you can check out my docs and setting up Ansible](https://technotim.com/posts/ansible-automation/).
-
-- You will also need to install collections that this playbook uses by running `ansible-galaxy collection install -r ./collections/requirements.yml` (important❗)
-
-- [`netaddr` package](https://pypi.org/project/netaddr/) must be available to Ansible. If you have installed Ansible via apt, this is already taken care of. If you have installed Ansible via `pip`, make sure to install `netaddr` into the respective virtual environment.
-
-- `server` and `agent` nodes should have passwordless SSH access, if not you can supply arguments to provide credentials `--ask-pass --ask-become-pass` to each command.
-
-## 🚀 Getting Started
-
-### 🍴 Preparation
-
-First create a new directory based on the `sample` directory within the `inventory` directory:
+Always run from the repo root (`ansible.cfg` is cwd-loaded):
 
 ```bash
-cp -R inventory/sample/group_vars inventory/group_vars
-# For YAML format (recommended):
-cp inventory/sample/hosts.yml.alternative inventory/hosts.yml
-# OR for INI format:
-# cp inventory/sample/hosts.ini inventory/hosts.ini
+git submodule update --init                        # first checkout only
+ansible-galaxy collection install -r collections/requirements.yml
+ansible-playbook site.yml                          # full converge
+ansible-playbook site.yml --check --diff           # drift check (see baseline below)
+ansible-playbook site.yml --limit agent --forks 1  # agents one at a time
 ```
 
-Second, edit `inventory/hosts.yml` to match the system information gathered above
+**Adding a node**: add it to `inventory.yml` under `agent`, then
+`ansible-playbook site.yml --limit <new-node>`. (The old `join_cluster.yml` is
+obsolete — the upstream agent role joins idempotently via the shared token.)
 
-For example:
+**Upgrading k3s**: bump `k3s_version` in `group_vars/all/vars.yml`, then run
+`site.yml` (single server; on multi-server use `--forks=1`), or use
+`k3s-io-ansible/playbooks/upgrade.yml`.
 
-```yaml
-k3s_servers:
-  hosts:
-    k3s-server1:
-      ansible_host: 192.168.30.38
-    k3s-server2:
-      ansible_host: 192.168.30.39
-    k3s-server3:
-      ansible_host: 192.168.30.40
+**Updating upstream**: `cd k3s-io-ansible && git fetch && git checkout <tag>`,
+review upstream changelog, commit the new submodule pointer. Conflict-free by
+construction.
 
-k3s_workers:
-  hosts:
-    k3s-worker1:
-      ansible_host: 192.168.30.41
-    k3s-worker2:
-      ansible_host: 192.168.30.42
+## Vault (required before any real run)
 
-k3s_cluster:
-  children:
-    k3s_servers:
-    k3s_workers:
-
-ansible_local:
-  hosts:
-    localhost:
-      ansible_connection: local
-```
-
-If multiple hosts are in the master group, the playbook will automatically set up k3s in [HA mode with etcd](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
-
-Finally, copy `ansible.example.cfg` to `ansible.cfg` and adapt the inventory path to match the files that you just created.
-
-This requires at least k3s version `1.19.1` however the version is configurable by using the `k3s_version` variable.
-
-If needed, you can also edit `group_vars/all/vars.yml` to match your environment.
-
-### 🔒 Required Vault Secrets
-
-This Ansible project requires secure values to be stored in an Ansible vault.
-
-**Minimum Required:**
-- `k3s_token`: Cluster authentication token (32+ alphanumeric characters)
-
-**Optional (infrastructure-dependent):**
-- `existing_cluster_token`: When joining existing cluster
-- `vault_cnpg_backup_s3_*`: When using CloudNativePG + k8up for backups
-- `vault_grafana_admin_password`: When using Prometheus
-
-Follow these steps to manage the vault:
-
-1. Modify `inventory/group_vars/all/vault.yml` with your passwords.
-
-2. Setup a vault password (path already defined in ansible.cfg)
-```bash
-echo "my-password" > .vault_pass
-```
-
-2. Encrypt vault file:
-```bash
-ansible-vault encrypt --vault-password-file .vault_pass --encrypt-vault-id default group_vars/all/vault.yml --output group_vars/all/vault.yml
-```
-
-3. Check result:
-```bash
-ansible-vault view group_vars/all/vault.yml
-```
-
-If `ansible.cfg` and `.vault_pass` are all correctly defined and setup, this should output the variables inside the vault.
-
-#### Generating Secure Passwords
-
-You can generate secure passwords using these commands:
+The cluster token must match the live cluster byte-for-byte so nodes keep their
+identity:
 
 ```bash
-# Generate random 32-character password
-openssl rand -base64 24
-
-# Alternative using /dev/urandom
-< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-32};echo;
+# on k3s-server1:
+sudo cat /var/lib/rancher/k3s/server/token
+# locally:
+echo '<vault-password>' > .vault_pass && chmod 600 .vault_pass
+ansible-vault create group_vars/all/vault.yml     # token: "<paste>"
 ```
 
-### ☸️ Create Cluster
+Then uncomment `vault_password_file = .vault_pass` in `ansible.cfg`.
 
-**Deploy k3s cluster:**
-```bash
-ansible-playbook site.yml -i inventory/hosts.yml
-```
+See `group_vars/all/vault.yml.example`. **Warning:** if `token` is undefined,
+the upstream role generates a random one — on an existing cluster that would
+break agent auth. Do not run `site.yml` against the cluster without the vault.
 
-This deploys a bare k3s cluster with kube-vip, MetalLB, and your chosen CNI.
+## `--check --diff` baseline (expected residual noise)
 
-**Join Nodes to Existing Cluster:**
+On a fully converged cluster, `ansible-playbook site.yml --check --diff`
+reports **exactly 4 changed** tasks — the upstream roles restart services
+unconditionally by design (declarative upgrade path):
 
-Configure in `inventory/group_vars/all/vars.yml`:
-```yaml
-join_existing_cluster: true
-existing_cluster_apiserver: "192.168.1.100"  # VIP of existing cluster
-```
+1. `Enable and start K3s service` (k3s-server1, `state: restarted`)
+2. `Enable and start K3s agent` × 3 (workers)
 
-Add token to `inventory/group_vars/all/vault.yml`:
-```yaml
-existing_cluster_token: "K1234567890abcdef::server:abcdef1234567890"
-```
+**Anything beyond these 4 is real drift — investigate.** Note that the
+config.yaml writes are check-mode-gated upstream, so `--check` cannot reveal
+config drift; verify `/etc/rancher/k3s/config.yaml` on the nodes directly.
 
-Then run (limit to new nodes only):
-```bash
-ansible-playbook join_cluster.yml -i inventory/hosts.yml --limit new_server_hostname
-```
+Known quirk: **before the first real converge**, `--check` fails on the server
+at `Setup kubeconfig context on control node` (`~/.kube/config.new` doesn't
+exist yet — the fetch that creates it is check-gated upstream). Harmless;
+disappears after the first real run, when `Copy k3s.yaml to second file`
+reports `ok` and the whole kubeconfig block is skipped.
 
-After deployment, the control plane will be accessible via the virtual IP address defined in `inventory/group_vars/all/vars.yml` as `apiserver_endpoint`
+## Migration runbook (techno-tim → official, one-time)
 
-### 🔥 Remove k3s cluster
+Server first, then agents. Rehearse on throwaway VMs if possible
+(`archive/timothy-fork` has the molecule/Vagrant tooling to build a
+Timothy-style victim cluster).
 
-```bash
-ansible-playbook reset.yml -i inventory/hosts.yml
-```
+1. **Pre-flight**
+   - Create the vault (above).
+   - Passwordless sudo for `{{ ansible_user }}` on **all** nodes:
+     `ansible k3s_cluster -m command -a whoami --become` must succeed everywhere.
+     (k3s-worker4 was missing this as of 2026-07-17 — on the node:
+     `echo 'k3s ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/k3s && sudo chmod 440 /etc/sudoers.d/k3s`)
+   - Confirm `/usr/local/bin/k3s` exists on all nodes (install script then
+     skips the download; version is unchanged).
+   - Backup units for rollback — server:
+     `sudo cp /etc/systemd/system/k3s.service{,.bak}`; each agent:
+     `sudo cp /etc/systemd/system/k3s-agent.service{,.bak}`.
+   - Record LB services: `kubectl get svc -A | grep LoadBalancer`
+     (expect 10.0.0.20–.27).
+   - `ansible-inventory --graph` and `ansible-playbook site.yml --syntax-check`.
+2. **kube-vip cleanup** (files BEFORE objects, or the AddOn controller
+   recreates them) — on k3s-server1:
+   ```bash
+   sudo rm -f /var/lib/rancher/k3s/server/manifests/vip.yaml \
+              /var/lib/rancher/k3s/server/manifests/vip-rbac.yaml
+   kubectl -n kube-system delete addon vip vip-rbac
+   kubectl -n kube-system delete daemonset kube-vip-ds
+   ```
+3. **Server cutover**: `ansible-playbook site.yml --limit server`
+   — rewrites the systemd unit to the official install-script form, writes
+   config.yaml, adopts the MetalLB AddOn, restarts k3s once (~10–30 s API
+   blip; MetalLB data plane and workloads unaffected; etcd data untouched).
+4. **Verify**: nodes Ready, LB IPs unchanged, `kubectl -n metallb-system get
+   pods`, `kubectl get ipaddresspool -n metallb-system first-pool`.
+5. **Agent cutover**: `ansible-playbook site.yml --limit agent --forks 1`
+   (kubelet restart does not kill running containers).
+6. **Post**: run the `--check --diff` baseline; diff each node's
+   `/etc/rancher/k3s/config.yaml` and the `k3s.io/node-args` annotation
+   against pre-migration values.
 
->You should also reboot these nodes due to the VIP not being destroyed
+**Rollback**: restore the `.bak` unit files, `sudo systemctl daemon-reload`,
+restart `k3s` / `k3s-agent`. Data and binary are untouched.
 
-## ⚙️ Kube Config
-
-To copy your `kube config` locally so that you can access your **Kubernetes** cluster run:
-
-```bash
-scp debian@master_ip:/etc/rancher/k3s/k3s.yaml ~/.kube/config
-```
-If you get file Permission denied, go into the node and temporarly run:
-```bash
-sudo chmod 777 /etc/rancher/k3s/k3s.yaml
-```
-Then copy with the scp command and reset the permissions back to:
-```bash
-sudo chmod 600 /etc/rancher/k3s/k3s.yaml
-```
-
-You'll then want to modify the config to point to master IP by running:
-```bash
-sudo nano ~/.kube/config
-```
-Then change `server: https://127.0.0.1:6443` to match your master IP: `server: https://192.168.1.222:6443`
-
-### 🔨 Testing your cluster
-
-See the commands [here](https://technotim.com/posts/k3s-etcd-ansible/#testing-your-cluster).
-
-### Variables
-
-| Role(s) | Variable | Type | Default | Required | Description |
-|---|---|---|---|---|---|
-| `download` | `k3s_version` | string | ❌ | Required | K3s binaries version |
-| `k3s_agent`, `k3s_server`, `k3s_server_post` | `apiserver_endpoint` | string | ❌ | Required | Virtual ip-address configured on each master |
-| `k3s_agent` | `extra_agent_args` | string | `null` | Not required | Extra arguments for agents nodes |
-| `k3s_agent`, `k3s_server` | `group_name_master` | string | `null` | Not required | Name othe master group |
-| `k3s_agent` | `k3s_token` | string | `null` | Not required | Token used to communicate between masters |
-| `k3s_agent`, `k3s_server` | `proxy_env` | dict | `null` | Not required | Internet proxy configurations |
-| `k3s_agent`, `k3s_server` | `proxy_env.HTTP_PROXY` | string | ❌ | Required | HTTP internet proxy |
-| `k3s_agent`, `k3s_server` | `proxy_env.HTTPS_PROXY` | string | ❌ | Required | HTTP internet proxy |
-| `k3s_agent`, `k3s_server` | `proxy_env.NO_PROXY` | string | ❌ | Required | Addresses that will not use the proxies |
-| `k3s_agent`, `k3s_server`, `reset` | `systemd_dir` | string | `/etc/systemd/system` | Not required | Path to systemd services |
-| `k3s_custom_registries` | `custom_registries_yaml` | string | ❌ | Required | YAML block defining custom registries. The following is an example that pulls all images used in this playbook through your private registries. It also allows you to pull your own images from your private registry, without having to use imagePullSecrets in your deployments. If all you need is your own images and you don't care about caching the docker/quay/ghcr.io images, you can just remove those from the mirrors: section. |
-| `k3s_server`, `k3s_server_post` | `cilium_bgp` | bool | `~` | Not required | Enable cilium BGP control plane for LB services and pod cidrs. Disables the use of MetalLB. |
-| `k3s_server`, `k3s_server_post` | `cilium_iface` | string | ❌ | Not required | The network interface used for when Cilium is enabled |
-| `k3s_server` | `extra_server_args` | string | `""` | Not required | Extra arguments for server nodes |
-| `k3s_server` | `k3s_create_kubectl_symlink` | bool | `false` | Not required | Create the kubectl -> k3s symlink |
-| `k3s_server` | `k3s_create_crictl_symlink` | bool | `true` | Not required | Create the crictl -> k3s symlink |
-| `k3s_server` | `kube_vip_arp` | bool | `true` | Not required | Enables kube-vip ARP broadcasts |
-| `k3s_server` | `kube_vip_bgp` | bool | `false` | Not required | Enables kube-vip BGP peering |
-| `k3s_server` | `kube_vip_bgp_routerid` | string | `"127.0.0.1"` | Not required | Defines the router ID for the kube-vip BGP server |
-| `k3s_server` | `kube_vip_bgp_as` | string | `"64513"` | Not required | Defines the AS for the kube-vip BGP server |
-| `k3s_server` | `kube_vip_bgp_peeraddress` | string | `"192.168.30.1"` | Not required | Defines the address for the kube-vip BGP peer |
-| `k3s_server` | `kube_vip_bgp_peeras` | string | `"64512"` | Not required | Defines the AS for the kube-vip BGP peer |
-| `k3s_server` | `kube_vip_bgp_peers` | list | `[]` | Not required | List of BGP peer ASN & address pairs |
-| `k3s_server` | `kube_vip_bgp_peers_groups` | list | `['k3s_master']` | Not required | Inventory group in which to search for additional `kube_vip_bgp_peers` parameters to merge. |
-| `k3s_server` | `kube_vip_iface` | string | `~` | Not required | Explicitly define an interface that ALL control nodes should use to propagate the VIP, define it here. Otherwise, kube-vip will determine the right interface automatically at runtime. |
-| `k3s_server` | `kube_vip_tag_version` | string | `v0.7.2` | Not required | Image tag for kube-vip |
-| `k3s_server` | `kube_vip_cloud_provider_tag_version` | string | `main` | Not required | Tag for kube-vip-cloud-provider manifest when enable |
-| `k3s_server`, `k3_server_post` | `kube_vip_lb_ip_range` | string | `~` | Not required | IP range for kube-vip load balancer |
-| `k3s_server`, `k3s_server_post` | `metal_lb_controller_tag_version` | string | `v0.14.3` | Not required | Image tag for MetalLB |
-| `k3s_server` | `metal_lb_speaker_tag_version` | string | `v0.14.3` | Not required | Image tag for MetalLB |
-| `k3s_server` | `metal_lb_type` | string | `native` | Not required | Use FRR mode or native. Valid values are `frr` and `native` |
-| `k3s_server` | `retry_count` | int | `20` | Not required | Amount of retries when verifying that nodes joined |
-| `k3s_server` | `server_init_args` | string | ❌ | Not required | Arguments for server nodes |
-| `k3s_server_post` | `bpf_lb_algorithm` | string | `maglev` | Not required | BPF lb algorithm |
-| `k3s_server_post` | `bpf_lb_mode` | string | `hybrid` | Not required | BPF lb mode |
-| `k3s_server_post` | `calico_blocksize` | int | `26` | Not required | IP pool block size |
-| `k3s_server_post` | `calico_ebpf` | bool | `false` | Not required | Use eBPF dataplane instead of iptables |
-| `k3s_server_post` | `calico_encapsulation` | string | `VXLANCrossSubnet` | Not required | IP pool encapsulation |
-| `k3s_server_post` | `calico_natOutgoing` | string | `Enabled` | Not required | IP pool NAT outgoing |
-| `k3s_server_post` | `calico_nodeSelector` | string | `all()` | Not required | IP pool node selector |
-| `k3s_server_post` | `calico_iface` | string | `~` | Not required | The network interface used for when Calico is enabled |
-| `k3s_server_post` | `calico_tag` | string | `v3.27.2` | Not required | Calico version tag |
-| `k3s_server_post` | `cilium_bgp_my_asn` | int | `64513` | Not required | Local ASN for BGP peer |
-| `k3s_server_post` | `cilium_bgp_peer_asn` | int | `64512` | Not required | BGP peer ASN |
-| `k3s_server_post` | `cilium_bgp_peer_address` | string | `~` | Not required | BGP peer address |
-| `k3s_server_post` | `cilium_bgp_neighbors` | list | `[]` | Not required | List of BGP peer ASN & address pairs |
-| `k3s_server_post` | `cilium_bgp_neighbors_groups` | list | `['k3s_all']` | Not required | Inventory group in which to search for additional `cilium_bgp_neighbors` parameters to merge. |
-| `k3s_server_post` | `cilium_bgp_lb_cidr` | string | `192.168.31.0/24` | Not required | BGP load balancer IP range |
-| `k3s_server_post` | `cilium_exportPodCIDR` | bool | `true` | Not required | Export pod CIDR |
-| `k3s_server_post` | `cilium_hubble` | bool | `true` | Not required | Enable Cilium Hubble |
-| `k3s_server_post` | `cilium_hubble` | bool | `true` | Not required | Enable Cilium Hubble |
-| `k3s_server_post` | `cilium_mode` | string | `native` | Not required | Inner-node communication mode (choices are `native` and `routed`) |
-| `k3s_server_post` | `cluster_cidr` | string | `10.52.0.0/16` | Not required | Inner-cluster IP range |
-| `k3s_server_post` | `enable_bpf_masquerade` | bool | `true` | Not required | Use IP masquerading |
-| `k3s_server_post` | `kube_proxy_replacement` | bool | `true` | Not required | Replace the native kube-proxy with Cilium |
-| `k3s_server_post` | `metal_lb_available_timeout` | string | `240s` | Not required | Wait for MetalLB resources |
-| `k3s_server_post` | `metal_lb_ip_range` | string | `192.168.30.80-192.168.30.90` | Not required | MetalLB ip range for load balancer |
-| `k3s_server_post` | `metal_lb_controller_tag_version` | string | `v0.14.3` | Not required | Image tag for MetalLB |
-| `k3s_server_post` | `metal_lb_mode` | string | `layer2` | Not required | Metallb mode (choices are `bgp` and `layer2`) |
-| `k3s_server_post` | `metal_lb_bgp_my_asn` | string | `~` | Not required | BGP ASN configurations |
-| `k3s_server_post` | `metal_lb_bgp_peer_asn` | string | `~` | Not required | BGP peer ASN configurations |
-| `k3s_server_post` | `metal_lb_bgp_peer_address` | string | `~` | Not required | BGP peer address |
-| `lxc` | `custom_reboot_command` | string | `~` | Not required | Command to run on reboot |
-| `prereq` | `system_timezone` | string | `null` | Not required | Timezone to be set on all nodes |
-| `raspberrypi` | `state` | string | `present` | Not required | Indicates whether the k3s prerequisites for Raspberry Pi should be set up (possible values are `present` and `absent`) |
-
-
-### Troubleshooting
-
-Be sure to see [this post](https://github.com/timothystewart6/k3s-ansible/discussions/20) on how to troubleshoot common problems
-
-### Testing the playbook using molecule
-
-This playbook includes a [molecule](https://molecule.rtfd.io/)-based test setup.
-It is run automatically in CI, but you can also run the tests locally.
-This might be helpful for quick feedback in a few cases.
-You can find more information about it [here](molecule/README.md).
-
-### Pre-commit Hooks
-
-This repo uses `pre-commit` and `pre-commit-hooks` to lint and fix common style and syntax errors.  Be sure to install python packages and then run `pre-commit install`.  For more information, see [pre-commit](https://pre-commit.com/)
-
-## 🌌 Ansible Galaxy
-
-This collection can now be used in larger ansible projects.
-
-Instructions:
-
-- create or modify a file `collections/requirements.yml` in your project
-
-```yml
-collections:
-  - name: ansible.utils
-  - name: community.general
-  - name: ansible.posix
-  - name: kubernetes.core
-  - name: https://github.com/timothystewart6/k3s-ansible.git
-    type: git
-    version: master
-```
-
-- install via `ansible-galaxy collection install -r ./collections/requirements.yml`
-- every role is now available via the prefix `techno_tim.k3s_ansible.` e.g. `techno_tim.k3s_ansible.lxc`
-
-## Thanks 🤝
-
-This repo is really standing on the shoulders of giants. Thank you to all those who have contributed and thanks to these repos for code and ideas:
-
-- [k3s-io/k3s-ansible](https://github.com/k3s-io/k3s-ansible)
-- [geerlingguy/turing-pi-cluster](https://github.com/geerlingguy/turing-pi-cluster)
-- [212850a/k3s-ansible](https://github.com/212850a/k3s-ansible)
+Once the new setup has survived a re-run and a reboot cycle, the legacy
+untracked `inventory/` directory can be deleted.

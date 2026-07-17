@@ -1,0 +1,9 @@
+---
+# --server https://{{ api_endpoint }}:{{ api_port }} is supplied automatically
+# by the upstream agent role.
+extra_agent_args: ""
+
+agent_config_yaml: |
+  node-ip: "{{ ansible_host }}"
+  flannel-iface: eth0
+  kubelet-arg: "allowed-unsafe-sysctls=net.ipv4.conf.all.src_valid_mark,net.ipv6.conf.all.disable_ipv6"

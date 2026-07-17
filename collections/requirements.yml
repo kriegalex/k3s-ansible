@@ -1,6 +1,5 @@
 ---
+# Mirrors k3s-io-ansible/collections/requirements.yml (upstream dependencies).
 collections:
-  - name: ansible.utils
   - name: community.general
   - name: ansible.posix
-  - name: kubernetes.core

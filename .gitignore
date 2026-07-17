@@ -1,12 +1,15 @@
-.env/
-tmp/
-*.log
-ansible.cfg
-kubeconfig
+# Secrets — never commit
 .vault_pass
-group_vars/*
-.vscode
-.ansible
+group_vars/all/vault.yml
 
-# CLAUDE
-CLAUDE.md
+# Installed collections (requirements.yml is tracked)
+collections/ansible_collections/
+
+# Legacy techno-tim inventory kept on disk until migration is verified
+inventory/
+
+# Local ansible artifacts
+.ansible/
+*.retry
+kubeconfig
+collections/ansible_collections.broken-backup/

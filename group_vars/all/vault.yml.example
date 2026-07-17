@@ -1,0 +1,7 @@
+---
+# Copy of the live cluster token, byte-for-byte, so nodes keep their identity:
+#   sudo cat /var/lib/rancher/k3s/server/token   (on k3s-server1)
+# Then create the real encrypted vault:
+#   echo '<your-vault-password>' > .vault_pass && chmod 600 .vault_pass
+#   ansible-vault create group_vars/all/vault.yml
+token: "K10xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx::server:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

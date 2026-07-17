@@ -1,0 +1,11 @@
+---
+k3s_version: v1.31.6+k3s1
+ansible_user: k3s
+ansible_python_interpreter: /usr/bin/python3
+
+api_endpoint: 10.0.0.10
+api_port: 6443
+
+# Keep the kubeconfig context name the cluster already uses.
+cluster_context: default
+user_kubectl: true
