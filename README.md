@@ -100,6 +100,11 @@ reports `ok` and the whole kubeconfig block is skipped.
 
 ## Migration runbook (techno-tim → official, one-time)
 
+> **Status: executed successfully on 2026-07-17.** All four nodes run the
+> official units (`k3s.service` / `k3s-agent.service`), old worker units
+> retired (`.bak` files kept), config drop-ins removed, `--check --diff`
+> baseline confirmed at exactly 4 changed. Kept for reference/rollback.
+
 Server first, then agents. Rehearse on throwaway VMs if possible
 (`archive/timothy-fork` has the molecule/Vagrant tooling to build a
 Timothy-style victim cluster).
@@ -112,6 +117,21 @@ Timothy-style victim cluster).
      `echo 'k3s ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/k3s && sudo chmod 440 /etc/sudoers.d/k3s`)
    - Confirm `/usr/local/bin/k3s` exists on all nodes (install script then
      skips the download; version is unchanged).
+   - Pre-place the install script on **all** nodes — when the installed k3s
+     version already matches `k3s_version`, the upstream role skips its
+     download task but still executes `/usr/local/bin/k3s-install.sh`, which
+     never existed on techno-tim-provisioned nodes (fails with `Errno 2`):
+     ```bash
+     ansible k3s_cluster -m ansible.builtin.get_url \
+       -a 'url=https://get.k3s.io/ dest=/usr/local/bin/k3s-install.sh mode=0755 owner=root group=root' \
+       --become
+     ```
+   - Check `/etc/rancher/k3s/config.yaml.d/` on every node: k3s merges these
+     drop-ins over `config.yaml` (same key overrides), but the playbook and
+     the `--check` baseline are blind to them. Fold anything unique into
+     `group_vars`/`host_vars`, then delete the drop-ins so the repo is the
+     single source of truth. (Found in practice: `qbittorrent.yaml` and
+     `etcd-snapshots.yaml`, both exact duplicates of the repo config.)
    - Backup units for rollback — server:
      `sudo cp /etc/systemd/system/k3s.service{,.bak}`; each worker:
      `sudo cp /etc/systemd/system/k3s-node.service{,.bak}`.
