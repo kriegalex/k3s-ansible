@@ -1,0 +1,17 @@
+---
+# Lint only the wrapper repo's own files; the submodule has its own config.
+extends: default
+
+ignore:
+  - k3s-io-ansible/
+  - collections/ansible_collections/
+  - inventory/
+  - group_vars/all/vault.yml
+  - manifests/metallb-crds.yaml
+
+rules:
+  line-length:
+    max: 160
+    level: warning
+  truthy:
+    allowed-values: ["true", "false"]

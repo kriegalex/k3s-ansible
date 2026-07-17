@@ -1,0 +1,8 @@
+---
+# Lint only the wrapper repo's own files; the pinned upstream submodule is
+# read-only and linted by its own CI.
+exclude_paths:
+  - k3s-io-ansible/
+  - collections/ansible_collections/
+  - inventory/
+  - .git/
