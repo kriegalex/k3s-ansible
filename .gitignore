@@ -8,6 +8,9 @@ collections/ansible_collections/
 # Legacy techno-tim inventory kept on disk until migration is verified
 inventory/
 
+# Rendered manifests (generated from manifests/*.j2 by site.yml pre-play)
+manifests/rendered/
+
 # Local ansible artifacts
 .ansible/
 *.retry

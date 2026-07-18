@@ -22,3 +22,4 @@ server_config_yaml: |
 # playbook, so k3s adopts the running MetalLB in place.
 extra_manifests:
   - "{{ inventory_dir }}/manifests/metallb-crds.yaml"
+  - "{{ inventory_dir }}/manifests/rendered/metallb-pools.yaml"

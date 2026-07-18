@@ -1,0 +1,19 @@
+---
+# Rendered by site.yml — do not edit the rendered copy under manifests/rendered/;
+# edit this template and metallb_ip_range in group_vars/all/vars.yml.
+# Kept as a separate k3s AddOn from the install manifest (metallb-crds.yaml),
+# per MetalLB's install-vs-config separation.
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: first-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - {{ metallb_ip_range }}
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
