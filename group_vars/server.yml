@@ -1,0 +1,24 @@
+---
+# All server flags live in /etc/rancher/k3s/config.yaml (written by the
+# upstream role). token and tls-san are auto-injected by the role — do not
+# add them here.
+extra_server_args: ""
+
+server_config_yaml: |
+  node-ip: "{{ ansible_host }}"
+  flannel-iface: eth0
+  node-taint:
+    - "node-role.kubernetes.io/master=true:NoSchedule"
+  disable:
+    - servicelb
+    - traefik
+  kubelet-arg: "allowed-unsafe-sysctls=net.ipv4.conf.all.src_valid_mark,net.ipv6.conf.all.disable_ipv6"
+  etcd-snapshot-schedule-cron: "0 3 * * *"
+  etcd-snapshot-retention: 14
+  etcd-snapshot-dir: /var/lib/rancher/k3s/server/db/snapshots
+
+# Server-scoped so the prereq role only copies manifests onto the server.
+# Filename metallb-crds.yaml matches the existing k3s AddOn from the previous
+# playbook, so k3s adopts the running MetalLB in place.
+extra_manifests:
+  - "{{ inventory_dir }}/manifests/metallb-crds.yaml"

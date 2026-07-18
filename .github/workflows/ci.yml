@@ -1,27 +1,52 @@
 ---
-name: "CI"
-on:
+name: CI
+'on':
   pull_request:
-    types:
-      - opened
-      - synchronize
-    paths-ignore:
-      - '**/.gitignore'
-      - '**/FUNDING.yml'
-      - '**/host.ini'
-      - '**/*.md'
-      - '**/.editorconfig'
-      - '**/ansible.example.cfg'
-      - '**/deploy.sh'
-      - '**/LICENSE'
-      - '**/reboot.sh'
-      - '**/reset.sh'
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
 jobs:
-  pre:
-    uses: ./.github/workflows/cache.yml
   lint:
-    uses: ./.github/workflows/lint.yml
-    needs: [pre]
-  test:
-    uses: ./.github/workflows/test.yml
-    needs: [pre, lint]
+    name: Lint and syntax-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the codebase (with pinned upstream submodule)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          submodules: true
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: '3.13.x'
+
+      - name: Install ansible, yamllint, ansible-lint
+        run: pip3 install ansible yamllint ansible-lint
+
+      # ansible.cfg sets vault_password_file = .vault_pass; the real file is
+      # never committed. A dummy keeps ansible/ansible-lint from erroring, and
+      # overwriting unconditionally neutralizes any executable a PR could
+      # smuggle in under that name (ansible runs executable vault files).
+      - name: Create dummy vault password file
+        run: echo ci-dummy > .vault_pass
+
+      - name: Install collection dependencies
+        run: ansible-galaxy collection install -r collections/requirements.yml
+
+      - name: Run yamllint
+        run: yamllint --strict .
+
+      - name: Run ansible-lint
+        run: ansible-lint
+
+      - name: Verify inventory parses
+        run: ansible-inventory --graph
+
+      - name: Ansible syntax check (traverses upstream playbook + roles)
+        run: ansible-playbook site.yml --syntax-check

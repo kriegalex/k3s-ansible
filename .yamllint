@@ -1,20 +1,17 @@
 ---
+# Lint only the wrapper repo's own files; the submodule has its own config.
 extends: default
 
+ignore:
+  - k3s-io-ansible/
+  - collections/ansible_collections/
+  - inventory/
+  - group_vars/all/vault.yml
+  - manifests/metallb-crds.yaml
+
 rules:
-  comments:
-    min-spaces-from-content: 1
-  comments-indentation: false
-  braces:
-    max-spaces-inside: 1
-  octal-values:
-    forbid-implicit-octal: true
-    forbid-explicit-octal: true
   line-length:
-    max: 120
+    max: 160
     level: warning
   truthy:
     allowed-values: ["true", "false"]
-
-ignore:
-  - galaxy.yml
