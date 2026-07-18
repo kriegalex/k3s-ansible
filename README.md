@@ -3,9 +3,9 @@
 This repo provisions the homelab k3s cluster using the **official
 [k3s-io/k3s-ansible](https://github.com/k3s-io/k3s-ansible)** playbook,
 consumed read-only as a pinned git submodule (`k3s-io-ansible/`). Everything
-homelab-specific is expressed as inventory variables plus one static manifest —
-**no upstream file is ever modified**, so updating upstream can never produce a
-merge conflict.
+homelab-specific is expressed as inventory variables, one vendored manifest and
+one small template — **no upstream file is ever modified**, so updating
+upstream can never produce a merge conflict.
 
 The previous techno-tim–based playbook is preserved on the
 [`archive/timothy-fork`](../../tree/archive/timothy-fork) branch.
@@ -14,14 +14,15 @@ The previous techno-tim–based playbook is preserved on the
 
 | Path | Purpose |
 |---|---|
-| `site.yml` | Thin wrapper: `import_playbook` of the upstream site playbook |
+| `site.yml` | Render pre-play (templated manifests) + `import_playbook` of the upstream site playbook |
 | `k3s-io-ansible/` | Pinned upstream submodule (never edited) |
 | `inventory.yml` | Hosts; groups `server` / `agent` / `k3s_cluster` (names required by upstream) |
-| `group_vars/all/vars.yml` | k3s version, api endpoint, kubeconfig context |
+| `group_vars/all/vars.yml` | k3s version, api endpoint, kubeconfig context, `metallb_ip_range` |
 | `group_vars/all/vault.yml` | `token:` — ansible-vault encrypted, **not** committed (see below) |
 | `group_vars/server.yml` | `server_config_yaml` (all server flags) + `extra_manifests` (MetalLB) |
 | `group_vars/agent.yml` | `agent_config_yaml` |
-| `manifests/metallb-crds.yaml` | Pinned MetalLB v0.14.8 + `first-pool` (10.0.0.20-49) + L2Advertisement |
+| `manifests/metallb-crds.yaml` | MetalLB v0.14.8 install manifest, vendored **verbatim** from upstream (provenance header inside) |
+| `manifests/metallb-pools.yaml.j2` | IPAddressPool (`metallb_ip_range`) + L2Advertisement — rendered to `manifests/rendered/` (gitignored) by the `site.yml` pre-play |
 
 Design notes:
 
@@ -29,10 +30,26 @@ Design notes:
   role from `server_config_yaml` / `agent_config_yaml`). `token` and
   `tls-san: {{ api_endpoint }}` are auto-injected by the role — never duplicate
   them in the config vars.
-- MetalLB is deployed via upstream's `extra_manifests` mechanism: the file is
+- MetalLB is deployed via upstream's `extra_manifests` mechanism: files are
   copied to `/var/lib/rancher/k3s/server/manifests/` and k3s's AddOn controller
-  applies it. The filename `metallb-crds.yaml` deliberately matches the AddOn
-  created by the old playbook, so the running MetalLB is adopted in place.
+  applies them. Install and config are **separate AddOns**, matching MetalLB's
+  own install-vs-configuration split:
+  - `metallb-crds.yaml` — the upstream install manifest, vendored byte-identical
+    (see the provenance header in the file). The filename deliberately matches
+    the AddOn created by the old playbook so the running MetalLB was adopted in
+    place; **do not rename it** — the AddOn name derives from the file basename,
+    and renaming would orphan the existing AddOn and re-create every object
+    under a new owner.
+  - `metallb-pools.yaml` (rendered from the `.j2`) — the cluster's
+    IPAddressPool/L2Advertisement. The pool range lives in
+    `metallb_ip_range` in `group_vars/all/vars.yml`.
+  - History note: the pool CRs used to live at the bottom of
+    `metallb-crds.yaml`. The split (2026-07-18) was done in two converges on
+    purpose: first add the pools AddOn (k3s adopts the live CRs in place —
+    same UID), *then* trim them out of `metallb-crds.yaml`. Doing both in one
+    converge makes the old AddOn **prune (delete) the CRs** before the new
+    AddOn re-creates them — a brief outage of the pool. Keep this in mind if
+    objects ever move between AddOn files again.
 - kube-vip was removed (single control-plane node; the "VIP" was the server's
   own IP).
 
@@ -59,6 +76,20 @@ obsolete — the upstream agent role joins idempotently via the shared token.)
 **Updating upstream**: `cd k3s-io-ansible && git fetch && git checkout <tag>`,
 review upstream changelog, commit the new submodule pointer. Conflict-free by
 construction.
+
+**Upgrading MetalLB**: replace everything below the provenance header of
+`manifests/metallb-crds.yaml` with the new tag's `metallb-native.yaml`
+(URL pattern in the header), read the
+[release notes](https://metallb.io/release-notes/) first, and verify the
+vendored copy is byte-identical:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml \
+  | diff - <(tail -n +9 manifests/metallb-crds.yaml)   # empty output = OK
+```
+
+Leave `manifests/metallb-pools.yaml.j2` alone — pool config is decoupled from
+the install manifest by design.
 
 ## Vault (required before any real run)
 
@@ -88,7 +119,20 @@ unconditionally by design (declarative upgrade path):
 1. `Enable and start K3s service` (k3s-server1, `state: restarted`)
 2. `Enable and start K3s agent` × 3 (workers)
 
-**Anything beyond these 4 is real drift — investigate.** Note that the
+The render pre-play tasks in `site.yml` run for real even under `--check`
+(`check_mode: false` — required so the upstream copy task can find its src on
+a fresh clone); they report `changed` only on first render or when
+`metallb_ip_range`/the template changes.
+
+Known quirk (agents): after a run of upstream's `upgrade.yml`, `--check` shows
+2 extra changed per agent (`Delete any existing token…` / `Add the token…`).
+The k3s install script invoked by the upgrade playbook writes
+`K3S_TOKEN='…'` single-quoted; the site converge writes it unquoted and its
+"different token?" regexp doesn't account for quotes. Same token value — the
+next real converge just normalizes the quoting (and restarts the agent, which
+is in the baseline anyway).
+
+**Anything beyond these is real drift — investigate.** Note that the
 config.yaml writes are check-mode-gated upstream, so `--check` cannot reveal
 config drift; verify `/etc/rancher/k3s/config.yaml` on the nodes directly.
 
