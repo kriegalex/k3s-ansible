@@ -1,3 +1,11 @@
+# Vendored verbatim from:
+#   https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+# Everything after this 8-line header is byte-identical to that release asset — do not hand-edit.
+# Pool/advertisement config lives in manifests/metallb-pools.yaml.j2 (rendered by site.yml).
+# Upgrade = replace everything below the header with the new tag's file, read the MetalLB
+# release notes (https://metallb.io/release-notes/), then verify:
+#   curl -fsSL https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml \
+#     | diff - <(tail -n +9 manifests/metallb-crds.yaml)
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -1983,19 +1991,3 @@ webhooks:
     resources:
     - l2advertisements
   sideEffects: None
----
-# Cluster-specific CRs (match live objects exactly — adopted in place)
-apiVersion: metallb.io/v1beta1
-kind: IPAddressPool
-metadata:
-  name: first-pool
-  namespace: metallb-system
-spec:
-  addresses:
-    - 10.0.0.20-10.0.0.49
----
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
-metadata:
-  name: default
-  namespace: metallb-system
