@@ -21,7 +21,7 @@ The previous techno-tim–based playbook is preserved on the
 | `group_vars/all/vault.yml` | `token:` — ansible-vault encrypted, **not** committed (see below) |
 | `group_vars/server.yml` | `server_config_yaml` (all server flags) + `extra_manifests` (MetalLB) |
 | `group_vars/agent.yml` | `agent_config_yaml` |
-| `manifests/metallb-crds.yaml` | MetalLB v0.14.8 install manifest, vendored **verbatim** from upstream (provenance header inside) |
+| `manifests/metallb-crds.yaml` | MetalLB v0.16.1 install manifest, vendored **verbatim** from upstream (provenance header inside) |
 | `manifests/metallb-pools.yaml.j2` | IPAddressPool (`metallb_ip_range`) + L2Advertisement — rendered to `manifests/rendered/` (gitignored) by the `site.yml` pre-play |
 
 Design notes:
@@ -84,7 +84,7 @@ construction.
 vendored copy is byte-identical:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml \
+curl -fsSL https://raw.githubusercontent.com/metallb/metallb/v0.16.1/config/manifests/metallb-native.yaml \
   | diff - <(tail -n +9 manifests/metallb-crds.yaml)   # empty output = OK
 ```
 
