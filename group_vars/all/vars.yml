@@ -9,3 +9,7 @@ api_port: 6443
 # Keep the kubeconfig context name the cluster already uses.
 cluster_context: default
 user_kubectl: true
+
+# LoadBalancer pool advertised by MetalLB (L2) — rendered into
+# manifests/rendered/metallb-pools.yaml by the pre-play in site.yml.
+metallb_ip_range: 10.0.0.20-10.0.0.49

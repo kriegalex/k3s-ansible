@@ -7,7 +7,12 @@ ignore:
   - collections/ansible_collections/
   - inventory/
   - group_vars/all/vault.yml
+  # Vendored upstream MetalLB install manifest — byte-identical to the release
+  # asset (see provenance header in the file), ~2000 machine-generated lines.
   - manifests/metallb-crds.yaml
+  # Generated from manifests/metallb-pools.yaml.j2 by the site.yml pre-play
+  # (the .j2 source is skipped by yamllint anyway, by extension).
+  - manifests/rendered/
 
 rules:
   line-length:

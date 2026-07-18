@@ -1,5 +1,31 @@
 ---
 # Thin wrapper around the pinned upstream k3s-io/k3s-ansible playbook.
 # Run from the repo root so ansible.cfg (roles_path, collections_path) is loaded.
+
+# Pre-play: render templated manifests locally before the upstream prereq role
+# copies extra_manifests to the server. hosts: server (not localhost) so
+# group_vars/all is in scope; check_mode: false so `--check` runs still render
+# the file and the upstream copy task can find its src on a fresh clone.
+- name: Render cluster manifests from templates
+  hosts: server
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Ensure rendered-manifests dir exists
+      delegate_to: localhost
+      check_mode: false
+      ansible.builtin.file:
+        path: "{{ inventory_dir }}/manifests/rendered"
+        state: directory
+        mode: "0755"
+
+    - name: Render MetalLB pools manifest
+      delegate_to: localhost
+      check_mode: false
+      ansible.builtin.template:
+        src: manifests/metallb-pools.yaml.j2
+        dest: "{{ inventory_dir }}/manifests/rendered/metallb-pools.yaml"
+        mode: "0644"
+
 - name: Import upstream k3s-ansible site playbook
   ansible.builtin.import_playbook: k3s-io-ansible/playbooks/site.yml
